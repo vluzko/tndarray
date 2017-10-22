@@ -1,0 +1,137 @@
+let tndarray = require('../tndarray');
+
+// TODO: Randomly generated tests.
+// TODO: MAX_INT tests
+describe("Constructors and factories.", function() {
+  describe("Shapes.", function () {
+
+    class Sample {
+      constructor(input_array, input_shape, expected) {
+        this.input_array = input_array;
+        this.input_shape = input_shape;
+        this.expected = expected;
+      }
+    }
+
+    // TODO: Tests for wrong input types.
+    const passing_samples = new Map([
+      ["null", new Sample([], null, {
+        "shape": new Uint32Array([0]),
+        "size": 0
+      })],
+      ["flat", new Sample([1, 2, 3, 4], [4], {
+        "shape": new Uint32Array([4]),
+        "size": 4
+      })],
+      ["two-dimensional", new Sample([1,2,3,4,5,6], [2,3], {
+        "shape": new Uint32Array([2, 3]),
+        "size": 6
+      })]
+    ]);
+
+    passing_samples.forEach((sample, n) => {
+      it (`Testing pass sample ${n}.`, function () {
+        const array = tndarray.tndarray.array(sample.input_array, sample.input_shape);
+        for (let prop in sample.expected) {
+          expect(array[prop]).toEqual(sample.expected[prop])
+        }
+      });
+    });
+
+    describe("Failing tests.", function () {
+      it("Data not an array.", function () {
+        expect(() => tndarray.tndarray.array(1)).toThrow(new tndarray.errors.BadData())
+      });
+
+      it("Data not numeric.", function () {
+        expect(() => tndarray.tndarray.array(["asd"])).toThrow(new tndarray.errors.BadData());
+      });
+
+      it("Wrong shape type.", function () {
+        expect(() => tndarray.tndarray.array([], "asdf")).toThrow(new tndarray.errors.BadShape());
+      });
+
+      it("No shape parameter.", function () {
+        const array = tndarray.tndarray.array([1,2,3,4]);
+        expect(array.shape).toEqual(new Uint32Array([4]));
+        expect(array.size).toBe(4);
+      });
+
+      describe("Wrong dimensions.", function () {
+        it("Wrong size.", function () {
+          expect(() => tndarray.tndarray.array([1, 2, 3], [2, 2])).toThrow(new tndarray.errors.MismatchedShapeSize());
+        });
+
+        it("Null shape", function () {
+          expect(() => tndarray.tndarray.array([1, 2, 3], [null])).toThrow(new tndarray.errors.MismatchedShapeSize());
+        });
+
+        it("Empty shape.", function () {
+          expect(() => tndarray.tndarray.array([1, 2, 3], [])).toThrow(new tndarray.errors.MismatchedShapeSize());
+        });
+      });
+    });
+
+  });
+
+  describe("Helper methods.", function () {
+    it("stride from shape.", function () {
+      expect(tndarray.tndarray._stride_from_shape([2, 2, 3])).toEqual(new Uint32Array([1, 2, 4]));
+      expect(tndarray.tndarray._stride_from_shape([2, 5])).toEqual(new Uint32Array([1, 2]));
+    });
+  });
+
+  describe("Specialized factories.", function () {
+    it("zeros.", function () {
+      expect(tndarray.tndarray.zeros([2,2]).data).toEqual(new Float64Array([0, 0, 0, 0]));
+      expect(tndarray.tndarray.zeros(4).data).toEqual(new Float64Array([0, 0, 0, 0]));
+    });
+
+    it("ones.", function () {
+      expect(tndarray.tndarray.ones([2,2]).data).toEqual(new Float64Array([1, 1, 1, 1]));
+      expect(tndarray.tndarray.ones(4).data).toEqual(new Float64Array([1, 1, 1, 1]));
+    });
+
+    it("filled.", function () {
+      expect(tndarray.tndarray.filled(-1, [2,2]).data).toEqual(new Float64Array([-1, -1, -1, -1]));
+      expect(tndarray.tndarray.filled(10, 4).data).toEqual(new Float64Array([10, 10, 10, 10]));
+    });
+  })
+});
+
+describe("Indices", function () {
+  it("compute real index", function () {
+    expect(tndarray.tndarray.zeros([2,2])._compute_real_index([1,1])).toBe(3);
+    expect(tndarray.tndarray.zeros([2,3,4,5]))
+  });
+
+  it("g.", function () {
+    const array1 = (new Uint32Array(27)).map((e, i) => i);
+    let tndarray1 = tndarray.tndarray.array(array1, [3, 3, 3]);
+    expect(tndarray1.g(1, 1, 1)).toBe(13);
+    expect(tndarray1.g(1, 0, 1)).toBe(10);
+    expect(tndarray1.g(2, 1, 0)).toBe(5);
+
+    let array2 = (new Uint32Array(120)).map((e, i) => i);
+    const tndarray2 = tndarray.tndarray.array(array2, [2,3,4,5]);
+    expect(tndarray2.g(1, 2, 3, 4)).toBe(119);
+    expect(tndarray2.g(0, 2, 3, 4)).toBe(118);
+    expect(tndarray2.g(0, 0, 0, 0)).toBe(0);
+
+    const array3 = (new Uint32Array(36)).map((e, i) => i);
+    let tndarray3 = tndarray.tndarray.array(array3, [2, 3, 2, 3]);
+    expect(tndarray3.g(1, 2, 1, 2)).toBe(35);
+    expect(tndarray3.g(1, 2, 0, 0)).toBe(5);
+    expect(tndarray3.g(1, 0, 0, 1)).toBe(13);
+  });
+});
+
+describe("Methods.", function () {
+
+});
+
+describe("utils.", function () {
+  it("dot.", function () {
+    expect(tndarray.utils.dot([1,2,3], [1,2,3])).toBe(14);
+  });
+});
