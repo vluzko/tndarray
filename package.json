@@ -1,0 +1,29 @@
+{
+  "name": "@vluzko/tndarray",
+  "version": "1.0.0",
+  "description": "Typed n-dimensional arrays",
+  "main": "tndarray.js",
+  "dependencies": {
+    "jasmine": "^2.7.0"
+  },
+  "devDependencies": {
+    "jsverify": "^0.8.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vluzko/tndarray.git"
+  },
+  "keywords": [
+    "math",
+    "ndarray"
+  ],
+  "author": "Vincent Luczkow",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vluzko/tndarray/issues"
+  },
+  "homepage": "https://github.com/vluzko/tndarray#readme"
+}
