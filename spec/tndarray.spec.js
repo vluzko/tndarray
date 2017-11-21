@@ -100,7 +100,39 @@ describe("Constructors and factories.", function() {
 });
 
 describe("Indices", function () {
-  it("compute real index", function () {
+
+  // TODO: Come up with some reasonable property based tests.
+  it("_index_iterator", function () {
+    let array = tndarray.tndarray.zeros([2,2]);
+    let i = 0;
+    for (let index of array._index_iterator()) {
+      switch (i) {
+        case 0: expect(index).toEqual(new Uint32Array([0,0])); break;
+        case 1: expect(index).toEqual(new Uint32Array([0,1])); break;
+        case 2: expect(index).toEqual(new Uint32Array([1,0])); break;
+        case 3: expect(index).toEqual(new Uint32Array([1,1])); break;
+      }
+      ++i;
+    }
+  });
+
+  it("_value_iterator.", function () {
+    let array = tndarray.tndarray.array([1,2,3,4]);
+
+    let i = 0;
+    for (let val of array._value_iterator()) {
+      switch (i) {
+        case 0: expect(val).toEqual(1); break;
+        case 1: expect(val).toEqual(2); break;
+        case 2: expect(val).toEqual(3); break;
+        case 3: expect(val).toEqual(4); break;
+      }
+      ++i;
+    }
+
+  });
+
+  it("compute_real_index.", function () {
     expect(tndarray.tndarray.zeros([2,2])._compute_real_index([1,1])).toBe(3);
     expect(tndarray.tndarray.zeros([2,3,4,5]))
   });
