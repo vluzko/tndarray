@@ -1,3 +1,5 @@
+import is_numeric = utils.is_numeric;
+
 type NumericalUnion = number[] | Int8Array | Int16Array | Int32Array | Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array | Float32Array | Float64Array;
 type AnyNumerical = number[] & Int8Array & Int16Array & Int32Array & Uint8Array & Uint8ClampedArray & Uint16Array & Uint32Array & Float32Array & Float64Array;
 type TypedArray = Int8Array & Int16Array & Int32Array & Uint8Array & Uint8ClampedArray & Uint16Array & Uint32Array & Float32Array & Float64Array;
@@ -39,10 +41,22 @@ namespace errors {
 }
 
 namespace utils {
+  /**
+   * TODO: Move to a static function in tndarray
+   * @param array1
+   * @param array2
+   * @return {number}
+   */
   export function dot(array1, array2): number {
     return array1.reduce((a, b, i) => a + b * array2[i], 0);
   }
   
+  /**
+   * TODO: Move to a static function in tndarray
+   * @param array1
+   * @param array2
+   * @return {boolean}
+   */
   export function arrayEqual(array1, array2) {
     if (array1.length !== array2.length) {
       return false;
@@ -50,7 +64,18 @@ namespace utils {
       return array1.reduce((a, b, i) => a && (b === array2[i]), true);
     }
   }
+  
+  /**
+   * TODO: Test
+   * Checks whether a value is a number and isn't null.
+   * @param value - The value to check.
+   * @return {boolean}
+   */
+  export function is_numeric(value: any): boolean {
+    return !isNaN(value) && value !== null;
+  }
 }
+
 
 class tndarray {
   
@@ -62,59 +87,6 @@ class tndarray {
   public shape: Uint32Array;
   public size: number;
   public dtype: string;
-  
-  /**
-   * Computes the total size of the array from its shape.
-   * @param {NumericalArray} shape
-   * @return {number}
-   * @private
-   */
-  private static _compute_size(shape: Uint32Array): number {
-    return shape.reduce((a, b) => a * b);
-  }
-  
-  /**
-   *
-   * @param dtype
-   * @return {any}
-   * @private
-   */
-  private static _dtype_map(dtype) {
-    let array_type;
-    switch (dtype) {
-      case "int8":
-        array_type = Int8Array;
-        break;
-      case "int16":
-        array_type = Int16Array;
-        break;
-      case "int32":
-        array_type = Int32Array;
-        break;
-      case "uint8":
-        array_type = Uint8Array;
-        break;
-      case "uint8c":
-        array_type = Uint8ClampedArray;
-        break;
-      case "uint16":
-        array_type = Uint16Array;
-        break;
-      case "uint32":
-        array_type = Uint32Array;
-        break;
-      case "float32":
-        array_type = Float32Array;
-        break;
-      case "float64":
-        array_type = Float64Array;
-        break;
-      default:
-        array_type = Float64Array;
-    }
-    
-    return array_type;
-  }
   
   // TODO: MAX_INT checks on shape/size/etc.
   /**
@@ -150,10 +122,73 @@ class tndarray {
     
   }
   
-  private _compute_real_index(indices) {
+  /**
+   * Computes the index of a value in the underlying data array based on a passed index.
+   * @param indices
+   * @return {number} - The index
+   * @private
+   */
+  private _compute_real_index(indices): number {
     return utils.dot(indices, this.stride) + this.initial_offset;
   }
   
+  /**
+   * Returns an iterator over the indices of the array.
+   * @private
+   */
+  private _index_iterator(): Iterable<any> {
+    let iter = {};
+    const end_dimension = this.shape.length - 1;
+    const size = this.size;
+    const shape = this.shape;
+    iter[Symbol.iterator] = function* () {
+      
+      let current_index = new Uint32Array(shape.length);
+      let count = 0;
+      
+      // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
+      for (let i = 0; i < size; i++) {
+        // Yield a copy of the current index.
+        yield current_index.slice();
+  
+        ++current_index[end_dimension];
+  
+        // Carry the ones.
+        let current_dimension = end_dimension;
+        while (current_dimension >=0 && (current_index[current_dimension] == shape[current_dimension])) {
+          current_index[current_dimension] = 0;
+          current_dimension--;
+          ++current_index[current_dimension];
+        }
+  
+        count++;
+      }
+    };
+    return <Iterable<any>> iter
+  }
+  
+  /**
+   * TODO: Test
+   * Returns a generator of the values of the array, in index order.
+   * @private
+   */
+  private* _value_iterator(): Iterable<any> {
+    const index_iterator = this._index_iterator();
+    let iter = {};
+    // Alas, generators are dynamically scoped.
+    const self = this;
+    iter[Symbol.iterator] = function* () {
+      for (let index of index_iterator) {
+        yield self.g(index);
+      }
+    };
+    return iter;
+  }
+  
+  /**
+   *
+   * @param indices
+   */
   slice(...indices) {
   
   }
@@ -219,7 +254,7 @@ class tndarray {
   }
   
   /**
-   * TODO: Axisify
+   * TODO: Axes
    * Returns the maximum element of the array.
    * @param {number} axis
    * @return {number}
@@ -229,13 +264,86 @@ class tndarray {
   }
   
   /**
-   * TODO: Axisify
+   * TODO: Axes
    * Returns the minimum element of the array.
    * @param {number} axis
    * @return {number}
    */
   min(axis?: number): number {
     return Math.min(...this.data);
+  }
+  
+  /**
+   * TODO: Axes
+   * Map the array.
+   * @param f
+   * @return {tndarray}
+   */
+  map(f): tndarray {
+    const new_data = this.data.map(f);
+    return tndarray.array(new_data, this.shape, {disable_checks: true, dtype: this.dtype})
+  }
+  
+  /**
+   * Similar to filter, but avoids the issue of having to compute the shape of the new array.
+   * @param f
+   * @return {tndarray}
+   */
+  where(f): tndarray {
+    return
+  }
+  
+  /**
+   * Computes the total size of the array from its shape.
+   * @param {NumericalArray} shape
+   * @return {number}
+   * @private
+   */
+  private static _compute_size(shape: Uint32Array): number {
+    return shape.reduce((a, b) => a * b);
+  }
+  
+  /**
+   *
+   * @param dtype
+   * @return {any}
+   * @private
+   */
+  private static _dtype_map(dtype) {
+    let array_type;
+    switch (dtype) {
+      case "int8":
+        array_type = Int8Array;
+        break;
+      case "int16":
+        array_type = Int16Array;
+        break;
+      case "int32":
+        array_type = Int32Array;
+        break;
+      case "uint8":
+        array_type = Uint8Array;
+        break;
+      case "uint8c":
+        array_type = Uint8ClampedArray;
+        break;
+      case "uint16":
+        array_type = Uint16Array;
+        break;
+      case "uint32":
+        array_type = Uint32Array;
+        break;
+      case "float32":
+        array_type = Float32Array;
+        break;
+      case "float64":
+        array_type = Float64Array;
+        break;
+      default:
+        array_type = Float64Array;
+    }
+    
+    return array_type;
   }
   
   /**
@@ -256,7 +364,7 @@ class tndarray {
     if (!Array.isArray(array) && !ArrayBuffer.isView(array)) {
       return false;
     } else {
-      return (<number[]>array).reduce((a, b) => (!isNaN(b) && b !== null) && a, true);
+      return (<number[]>array).reduce((a, b) => utils.is_numeric(b) && a, true);
     }
   }
   
@@ -410,5 +518,23 @@ class tndarray {
     
     return new tndarray(data, final_shape, offset, stride, dstride, size, dtype);
   }
+  
+  // /**
+  //  *
+  //  * @param value1
+  //  * @param value2
+  //  * @return {number | tndarray}
+  //  */
+  //  */
+  // static add(value1: number | tndarray, value2: number | tndarray): number | tndarray {
+  //   if (value1 instanceof tndarray) {
+  //     if (value2 instanceof tndarray) {
+  //
+  //     } else if (is_numeric(value2)) {
+  //       return tndarray.ma
+  //     }
+  //   }
+  // }
+  
 }
 export {tndarray, errors, utils};
