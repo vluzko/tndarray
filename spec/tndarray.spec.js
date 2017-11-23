@@ -77,10 +77,9 @@ describe("Constructors and factories.", function() {
 
   describe("Helper methods.", function () {
 
-    fit("_compute_slice_size.", function () {
+    it("_compute_slice_size.", function () {
       expect(tndarray.tndarray._compute_slice_size([0,0], [2,2], [1,1])).toBe(4);
       expect(tndarray.tndarray._compute_slice_size(new Uint32Array([0,5]), new Uint32Array([6,10]), new Uint32Array([5,2]))).toBe(6);
-      console.log(tndarray.tndarray._compute_slice_size())
     });
 
     it("stride from shape.", function () {
