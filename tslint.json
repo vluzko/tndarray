@@ -21,7 +21,7 @@
     "member-access": false,
     "member-ordering": [
       true,
-      "static-before-instance",
+      "instance-before-static",
       "variables-before-functions"
     ],
     "no-arg": true,
@@ -44,7 +44,7 @@
     "no-shadowed-variable": true,
     "no-string-literal": false,
     "no-switch-case-fall-through": true,
-    "no-trailing-whitespace": true,
+    "no-trailing-whitespace": false,
     "no-unused-expression": true,
     "no-unused-variable": true,
     "no-unreachable": true,
@@ -60,7 +60,7 @@
     ],
     "quotemark": [
       true,
-      "single"
+      "double"
     ],
     "radix": true,
     "semicolon": [

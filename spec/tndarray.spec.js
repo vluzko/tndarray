@@ -1,4 +1,5 @@
 let tndarray = require('../tndarray');
+let _ = require('lodash');
 
 // TODO: Randomly generated tests.
 // TODO: MAX_INT tests
@@ -17,15 +18,15 @@ describe("Constructors and factories.", function() {
     const passing_samples = new Map([
       ["null", new Sample([], null, {
         "shape": new Uint32Array([0]),
-        "size": 0
+        "length": 0
       })],
       ["flat", new Sample([1, 2, 3, 4], [4], {
         "shape": new Uint32Array([4]),
-        "size": 4
+        "length": 4
       })],
       ["two-dimensional", new Sample([1,2,3,4,5,6], [2,3], {
         "shape": new Uint32Array([2, 3]),
-        "size": 6
+        "length": 6
       })]
     ]);
 
@@ -54,11 +55,11 @@ describe("Constructors and factories.", function() {
       it("No shape parameter.", function () {
         const array = tndarray.tndarray.array([1,2,3,4]);
         expect(array.shape).toEqual(new Uint32Array([4]));
-        expect(array.size).toBe(4);
+        expect(array.length).toBe(4);
       });
 
       describe("Wrong dimensions.", function () {
-        it("Wrong size.", function () {
+        it("Wrong length.", function () {
           expect(() => tndarray.tndarray.array([1, 2, 3], [2, 2])).toThrow(new tndarray.errors.MismatchedShapeSize());
         });
 
@@ -75,6 +76,13 @@ describe("Constructors and factories.", function() {
   });
 
   describe("Helper methods.", function () {
+
+    fit("_compute_slice_size.", function () {
+      expect(tndarray.tndarray._compute_slice_size([0,0], [2,2], [1,1])).toBe(4);
+      expect(tndarray.tndarray._compute_slice_size(new Uint32Array([0,5]), new Uint32Array([6,10]), new Uint32Array([5,2]))).toBe(6);
+      console.log(tndarray.tndarray._compute_slice_size())
+    });
+
     it("stride from shape.", function () {
       expect(tndarray.tndarray._stride_from_shape([2, 2, 3])).toEqual(new Uint32Array([1, 2, 4]));
       expect(tndarray.tndarray._stride_from_shape([2, 5])).toEqual(new Uint32Array([1, 2]));
@@ -100,6 +108,13 @@ describe("Constructors and factories.", function() {
 });
 
 describe("Indices", function () {
+
+  it("_slice_iterator", function () {
+    let i = 0;
+    for (let index of tndarray.tndarray._slice_iterator([0, 5], [4, 0], [5, 5])) {
+      console.log(index);
+    }
+  });
 
   // TODO: Come up with some reasonable property based tests.
   it("_index_iterator", function () {
@@ -159,6 +174,18 @@ describe("Indices", function () {
 });
 
 describe("Methods.", function () {
+
+  it("Add.", function () {
+
+  });
+
+  it("Subtract.", function () {
+
+  });
+
+  it("Multiply.", function () {
+
+  });
 
 });
 
