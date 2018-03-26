@@ -35,6 +35,9 @@ var errors;
     class WrongIterableSize extends Error {
     }
     errors.WrongIterableSize = WrongIterableSize;
+    class NestedArrayHasInconsistentDimensions extends Error {
+    }
+    errors.NestedArrayHasInconsistentDimensions = NestedArrayHasInconsistentDimensions;
 })(errors || (errors = {}));
 exports.errors = errors;
 var utils;
@@ -55,7 +58,7 @@ var utils;
      * @param array2
      * @return {boolean}
      */
-    function arrayEqual(array1, array2) {
+    function array_equal(array1, array2) {
         if (array1.length !== array2.length) {
             return false;
         }
@@ -63,7 +66,7 @@ var utils;
             return array1.reduce((a, b, i) => a && (b === array2[i]), true);
         }
     }
-    utils.arrayEqual = arrayEqual;
+    utils.array_equal = array_equal;
     /**
      * TODO: Test
      * Checks whether a value is a number and isn't null.
@@ -117,6 +120,9 @@ class tndarray {
      * @private
      */
     _compute_real_index(indices) {
+        if (ArrayBuffer.isView(indices[0])) {
+            indices = indices[0];
+        }
         return utils.dot(indices, this.stride) + this.initial_offset;
     }
     /**
@@ -130,66 +136,6 @@ class tndarray {
         const ranges = tndarray.sub(upper_bounds, lower_bounds);
         const values = tndarray.cdiv(ranges, steps);
         return values.reduce((a, e) => a * e, 1);
-    }
-    // TODO: Support negative indices
-    /**
-     * Iterate over a slice.
-     * @param lower_bounds
-     * @param upper_bounds
-     * @param steps
-     * @return {Iterable<any>}
-     * @private
-     */
-    static _slice_iterator(lower_bounds, upper_bounds, steps) {
-        let iter = {};
-        const size = tndarray._compute_slice_size(lower_bounds, upper_bounds, steps);
-        const end_dimension = upper_bounds.length - 1;
-        iter[Symbol.iterator] = function* () {
-            let current_index = lower_bounds.slice();
-            let count = 0;
-            // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
-            for (let i = 0; i < size; i++) {
-                // Yield a copy of the current index.
-                yield current_index.slice();
-                ++current_index[end_dimension];
-                // Carry the ones.
-                let current_dimension = end_dimension;
-                while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
-                    current_index[current_dimension] = lower_bounds[current_dimension];
-                    current_dimension--;
-                    current_index[current_dimension] += steps[current_dimension];
-                }
-                count++;
-            }
-        };
-        return iter;
-    }
-    /**
-     * Returns an iterator over the indices of the array.
-     * @private
-     */
-    _index_iterator() {
-        const lower_bounds = new Uint32Array(this.shape.length);
-        const steps = new Uint32Array(this.shape.length);
-        steps.fill(1);
-        return tndarray._slice_iterator(lower_bounds, this.shape, steps);
-    }
-    /**
-     * TODO: Test
-     * Returns a generator of the values of the array, in index order.
-     * @private
-     */
-    *_value_iterator() {
-        const index_iterator = this._index_iterator();
-        let iter = {};
-        // Alas, generators are dynamically scoped.
-        const self = this;
-        iter[Symbol.iterator] = function* () {
-            for (let index of index_iterator) {
-                yield self.g(index);
-            }
-        };
-        return iter;
     }
     /**
      * Return a slice of an array. Copies the underlying data.
@@ -299,6 +245,50 @@ class tndarray {
     //   return
     // }
     /**
+     * Iterate over a slice.
+     * Coordinates are updated last dimension first.
+     * @param {Uint32Array} lower_or_upper  - If no additional arguments are passed, this is treated as the upper bounds of each dimension.
+     *                                        with lower bound [0]*n and step size [1]*n.
+     *                                        Otherwise, this is the lower bounds of each dimension.
+     * @param {Uint32Array} upper_bounds    - The upper bounds of each dimension. If this is not passed the first argument is treated as
+     *                                        the upper bounds and the lower bounds default to [0]*n.
+     * @param {Uint32Array} steps           - The size of step to take along each dimension. Defaults to [1]*n if not passed.
+     * @return {Iterable<any>}
+     * @private
+     */
+    static _slice_iterator(lower_or_upper, upper_bounds, steps) {
+        if (steps === undefined) {
+            steps = new Uint32Array(lower_or_upper.length);
+            steps.fill(1);
+        }
+        if (upper_bounds === undefined) {
+            upper_bounds = lower_or_upper;
+            lower_or_upper = new Uint32Array(upper_bounds.length);
+        }
+        let iter = {};
+        const size = tndarray._compute_slice_size(lower_or_upper, upper_bounds, steps);
+        const end_dimension = upper_bounds.length - 1;
+        iter[Symbol.iterator] = function* () {
+            let current_index = lower_or_upper.slice();
+            let count = 0;
+            // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
+            for (let i = 0; i < size; i++) {
+                // Yield a copy of the current index.
+                yield current_index.slice();
+                ++current_index[end_dimension];
+                // Carry the ones.
+                let current_dimension = end_dimension;
+                while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
+                    current_index[current_dimension] = lower_or_upper[current_dimension];
+                    current_dimension--;
+                    current_index[current_dimension] += steps[current_dimension];
+                }
+                count++;
+            }
+        };
+        return iter;
+    }
+    /**
      * Computes the total length of the array from its shape.
      * @param {NumericalArray} shape
      * @return {number}
@@ -398,6 +388,9 @@ class tndarray {
                 throw new errors.BadShape();
             }
         }
+        else if (ArrayBuffer.isView(shape)) {
+            final_shape = shape;
+        }
         else {
             // TODO: Create custom error.
             throw new errors.BadShape();
@@ -435,6 +428,121 @@ class tndarray {
             stride[i + 1] = stride[i] * shape[i];
         }
         return stride;
+    }
+    /**
+     * Checks that the inputs have a `length` property, and that their lengths are equal.
+     * @param value1
+     * @param value2
+     * @return {boolean}
+     * @private
+     */
+    static _lengths_exist_and_match(value1, value2) {
+        return value1.length !== undefined && value1.length === value2.length;
+    }
+    /**
+     * Returns a tndarray if a or b are tndarrays, returns the raw data otherwise.
+     * @param a - The first value used to produce `new_data`. Has priority.
+     * @param b - The second value used to produce `new_data`.
+     * @param new_data  - The actual data.
+     * @return {any}
+     * @private
+     */
+    static _upcast_data(a, b, new_data) {
+        if (a instanceof tndarray) {
+            return tndarray.array(new_data, a.shape, { disable_checks: true, dtype: a.dtype });
+        }
+        else if (b instanceof tndarray) {
+            return tndarray.array(new_data, b.shape, { disable_checks: true, dtype: b.dtype });
+        }
+        else {
+            return new_data;
+        }
+    }
+    static _broadcast(a, b) {
+    }
+    /**
+     * Returns an iterator over the indices of the array.
+     * @private
+     */
+    _index_iterator() {
+        return tndarray._slice_iterator(this.shape);
+    }
+    /**
+     * TODO: Test
+     * Returns a generator of the values of the array, in index order.
+     * @private
+     */
+    *_value_iterator() {
+        const index_iterator = tndarray._slice_iterator(this.shape);
+        let iter = {};
+        // Alas, generators are dynamically scoped.
+        const self = this;
+        iter[Symbol.iterator] = function* () {
+            for (let index of index_iterator) {
+                yield self.g(index);
+            }
+        };
+        return iter;
+    }
+    /**
+     * Compute the dimensions of a nested array.
+     * @param {any[]} nested_array  - Arrays nested arbitrarily deeply. Each array of the same depth must have the same length.
+     *                                This is *not* checked.
+     * @return {Uint32Array}        - The dimensions of each subarray.
+     * @private
+     */
+    static _nested_array_shape(nested_array) {
+        let dims = [];
+        let current = nested_array;
+        let at_bottom = false;
+        while (!at_bottom) {
+            dims.push(current.length);
+            if (Array.isArray(current[0])) {
+                current = current[0];
+            }
+            else {
+                at_bottom = true;
+            }
+        }
+        return new Uint32Array(dims);
+    }
+    /**
+     *
+     * @param {any[]} nested_array
+     * @param {Uint32Array} indices
+     * @return {any[]}
+     * @private
+     */
+    static _nested_array_value_from_index(nested_array, indices) {
+        let current_subarray = nested_array;
+        for (let index of indices) {
+            current_subarray = current_subarray[index];
+        }
+        return current_subarray;
+    }
+    /**
+     * Create a tndarray from a nested array of values.
+     * @param {any[]} array - An array of arrays (nested to arbitrary depth). Each level must have the same dimension.
+     * The final level must contain valid data for a tndarray.
+     * @param {string} dtype  - The type to use for the underlying array.
+     *
+     * @return {tndarray}
+     */
+    static from_nested_array(array, dtype) {
+        if (array.length === 0) {
+            return tndarray.array([]);
+        }
+        const dimensions = tndarray._nested_array_shape(array);
+        let slice_iter = tndarray._slice_iterator(dimensions);
+        const size = tndarray._compute_size(dimensions);
+        const array_type = tndarray._dtype_map(dtype);
+        const data = new array_type(size);
+        let ndarray = tndarray.array(data, dimensions, { dtype: dtype, disable_checks: true });
+        for (let indices of slice_iter) {
+            const real_index = ndarray._compute_real_index(indices);
+            ndarray.data[real_index] = tndarray._nested_array_value_from_index(array, indices);
+        }
+        return ndarray;
     }
     /**
      * Create an n-dimensional array from an iterable.
@@ -491,11 +599,11 @@ class tndarray {
         return tndarray.filled(1, shape, dtype);
     }
     /**
-     *
+     * Create a tndarray containing the specified data
      * @param data
      * @param shape
      * @param options
-     * @return {tndarray<number[] | Int8Array>}
+     * @return {tndarray}
      */
     static array(data, shape, options) {
         let final_shape;
@@ -523,35 +631,6 @@ class tndarray {
         const offset = new Uint32Array(final_shape.length);
         const dstride = new Uint32Array(final_shape.length);
         return new tndarray(data, final_shape, offset, stride, dstride, size, dtype);
-    }
-    /**
-     * Checks that the inputs have a `length` property, and that their lengths are equal.
-     * @param value1
-     * @param value2
-     * @return {boolean}
-     * @private
-     */
-    static _lengths_exist_and_match(value1, value2) {
-        return value1.length !== undefined && value1.length === value2.length;
-    }
-    /**
-     * Returns a tndarray if a or b are tndarrays, returns the raw data otherwise.
-     * @param a - The first value used to produce `new_data`. Has priority.
-     * @param b - The second value used to produce `new_data`.
-     * @param new_data  - The actual data.
-     * @return {any}
-     * @private
-     */
-    static _upcast_data(a, b, new_data) {
-        if (a instanceof tndarray) {
-            return tndarray.array(new_data, a.shape, { disable_checks: true, dtype: a.dtype });
-        }
-        else if (b instanceof tndarray) {
-            return tndarray.array(new_data, b.shape, { disable_checks: true, dtype: b.dtype });
-        }
-        else {
-            return new_data;
-        }
     }
     // TODO: Broadcasting
     // TODO: Allow non-tndarray arrays
@@ -647,6 +726,7 @@ class tndarray {
         return tndarray._upcast_data(a, b, new_data);
     }
     // TODO: Generalize to an inner product.
+    // TODO: Use the Kahan summation algorithm. This is numerically unstable.
     /**
      * Compute the dot product of two arrays.
      * @param {tndarray} a

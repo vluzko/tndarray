@@ -72,20 +72,6 @@ describe("Constructors and factories.", function() {
         });
       });
     });
-
-  });
-
-  describe("Helper methods.", function () {
-
-    it("_compute_slice_size.", function () {
-      expect(tndarray.tndarray._compute_slice_size([0,0], [2,2], [1,1])).toBe(4);
-      expect(tndarray.tndarray._compute_slice_size(new Uint32Array([0,5]), new Uint32Array([6,10]), new Uint32Array([5,2]))).toBe(6);
-    });
-
-    it("stride from shape.", function () {
-      expect(tndarray.tndarray._stride_from_shape([2, 2, 3])).toEqual(new Uint32Array([1, 2, 4]));
-      expect(tndarray.tndarray._stride_from_shape([2, 5])).toEqual(new Uint32Array([1, 2]));
-    });
   });
 
   describe("Specialized factories.", function () {
@@ -103,7 +89,55 @@ describe("Constructors and factories.", function() {
       expect(tndarray.tndarray.filled(-1, [2,2]).data).toEqual(new Float64Array([-1, -1, -1, -1]));
       expect(tndarray.tndarray.filled(10, 4).data).toEqual(new Float64Array([10, 10, 10, 10]));
     });
-  })
+
+    describe("from_nested_array.", function () {
+      it("small array.", function () {
+        let small_nested = [1,2].map(
+          x => _.range(x, x+3)
+        );
+        let small_tnd = tndarray.tndarray.from_nested_array(small_nested);
+        expect(small_tnd.shape).toEqual(new Uint32Array([2, 3]));
+        expect(small_nested[0][0]).toBe(small_tnd.g(0, 0));
+      });
+
+
+      it("larger array", function () {
+        // Create nested array with dimensions 3 x 2 x 3 x 5
+        let nested = [1,2,3].map(
+          x => _.range(x, x+2).map(
+            y => _.range(y, y+4).map(
+              z => _.range(y+2, y+7)
+            )
+          )
+        );
+
+        let good_nested = tndarray.tndarray.from_nested_array(nested);
+        expect(good_nested.shape).toEqual(new Uint32Array([3, 2, 4, 5]));
+        for (let indices of good_nested._index_iterator()) {
+          let expected = tndarray.tndarray._nested_array_value_from_index(nested, indices);
+          let actual = good_nested.g(indices);
+          expect(actual).toBe(expected, `index: ${indices}`);
+        }
+
+        // expect(nested[0][0][0][0]).toBe(good_nested.g(0, 0, 0, 0));
+        // expect(nested[2][0][0][0]).toBe(good_nested.g(2, 0, 0, 0));
+      });
+    });
+  });
+
+  describe("Helper methods.", function () {
+
+    it("_compute_slice_size.", function () {
+      expect(tndarray.tndarray._compute_slice_size([0,0], [2,2], [1,1])).toBe(4);
+      expect(tndarray.tndarray._compute_slice_size(new Uint32Array([0,5]), new Uint32Array([6,10]), new Uint32Array([5,2]))).toBe(6);
+    });
+
+    it("stride from shape.", function () {
+      expect(tndarray.tndarray._stride_from_shape([2, 2, 3])).toEqual(new Uint32Array([1, 2, 4]));
+      expect(tndarray.tndarray._stride_from_shape([2, 5])).toEqual(new Uint32Array([1, 2]));
+    });
+  });
+
 });
 
 describe("Indices", function () {
