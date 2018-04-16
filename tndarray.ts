@@ -431,8 +431,6 @@ class tndarray {
     } else if (ArrayBuffer.isView(shape)) {
       final_shape = shape;
     } else {
-      console.log(shape);
-      // TODO: Create custom error.
       throw new errors.BadShape();
     }
     return final_shape;

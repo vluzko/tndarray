@@ -392,7 +392,6 @@ class tndarray {
             final_shape = shape;
         }
         else {
-            // TODO: Create custom error.
             throw new errors.BadShape();
         }
         return final_shape;

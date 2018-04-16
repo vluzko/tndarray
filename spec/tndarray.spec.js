@@ -98,6 +98,7 @@ describe("Constructors and factories.", function() {
         let small_tnd = tndarray.tndarray.from_nested_array(small_nested);
         expect(small_tnd.shape).toEqual(new Uint32Array([2, 3]));
         expect(small_nested[0][0]).toBe(small_tnd.g(0, 0));
+        expect(small_nested[1][2]).toBe(small_tnd.g(1, 2));
       });
 
 
@@ -117,10 +118,13 @@ describe("Constructors and factories.", function() {
           let expected = tndarray.tndarray._nested_array_value_from_index(nested, indices);
           let actual = good_nested.g(indices);
           expect(actual).toBe(expected, `index: ${indices}`);
-        }
 
-        // expect(nested[0][0][0][0]).toBe(good_nested.g(0, 0, 0, 0));
-        // expect(nested[2][0][0][0]).toBe(good_nested.g(2, 0, 0, 0));
+          expected = nested[indices[0]][indices[1]][indices[2]][indices[3]];
+          actual = good_nested.g(indices);
+          expect(actual).toBe(expected, `index: ${indices}`);
+        }
+        expect(nested[0][0][0][0]).toBe(good_nested.g(0, 0, 0, 0));
+        expect(nested[2][0][0][0]).toBe(good_nested.g(2, 0, 0, 0));
       });
     });
   });
