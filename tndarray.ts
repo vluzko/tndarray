@@ -750,6 +750,17 @@ class tndarray {
   }
   
   /**
+   * Create an array containing the element-wise min of the inputs.
+   * Inputs must be the same shape.
+   * @param {tndarray} a  - First array.
+   * @param {tndarray} b  - Second array.
+   * @return {tndarray}   - An array with the same shape as a and b. Its entries are the min of the corresponding entries of a and b.
+   */
+  static take_min(a: tndarray, b: tndarray) {
+    return a.map((e, i) => Math.min(e, b[i]));
+  }
+  
+  /**
    * Create a tndarray containing a range of integers.
    * @param {number} start_or_stop  - If no other arguments are passed, the upper bound of the range (with lower bound zero). Otherwise this is the lower bound.
    * @param {number} stop           - The upper bound of the range.
