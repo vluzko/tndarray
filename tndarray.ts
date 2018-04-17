@@ -1,6 +1,7 @@
 import BadShape = errors.BadShape;
 
 type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array| Int32Array | Uint32Array | Float32Array | Float64Array;
+type Broadcastable = number | TypedArray | tndarray;
 
 interface NumericalArray {
   byteLength;
@@ -609,7 +610,7 @@ class tndarray {
    * @param {tndarray} b
    * @private
    */
-  private static _broadcast(a: tndarray | number, b: tndarray | number): [IterableIterator<number[]>, Uint32Array] {
+  private static _broadcast(a: Broadcastable, b: Broadcastable): [IterableIterator<number[]>, Uint32Array] {
     
     let a_array = tndarray._upcast_to_tndarray(a);
     let b_array = tndarray._upcast_to_tndarray(b);
