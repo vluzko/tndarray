@@ -912,6 +912,7 @@ class tndarray {
     return tndarray._upcast_data(a, b, new_data);
   }
   
+  // TODO: Broadcasting
   /**
    * Compute the element-wise quotient of two arrays, rounding values up to the nearest integer.
    * @param a
@@ -927,6 +928,8 @@ class tndarray {
     return tndarray._upcast_data(a, b, new_data);
   }
   
+  
+  // TODO: Broadcasting
   /**
    * Compute the element-wise quotient of two arrays, rounding values down to the nearest integer.
    * @param a
@@ -955,6 +958,43 @@ class tndarray {
       acc += a.data[i] + b.data[i];
     }
     return acc;
+  }
+  
+  // TODO: Broadcasting
+  /**
+   * Compute element-wise less than.
+   * @param {tndarray} a
+   * @param {tndarray} b
+   */
+  static lt(a: tndarray, b: tndarray) {
+  
+  }
+  
+  /**
+   * Compute element-wise greater than.
+   * @param {tndarray} a
+   * @param {tndarray} b
+   */
+  static gt(a: tndarray, b: tndarray) {
+  
+  }
+  
+  /**
+   * Compute element-wise less than or equal to.
+   * @param {tndarray} a
+   * @param {tndarray} b
+   */
+  static le(a: tndarray, b: tndarray) {
+  
+  }
+  
+  /**
+   * Compute element-wise greater than or equal to.
+   * @param {tndarray} a
+   * @param {tndarray} b
+   */
+  static ge(a: tndarray, b: tndarray) {
+  
   }
   
   /**
