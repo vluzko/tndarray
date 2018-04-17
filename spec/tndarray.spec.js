@@ -49,7 +49,7 @@ describe("Constructors and factories.", function() {
       });
 
       it("Wrong shape type.", function () {
-        expect(() => tndarray.tndarray.array([], "asdf")).toThrow(new tndarray.errors.BadShape());
+        expect(() => tndarray.tndarray.array([], "asdf")).toThrow(new tndarray.errors.BadShape("Shape must be an int, an array of numbers, or a TypedArray."));
       });
 
       it("No shape parameter.", function () {
@@ -264,7 +264,7 @@ describe("Indices.", function () {
       }
     });
 
-    fit("One smaller.", function () {
+    it("One smaller.", function () {
       let a = tndarray.tndarray.from_nested_array([[1,2,3], [3,4,5]]);
       let b = tndarray.tndarray.from_nested_array([[3,4,5]]);
       let iter = tndarray.tndarray._broadcast(a, b)[0];
@@ -286,8 +286,24 @@ describe("Methods.", function () {
 
   });
 
-  it("Subtract.", function () {
+  describe("Subtract.", function () {
+    it("Same size tndarray.", function () {
+      let a = tndarray.tndarray.arange(0, 5);
+      let b = tndarray.tndarray.arange(5, 10);
+      let t = tndarray.tndarray.filled(5, [5]);
+      let sub = tndarray.tndarray.sub(b, a);
+      expect(sub.equals(t)).toBe(true);
+    });
 
+    it("Broadcasted array.", function () {
+      let a = tndarray.tndarray.arange(0, 6);
+      let b = tndarray.tndarray.arange(1);
+      let t = tndarray.tndarray.from_nested_array([0, 1, 2, 3, 4, 5]);
+      let sub = a.sub(b);
+      expect(sub.equals(t)).toBe(true);
+
+
+    });
   });
 
   it("Multiply.", function () {

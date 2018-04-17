@@ -1,4 +1,5 @@
 type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array| Int32Array | Uint32Array | Float32Array | Float64Array;
+type Numeric = TypedArray | number[];
 type Broadcastable = number | TypedArray | tndarray;
 
 interface NumericalArray {
@@ -83,6 +84,18 @@ namespace utils {
   export function is_typed_array(value: any): value is TypedArray {
     return !!(value.buffer instanceof ArrayBuffer && value.BYTES_PER_ELEMENT);
   }
+  
+  /**
+   * Subtract two typed arrays. Should only be called on typed array that are guaranteed to be the same size.
+   * @param {TypedArray} a
+   * @param {TypedArray} b
+   * @return {TypedArray}
+   * @private
+   */
+  export function _typed_array_sub(a: TypedArray, b: TypedArray) {
+    // @ts-ignore
+    return a.map((e, i) => e - b[i]);
+  }
 }
 
 
@@ -159,7 +172,7 @@ class tndarray {
    * @private
    */
   private static _compute_slice_size(lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array): number {
-    const ranges = tndarray.sub(upper_bounds, lower_bounds);
+    const ranges = utils._typed_array_sub(upper_bounds, lower_bounds);
     const values = tndarray.cdiv(ranges, steps);
     return values.reduce((a, e) => a * e, 1);
   }
@@ -294,6 +307,15 @@ class tndarray {
   map(f, axis?: number): tndarray {
     const new_data = this.data.map(f);
     return tndarray.array(new_data, this.shape, {disable_checks: true, dtype: this.dtype})
+  }
+  
+  /**
+   * Subtract a broadcastable value from this.
+   * @param {Broadcastable} b - Value to subtract.
+   * @return {number | tndarray}
+   */
+  sub(b: Broadcastable) {
+    return tndarray.sub(this, b);
   }
   
   // TODO: Axes.
@@ -931,14 +953,20 @@ class tndarray {
    * @return {tndarray} - The element-wise
    */
   static sub(a: Broadcastable, b: Broadcastable) {
-    if (!tndarray._lengths_exist_and_match(a, b)) {
-      throw new errors.MismatchedSizes();
+    if (utils.is_numeric(a) && utils.is_numeric(b)) {
+      return a - b;
     }
     
     let [iter, shape] = tndarray._broadcast(a, b);
-  
-    const new_data = a.map((e, i) => e - b[i]);
-    return tndarray._upcast_data(a, b, new_data);
+    
+    let new_iter = {};
+    new_iter[Symbol.iterator] = function*() {
+      for (let [a_val, b_val] of iter) {
+        yield a_val - b_val;
+      }
+    };
+    
+    return tndarray.from_iterable(new_iter, shape);
   }
   
   // TODO: Broadcasting

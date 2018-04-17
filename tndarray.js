@@ -87,6 +87,18 @@ var utils;
         return !!(value.buffer instanceof ArrayBuffer && value.BYTES_PER_ELEMENT);
     }
     utils.is_typed_array = is_typed_array;
+    /**
+     * Subtract two typed arrays. Should only be called on typed array that are guaranteed to be the same size.
+     * @param {TypedArray} a
+     * @param {TypedArray} b
+     * @return {TypedArray}
+     * @private
+     */
+    function _typed_array_sub(a, b) {
+        // @ts-ignore
+        return a.map((e, i) => e - b[i]);
+    }
+    utils._typed_array_sub = _typed_array_sub;
 })(utils || (utils = {}));
 exports.utils = utils;
 class tndarray {
@@ -144,7 +156,7 @@ class tndarray {
      * @private
      */
     static _compute_slice_size(lower_bounds, upper_bounds, steps) {
-        const ranges = tndarray.sub(upper_bounds, lower_bounds);
+        const ranges = utils._typed_array_sub(upper_bounds, lower_bounds);
         const values = tndarray.cdiv(ranges, steps);
         return values.reduce((a, e) => a * e, 1);
     }
@@ -265,6 +277,14 @@ class tndarray {
         const new_data = this.data.map(f);
         return tndarray.array(new_data, this.shape, { disable_checks: true, dtype: this.dtype });
     }
+    /**
+     * Subtract a broadcastable value from this.
+     * @param {Broadcastable} b - Value to subtract.
+     * @return {number | tndarray}
+     */
+    sub(b) {
+        return tndarray.sub(this, b);
+    }
     // TODO: Axes.
     /**
      * Reduce the array.
@@ -273,6 +293,14 @@ class tndarray {
      */
     reduce(f, axis) {
         return this.data.reduce(f);
+    }
+    /**
+     * Return true if this array equals the passed array, false otherwise.
+     * @param {tndarray} a  - The array to compare against.
+     * @return {boolean}
+     */
+    equals(a) {
+        return tndarray.equals(this, a);
     }
     // /**
     //  * Similar to filter, but avoids the issue of having to compute the shape of the new array.
@@ -833,12 +861,17 @@ class tndarray {
      * @return {tndarray} - The element-wise
      */
     static sub(a, b) {
-        if (!tndarray._lengths_exist_and_match(a, b)) {
-            throw new errors.MismatchedSizes();
+        if (utils.is_numeric(a) && utils.is_numeric(b)) {
+            return a - b;
         }
         let [iter, shape] = tndarray._broadcast(a, b);
-        const new_data = a.map((e, i) => e - b[i]);
-        return tndarray._upcast_data(a, b, new_data);
+        let new_iter = {};
+        new_iter[Symbol.iterator] = function* () {
+            for (let [a_val, b_val] of iter) {
+                yield a_val - b_val;
+            }
+        };
+        return tndarray.from_iterable(new_iter, shape);
     }
     // TODO: Broadcasting
     // TODO: Allow non-tndarray arrays
