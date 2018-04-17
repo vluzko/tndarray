@@ -498,8 +498,62 @@ class tndarray {
     }
   }
   
+  /**
+   * Broadcast one array to another.
+   * @param {tndarray} a
+   * @param {tndarray} b
+   * @private
+   */
   private static _broadcast(a: tndarray, b: tndarray) {
+    let a_dim = a.shape.length;
+    let b_dim = b.shape.length;
+    const number_of_dimensions = Math.max(a_dim, b_dim);
+    const new_dimensions = new Uint32Array(number_of_dimensions);
+    for (let j = 1; j <= number_of_dimensions; j++) {
+      let a_axis_size = a_dim - j >= 0 ? a.shape[a_dim - j] : 1;
+      let b_axis_size = b_dim - j >= 0 ? b.shape[b_dim - j] : 1;
+      
+      let dimension;
+      
+      // If the axes match in size, that is the broadcasted dimension.
+      if (a_axis_size === b_axis_size) {
+        dimension = a_axis_size;
+      } else if (a_axis_size === 1) { // If either dimension is 1, use the other.
+        dimension = b_axis_size;
+      } else if (b_axis_size === 1) {
+        dimension = a_axis_size;
+      } else {
+        throw new errors.BadShape();
+      }
+      new_dimensions[number_of_dimensions - j] = dimension;
+    }
   
+    let iter = {};
+    iter[Symbol.iterator] = function* () {
+    
+      // let current_index = lower_or_upper.slice();
+      // let count = 0;
+      //
+      // // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
+      // for (let i = 0; i < size; i++) {
+      //   // Yield a copy of the current index.
+      //   yield current_index.slice();
+      //
+      //   ++current_index[end_dimension];
+      //
+      //   // Carry the ones.
+      //   let current_dimension = end_dimension;
+      //   while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
+      //     current_index[current_dimension] = lower_or_upper[current_dimension];
+      //     current_dimension--;
+      //     current_index[current_dimension] += steps[current_dimension];
+      //   }
+      //
+      //   count++;
+      // }
+    };
+    
+    return new_dimensions;
   }
   
   /**
@@ -656,8 +710,46 @@ class tndarray {
    * @param {string} dtype
    * @return {tndarray}
    */
-  static ones(shape, dtype?: string): tndarray {
+  static ones(shape: number[] | Uint32Array, dtype?: string): tndarray {
     return tndarray.filled(1, shape, dtype);
+  }
+  
+  /**
+   *
+   * @param {tndarray} a
+   * @param b
+   * @return {tndarray}
+   */
+  static take_max(a: tndarray, b) {
+    return a.map((e, i) => Math.max(e, b[i]));
+  }
+  
+  static arange(start_or_stop: number, stop?: number, step?: number) {
+    if (step === undefined) {
+      step = 1;
+    }
+    
+    let start;
+    if (stop === undefined) {
+      stop = start_or_stop;
+      start = 0;
+    } else {
+      start = start_or_stop;
+    }
+    
+    let size = Math.floor((stop - start) / step);
+    const shape = new Uint32Array([size]);
+    let iter = {};
+    
+    iter[Symbol.iterator] = function*() {
+      let i = 0;
+      while (i < stop) {
+        yield i;
+        i++;
+      }
+    };
+    
+    return tndarray.from_iterable(iter, shape, "int32");
   }
   
   /**

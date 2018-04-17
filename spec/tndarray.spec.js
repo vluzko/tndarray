@@ -144,17 +144,16 @@ describe("Constructors and factories.", function() {
 
 });
 
-describe("Indices", function () {
+describe("Indices.", function () {
 
-  it("_slice_iterator", function () {
+  it("_slice_iterator.", function () {
     let i = 0;
     for (let index of tndarray.tndarray._slice_iterator([0, 5], [4, 0], [5, 5])) {
       console.log(index);
     }
   });
 
-  // TODO: Come up with some reasonable property based tests.
-  it("_index_iterator", function () {
+  it("_index_iterator.", function () {
     let array = tndarray.tndarray.zeros([2,2]);
     let i = 0;
     for (let index of array._index_iterator()) {
@@ -208,6 +207,56 @@ describe("Indices", function () {
     expect(tndarray3.g(1, 2, 0, 0)).toBe(5);
     expect(tndarray3.g(1, 0, 0, 1)).toBe(13);
   });
+
+  describe("broadcast.", function () {
+    it("same dims.", function () {
+      for (let i = 0; i < 100; i++) {
+        let number_of_dims = _.random(1, 8);
+        let dims = _.range(number_of_dims).map(() => _.random(1, 10));
+        let a = tndarray.tndarray.zeros(dims);
+        let b = tndarray.tndarray.zeros(dims);
+        let result = tndarray.tndarray._broadcast(a, b);
+        expect(result).toEqual(new Uint32Array(dims), `Input dims: ${dims}. Result: ${result}`);
+      }
+
+    });
+
+    it("One shorter.", function () {
+      for (let i = 0; i < 100; i++) {
+        let number_of_dims = _.random(1, 8);
+        let dims = _.range(number_of_dims).map(() => _.random(1, 10));
+        let a = tndarray.tndarray.zeros(dims);
+        let b = tndarray.tndarray.zeros(dims.slice(number_of_dims - 3));
+        let result = tndarray.tndarray._broadcast(a, b);
+        expect(result).toEqual(new Uint32Array(dims), `Input dims: ${dims}. Result: ${result}`);
+      }
+    });
+
+    fit("Random ones.", function () {
+      for (let i = 0; i < 100; i++) {
+        let number_of_dims = _.random(1, 8);
+        let a_dims = _.range(number_of_dims).map(() => _.random(1, 10));
+        let b_dims = a_dims.slice(0);
+
+        _.range(_.random(number_of_dims)).map(() => _.random(number_of_dims)).forEach(e => {
+          a_dims[e] = 1;
+        });
+        _.range(_.random(number_of_dims)).map(() => _.random(number_of_dims)).forEach(e => {
+          console.log(1);
+          b_dims[e] = 1;
+        });
+        console.log(a_dims);
+
+        console.log(b_dims);
+        let a = tndarray.tndarray.zeros(a_dims);
+        let b = tndarray.tndarray.zeros(b_dims);
+
+        let result = tndarray.tndarray._broadcast(a, b);
+        expect(result).toEqual(new Uint32Array(dims), `Input dims: ${dims}. Result: ${result}`);
+      }
+    });
+
+  })
 });
 
 describe("Methods.", function () {
