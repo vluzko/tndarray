@@ -78,6 +78,16 @@ var utils;
         return !isNaN(value) && value !== null;
     }
     utils.is_numeric = is_numeric;
+    // TODO: Test
+    /**
+     * Check if value is an ArrayBuffer
+     * @param value
+     * @return {boolean}
+     */
+    function is_typed_array(value) {
+        return !!(value.buffer instanceof ArrayBuffer && value.BYTES_PER_ELEMENT);
+    }
+    utils.is_typed_array = is_typed_array;
 })(utils || (utils = {}));
 exports.utils = utils;
 class tndarray {
@@ -243,6 +253,7 @@ class tndarray {
      */
     stdev(axis) {
         const mean = this.mean();
+        throw Error("Not implemented");
     }
     // TODO: Axes.
     /**
@@ -485,6 +496,19 @@ class tndarray {
             return new_data;
         }
     }
+    static _upcast_to_tndarray(value) {
+        let a_array;
+        if (utils.is_numeric(value)) {
+            a_array = tndarray.array(new Uint32Array([value]), new Uint32Array([1]), { disable_checks: true });
+        }
+        else if (utils.is_typed_array(value)) {
+            a_array = tndarray.array(value, new Uint32Array([value.length]), { disable_checks: true });
+        }
+        else {
+            a_array = value;
+        }
+        return a_array;
+    }
     /**
      * Create a function that converts indices to the broadcast array to indices to the input array.
      * @param {Uint32Array} new_shape                 - The shape of the broadcast array.
@@ -538,21 +562,8 @@ class tndarray {
      * @private
      */
     static _broadcast(a, b) {
-        let a_array;
-        let b_array;
-        // Convert a and b to arrays if they are numbers.
-        if (utils.is_numeric(a)) {
-            a_array = tndarray.array(new Uint32Array([a]), new Uint32Array([1]), { disable_checks: true });
-        }
-        else {
-            a_array = a;
-        }
-        if (utils.is_numeric(b)) {
-            b_array = tndarray.array(new Uint32Array([b]), new Uint32Array([1]), { disable_checks: true });
-        }
-        else {
-            b_array = b;
-        }
+        let a_array = tndarray._upcast_to_tndarray(a);
+        let b_array = tndarray._upcast_to_tndarray(b);
         const new_dimensions = tndarray._broadcast_dims(a_array, b_array);
         let index_iter = tndarray._slice_iterator(new_dimensions);
         const a_indexer = tndarray._broadcast_indexer(new_dimensions, a_array.shape);
@@ -563,7 +574,7 @@ class tndarray {
                 yield [a_array.g(a_indexer(index)), b_array.g(b_indexer(index))];
             }
         };
-        return iter;
+        return [iter, new_dimensions];
     }
     /**
      * Returns an iterator over the indices of the array.

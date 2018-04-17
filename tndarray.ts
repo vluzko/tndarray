@@ -1,5 +1,7 @@
 import BadShape = errors.BadShape;
 
+type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array| Int32Array | Uint32Array | Float32Array | Float64Array;
+
 interface NumericalArray {
   byteLength;
   map;
@@ -71,6 +73,16 @@ namespace utils {
    */
   export function is_numeric(value: any): value is number {
     return !isNaN(value) && value !== null;
+  }
+  
+  // TODO: Test
+  /**
+   * Check if value is an ArrayBuffer
+   * @param value
+   * @return {boolean}
+   */
+  export function is_typed_array(value: any): value is TypedArray {
+    return !!(value.buffer instanceof ArrayBuffer && value.BYTES_PER_ELEMENT);
   }
 }
 
@@ -270,6 +282,7 @@ class tndarray {
    */
   stdev(axis?: number): number {
     const mean = this.mean();
+    throw Error("Not implemented");
   }
   
   // TODO: Axes.
@@ -524,6 +537,20 @@ class tndarray {
     } else {
       return new_data;
     }
+    
+  }
+  
+  private static _upcast_to_tndarray(value): tndarray {
+    let a_array;
+    if (utils.is_numeric(value)) {
+      a_array = tndarray.array(new Uint32Array([value]), new Uint32Array([1]), {disable_checks: true});
+    } else if (utils.is_typed_array(value)) {
+      a_array = tndarray.array(value, new Uint32Array([value.length]), {disable_checks: true});
+    } else {
+      a_array = value;
+    }
+    
+    return a_array;
   }
   
   /**
@@ -582,22 +609,10 @@ class tndarray {
    * @param {tndarray} b
    * @private
    */
-  private static _broadcast(a: tndarray | number, b: tndarray | number) {
+  private static _broadcast(a: tndarray | number, b: tndarray | number): [IterableIterator<number[]>, Uint32Array] {
     
-    let a_array: tndarray;
-    let b_array: tndarray;
-    
-    // Convert a and b to arrays if they are numbers.
-    if (utils.is_numeric(a)) {
-      a_array = tndarray.array(new Uint32Array([a]), new Uint32Array([1]), {disable_checks: true});
-    } else {
-      a_array = a;
-    }
-    if (utils.is_numeric(b)) {
-      b_array = tndarray.array(new Uint32Array([b]), new Uint32Array([1]), {disable_checks: true});
-    } else {
-      b_array = b;
-    }
+    let a_array = tndarray._upcast_to_tndarray(a);
+    let b_array = tndarray._upcast_to_tndarray(b);
     
     const new_dimensions = tndarray._broadcast_dims(a_array, b_array);
     let index_iter = tndarray._slice_iterator(new_dimensions);
@@ -612,7 +627,7 @@ class tndarray {
       }
     };
     
-    return iter;
+    return [<IterableIterator<[number, number]>>iter, new_dimensions];
   }
   
   /**
@@ -900,7 +915,7 @@ class tndarray {
    * @param {tndarray} b - The subtrahend.
    * @return {tndarray} - The element-wise
    */
-  static sub(a, b){
+  static sub(a, b) {
     if (!tndarray._lengths_exist_and_match(a, b)) {
       throw new errors.MismatchedSizes();
     }

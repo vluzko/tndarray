@@ -258,7 +258,7 @@ describe("Indices.", function () {
     it("Same dims.", function () {
       let a = tndarray.tndarray.from_nested_array([[1,2,3], [3,4,5]]);
       let b = tndarray.tndarray.from_nested_array([[1,2,3], [3,4,5]]);
-      let iter = tndarray.tndarray._broadcast(a, b);
+      let iter = tndarray.tndarray._broadcast(a, b)[0];
       for (let [first, second] of iter) {
         expect(first).toBe(second);
       }
@@ -267,7 +267,7 @@ describe("Indices.", function () {
     fit("One smaller.", function () {
       let a = tndarray.tndarray.from_nested_array([[1,2,3], [3,4,5]]);
       let b = tndarray.tndarray.from_nested_array([[3,4,5]]);
-      let iter = tndarray.tndarray._broadcast(a, b);
+      let iter = tndarray.tndarray._broadcast(a, b)[0];
       const expected = [[1,3], [2,4], [3, 5], [3,3], [4,4], [5,5]];
       let i = 0;
       for (let [first, second] of iter) {
