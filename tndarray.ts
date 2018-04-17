@@ -724,6 +724,13 @@ class tndarray {
     return a.map((e, i) => Math.max(e, b[i]));
   }
   
+  /**
+   * Create a tndarray containing a range of integers.
+   * @param {number} start_or_stop  - If no other arguments are passed, the upper bound of the range (with lower bound zero). Otherwise this is the lower bound.
+   * @param {number} stop           - The upper bound of the range.
+   * @param {number} step           - The step size between elements in the range.
+   * @return {tndarray}             - A one-dimensional array containing the range.
+   */
   static arange(start_or_stop: number, stop?: number, step?: number) {
     if (step === undefined) {
       step = 1;
