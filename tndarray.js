@@ -496,6 +496,12 @@ class tndarray {
             return new_data;
         }
     }
+    /**
+     * Convert a broadcastable value to a tndarray.
+     * @param {Broadcastable} value - The value to convert. Numbers will be converted to 1x1 tndarrays, TypedArrays will be 1xn, and tndarrays will be left alone.
+     * @return {tndarray}           - The resulting tndarray.
+     * @private
+     */
     static _upcast_to_tndarray(value) {
         let a_array;
         if (utils.is_numeric(value)) {
@@ -556,9 +562,9 @@ class tndarray {
         return new_dimensions;
     }
     /**
-     * Broadcast one array to another.
-     * @param {tndarray} a
-     * @param {tndarray} b
+     * Broadcast two values together.
+     * @param {Broadcastable} a
+     * @param {Broadcastable} b
      * @private
      */
     static _broadcast(a, b) {

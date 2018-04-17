@@ -541,7 +541,13 @@ class tndarray {
     
   }
   
-  private static _upcast_to_tndarray(value): tndarray {
+  /**
+   * Convert a broadcastable value to a tndarray.
+   * @param {Broadcastable} value - The value to convert. Numbers will be converted to 1x1 tndarrays, TypedArrays will be 1xn, and tndarrays will be left alone.
+   * @return {tndarray}           - The resulting tndarray.
+   * @private
+   */
+  private static _upcast_to_tndarray(value: Broadcastable): tndarray {
     let a_array;
     if (utils.is_numeric(value)) {
       a_array = tndarray.array(new Uint32Array([value]), new Uint32Array([1]), {disable_checks: true});
@@ -550,7 +556,6 @@ class tndarray {
     } else {
       a_array = value;
     }
-    
     return a_array;
   }
   
@@ -605,9 +610,9 @@ class tndarray {
   }
   
   /**
-   * Broadcast one array to another.
-   * @param {tndarray} a
-   * @param {tndarray} b
+   * Broadcast two values together.
+   * @param {Broadcastable} a
+   * @param {Broadcastable} b
    * @private
    */
   private static _broadcast(a: Broadcastable, b: Broadcastable): [IterableIterator<number[]>, Uint32Array] {
