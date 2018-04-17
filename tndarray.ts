@@ -1,3 +1,4 @@
+import BadShape = errors.BadShape;
 
 interface NumericalArray {
   byteLength;
@@ -84,6 +85,7 @@ class tndarray {
   public shape: Uint32Array;
   public length: number;
   public dtype: string;
+  public is_view: boolean;
   
   /**
    *
@@ -121,7 +123,7 @@ class tndarray {
       this.dtype = "float64";
     }
     this.initial_offset = utils.dot(this.dstride, this.offset);
-    
+    this.is_view = false;
   }
   
   /**
@@ -167,8 +169,20 @@ class tndarray {
   
   }
   
-  reshape(new_shape) {
-  
+  /**
+   * Change the shape of the array.
+   * @param {Uint32Array} new_shape - The shape to make the new array.
+   * @return {tndarray}             -
+   */
+  reshape(new_shape: Uint32Array): tndarray {
+    const new_size = tndarray._compute_size(new_shape);
+    const size = tndarray._compute_size(this.shape);
+    if (size !== new_size) {
+      throw new BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${new_shape}`);
+    }
+    // TODO: Copy data if necessary. This will break for views.
+    this.shape = new_shape;
+    return this;
   }
   
   /**

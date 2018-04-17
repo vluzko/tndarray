@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var BadShape = errors.BadShape;
 var errors;
 (function (errors) {
     class MismatchedSizes extends Error {
@@ -112,6 +113,7 @@ class tndarray {
             this.dtype = "float64";
         }
         this.initial_offset = utils.dot(this.dstride, this.offset);
+        this.is_view = false;
     }
     /**
      * Computes the index of a value in the underlying data array based on a passed index.
@@ -149,7 +151,20 @@ class tndarray {
      */
     slice(...indices) {
     }
+    /**
+     * Change the shape of the array.
+     * @param {Uint32Array} new_shape - The shape to make the new array.
+     * @return {tndarray}             -
+     */
     reshape(new_shape) {
+        const new_size = tndarray._compute_size(new_shape);
+        const size = tndarray._compute_size(this.shape);
+        if (size !== new_size) {
+            throw new BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${new_shape}`);
+        }
+        // TODO: Copy data if necessary. This will break for views.
+        this.shape = new_shape;
+        return this;
     }
     /**
      *
