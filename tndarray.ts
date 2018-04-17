@@ -233,6 +233,7 @@ class tndarray {
     return Math.min(...this.data);
   }
   
+  // TODO: Axes
   /**
    * Compute an element-wise power.
    * @param {number} exp
@@ -242,20 +243,33 @@ class tndarray {
     return this.map(e => Math.pow(e, exp));
   }
   
+  // TODO: Axes
   /**
    * Sum the entries of an array.
    * @param {number} axis
+   * @return {number}
    */
-  sum(axis?: number) {
+  sum(axis?: number): number {
     return this.reduce((a, e) => a + e, 0);
   }
   
+  // TODO: Axes
   /**
    * Calculate the mean of the array.
    * @param {number} axis
    */
-  mean(axis?: number) {
+  mean(axis?: number): number {
     return this.sum() / this.length;
+  }
+  
+  // TODO: Axes
+  /**
+   *
+   * @param {number} axis
+   * @return {number}
+   */
+  stdev(axis?: number): number {
+    const mean = this.mean();
   }
   
   // TODO: Axes.
@@ -512,6 +526,13 @@ class tndarray {
     }
   }
   
+  /**
+   * Create a function that converts indices to the broadcast array to indices to the input array.
+   * @param {Uint32Array} new_shape                 - The shape of the broadcast array.
+   * @param {Uint32Array} array_shape               - The shape of the input array.
+   * @return {(index: Uint32Array) => Uint32Array}  - The index converter.
+   * @private
+   */
   private static _broadcast_indexer(new_shape: Uint32Array, array_shape: Uint32Array) {
     const first_elem = new_shape.length - array_shape.length;
     return function(index: Uint32Array) {
