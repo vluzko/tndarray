@@ -306,6 +306,15 @@ class tndarray {
     return this.data.reduce(f);
   }
   
+  /**
+   * Return true if this array equals the passed array, false otherwise.
+   * @param {tndarray} a  - The array to compare against.
+   * @return {boolean}
+   */
+  equals(a: tndarray) {
+    return tndarray.equals(this, a);
+  }
+  
   // /**
   //  * Similar to filter, but avoids the issue of having to compute the shape of the new array.
   //  * @param f
