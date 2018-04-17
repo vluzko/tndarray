@@ -651,10 +651,11 @@ class tndarray {
         return tndarray.filled(1, shape, dtype);
     }
     /**
-     *
-     * @param {tndarray} a
-     * @param b
-     * @return {tndarray}
+     * Create an array containing the element-wise max of the inputs.
+     * Inputs must be the same shape.
+     * @param {tndarray} a  - First array.
+     * @param {tndarray} b  - Second array.
+     * @return {tndarray}   - An array with the same shape as a and b. Its entries are the max of the corresponding entries of a and b.
      */
     static take_max(a, b) {
         return a.map((e, i) => Math.max(e, b[i]));
