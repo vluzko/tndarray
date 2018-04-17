@@ -208,55 +208,76 @@ describe("Indices.", function () {
     expect(tndarray3.g(1, 0, 0, 1)).toBe(13);
   });
 
-  describe("broadcast.", function () {
+  describe("broadcast_dims.", function () {
     it("same dims.", function () {
       for (let i = 0; i < 100; i++) {
         let number_of_dims = _.random(1, 8);
         let dims = _.range(number_of_dims).map(() => _.random(1, 10));
         let a = tndarray.tndarray.zeros(dims);
         let b = tndarray.tndarray.zeros(dims);
-        let result = tndarray.tndarray._broadcast(a, b);
+        let result = tndarray.tndarray._broadcast_dims(a, b);
         expect(result).toEqual(new Uint32Array(dims), `Input dims: ${dims}. Result: ${result}`);
       }
 
     });
 
     it("One shorter.", function () {
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 10; i++) {
         let number_of_dims = _.random(1, 8);
         let dims = _.range(number_of_dims).map(() => _.random(1, 10));
         let a = tndarray.tndarray.zeros(dims);
         let b = tndarray.tndarray.zeros(dims.slice(number_of_dims - 3));
-        let result = tndarray.tndarray._broadcast(a, b);
+        let result = tndarray.tndarray._broadcast_dims(a, b);
         expect(result).toEqual(new Uint32Array(dims), `Input dims: ${dims}. Result: ${result}`);
       }
     });
 
-    fit("Random ones.", function () {
+    it("Random ones.", function () {
       for (let i = 0; i < 100; i++) {
         let number_of_dims = _.random(1, 8);
         let a_dims = _.range(number_of_dims).map(() => _.random(1, 10));
         let b_dims = a_dims.slice(0);
 
-        _.range(_.random(number_of_dims)).map(() => _.random(number_of_dims)).forEach(e => {
-          a_dims[e] = 1;
+        _.range(a_dims.length).map((j, i) => {
+          let sw = Math.random() < 1 / a_dims.length;
+          if (sw) {
+            a_dims[i] = 1;
+          }
         });
-        _.range(_.random(number_of_dims)).map(() => _.random(number_of_dims)).forEach(e => {
-          console.log(1);
-          b_dims[e] = 1;
-        });
-        console.log(a_dims);
 
-        console.log(b_dims);
         let a = tndarray.tndarray.zeros(a_dims);
         let b = tndarray.tndarray.zeros(b_dims);
 
-        let result = tndarray.tndarray._broadcast(a, b);
-        expect(result).toEqual(new Uint32Array(dims), `Input dims: ${dims}. Result: ${result}`);
+        let result = tndarray.tndarray._broadcast_dims(a, b);
+        expect(result).toEqual(new Uint32Array(b_dims), `Input dims: ${b_dims}. Result: ${result}`);
+      }
+    });
+  });
+
+  describe("broadcast.", function () {
+    it("Same dims.", function () {
+      let a = tndarray.tndarray.from_nested_array([[1,2,3], [3,4,5]]);
+      let b = tndarray.tndarray.from_nested_array([[1,2,3], [3,4,5]]);
+      let iter = tndarray.tndarray._broadcast(a, b);
+      for (let [first, second] of iter) {
+        expect(first).toBe(second);
       }
     });
 
-  })
+    fit("One smaller.", function () {
+      let a = tndarray.tndarray.from_nested_array([[1,2,3], [3,4,5]]);
+      let b = tndarray.tndarray.from_nested_array([[3,4,5]]);
+      let iter = tndarray.tndarray._broadcast(a, b);
+      const expected = [[1,3], [2,4], [3, 5], [3,3], [4,4], [5,5]];
+      let i = 0;
+      for (let [first, second] of iter) {
+        let [e1, e2] = expected[i];
+        expect(first).toBe(e1);
+        expect(second).toBe(e2);
+        i++;
+      }
+    });
+  });
 });
 
 describe("Methods.", function () {

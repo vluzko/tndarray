@@ -457,20 +457,27 @@ class tndarray {
             return new_data;
         }
     }
+    static _broadcast_indexer(new_shape, array_shape) {
+        const first_elem = new_shape.length - array_shape.length;
+        return function (index) {
+            return index.slice(first_elem).map((e, i) => Math.min(e, array_shape[i] - 1));
+        };
+    }
     /**
-     * Broadcast one array to another.
-     * @param {tndarray} a
-     * @param {tndarray} b
+     * Calculate the shape from broadcasting two arrays together.
+     * @param {tndarray} a    - First array.
+     * @param {tndarray} b    - Second array.
+     * @return {Uint32Array}  - Shape of the broadcast array.
      * @private
      */
-    static _broadcast(a, b) {
-        let a_dim = a.shape.length;
-        let b_dim = b.shape.length;
-        const number_of_dimensions = Math.max(a_dim, b_dim);
+    static _broadcast_dims(a, b) {
+        let a_number_of_dims = a.shape.length;
+        let b_number_of_dims = b.shape.length;
+        const number_of_dimensions = Math.max(a_number_of_dims, b_number_of_dims);
         const new_dimensions = new Uint32Array(number_of_dimensions);
         for (let j = 1; j <= number_of_dimensions; j++) {
-            let a_axis_size = a_dim - j >= 0 ? a.shape[a_dim - j] : 1;
-            let b_axis_size = b_dim - j >= 0 ? b.shape[b_dim - j] : 1;
+            let a_axis_size = a_number_of_dims - j >= 0 ? a.shape[a_number_of_dims - j] : 1;
+            let b_axis_size = b_number_of_dims - j >= 0 ? b.shape[b_number_of_dims - j] : 1;
             let dimension;
             // If the axes match in size, that is the broadcasted dimension.
             if (a_axis_size === b_axis_size) {
@@ -483,34 +490,45 @@ class tndarray {
                 dimension = a_axis_size;
             }
             else {
-                throw new errors.BadShape();
+                throw new errors.BadShape(`Unbroadcastable shapes. a: ${a.shape}. b: ${b.shape}. Failed on axis: ${j}. Computed axes are: ${a_axis_size}, ${b_axis_size}`);
             }
             new_dimensions[number_of_dimensions - j] = dimension;
         }
+        return new_dimensions;
+    }
+    /**
+     * Broadcast one array to another.
+     * @param {tndarray} a
+     * @param {tndarray} b
+     * @private
+     */
+    static _broadcast(a, b) {
+        let a_array;
+        let b_array;
+        // Convert a and b to arrays if they are numbers.
+        if (utils.is_numeric(a)) {
+            a_array = tndarray.array(new Uint32Array([a]), new Uint32Array([1]), { disable_checks: true });
+        }
+        else {
+            a_array = a;
+        }
+        if (utils.is_numeric(b)) {
+            b_array = tndarray.array(new Uint32Array([b]), new Uint32Array([1]), { disable_checks: true });
+        }
+        else {
+            b_array = b;
+        }
+        const new_dimensions = tndarray._broadcast_dims(a_array, b_array);
+        let index_iter = tndarray._slice_iterator(new_dimensions);
+        const a_indexer = tndarray._broadcast_indexer(new_dimensions, a_array.shape);
+        const b_indexer = tndarray._broadcast_indexer(new_dimensions, b_array.shape);
         let iter = {};
         iter[Symbol.iterator] = function* () {
-            // let current_index = lower_or_upper.slice();
-            // let count = 0;
-            //
-            // // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
-            // for (let i = 0; i < size; i++) {
-            //   // Yield a copy of the current index.
-            //   yield current_index.slice();
-            //
-            //   ++current_index[end_dimension];
-            //
-            //   // Carry the ones.
-            //   let current_dimension = end_dimension;
-            //   while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
-            //     current_index[current_dimension] = lower_or_upper[current_dimension];
-            //     current_dimension--;
-            //     current_index[current_dimension] += steps[current_dimension];
-            //   }
-            //
-            //   count++;
-            // }
+            for (let index of index_iter) {
+                yield [a_array.g(a_indexer(index)), b_array.g(b_indexer(index))];
+            }
         };
-        return new_dimensions;
+        return iter;
     }
     /**
      * Returns an iterator over the indices of the array.
