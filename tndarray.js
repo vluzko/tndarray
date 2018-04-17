@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var BadShape = errors.BadShape;
 var errors;
 (function (errors) {
     class MismatchedSizes extends Error {
@@ -170,7 +169,7 @@ class tndarray {
         const new_size = tndarray._compute_size(new_shape);
         const size = tndarray._compute_size(this.shape);
         if (size !== new_size) {
-            throw new BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${new_shape}`);
+            throw new errors.BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${new_shape}`);
         }
         // TODO: Copy data if necessary. This will break for views.
         this.shape = new_shape;
@@ -431,7 +430,7 @@ class tndarray {
             final_shape = shape;
         }
         else {
-            throw new errors.BadShape();
+            throw new errors.BadShape("Shape must be an int, an array of numbers, or a TypedArray.");
         }
         return final_shape;
     }
@@ -679,7 +678,7 @@ class tndarray {
         const array_type = tndarray._dtype_map(dtype);
         const data = new array_type(iterable);
         if (data.length !== size) {
-            throw new errors.WrongIterableSize();
+            throw new errors.MismatchedShapeSize(`Iterable passed has size ${data.length}. Size expected from shape was: ${size}`);
         }
         return tndarray.array(data, final_shape, { disable_checks: true, dtype: dtype });
     }
@@ -759,14 +758,15 @@ class tndarray {
         else {
             start = start_or_stop;
         }
-        let size = Math.floor((stop - start) / step);
+        let size = Math.abs(Math.floor((stop - start) / step));
         const shape = new Uint32Array([size]);
         let iter = {};
+        let real_stop = stop < start ? -stop : stop;
         iter[Symbol.iterator] = function* () {
-            let i = 0;
-            while (i < stop) {
+            let i = start;
+            while (i < real_stop) {
                 yield i;
-                i++;
+                i += step;
             }
         };
         return tndarray.from_iterable(iter, shape, "int32");
@@ -836,6 +836,7 @@ class tndarray {
         if (!tndarray._lengths_exist_and_match(a, b)) {
             throw new errors.MismatchedSizes();
         }
+        let [iter, shape] = tndarray._broadcast(a, b);
         const new_data = a.map((e, i) => e - b[i]);
         return tndarray._upcast_data(a, b, new_data);
     }

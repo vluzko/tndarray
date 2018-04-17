@@ -1,5 +1,3 @@
-import BadShape = errors.BadShape;
-
 type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array| Int32Array | Uint32Array | Float32Array | Float64Array;
 type Broadcastable = number | TypedArray | tndarray;
 
@@ -191,7 +189,7 @@ class tndarray {
     const new_size = tndarray._compute_size(new_shape);
     const size = tndarray._compute_size(this.shape);
     if (size !== new_size) {
-      throw new BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${new_shape}`);
+      throw new errors.BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${new_shape}`);
     }
     // TODO: Copy data if necessary. This will break for views.
     this.shape = new_shape;
@@ -473,7 +471,7 @@ class tndarray {
     } else if (ArrayBuffer.isView(shape)) {
       final_shape = shape;
     } else {
-      throw new errors.BadShape();
+      throw new errors.BadShape("Shape must be an int, an array of numbers, or a TypedArray.");
     }
     return final_shape;
   }
@@ -745,7 +743,7 @@ class tndarray {
     const data = new array_type(iterable);
     
     if (data.length !== size) {
-      throw new errors.WrongIterableSize()
+      throw new errors.MismatchedShapeSize(`Iterable passed has size ${data.length}. Size expected from shape was: ${size}`);
     }
     
     return tndarray.array(data, final_shape, {disable_checks: true, dtype: dtype});
@@ -836,15 +834,17 @@ class tndarray {
       start = start_or_stop;
     }
     
-    let size = Math.floor((stop - start) / step);
+    let size = Math.abs(Math.floor((stop - start) / step));
     const shape = new Uint32Array([size]);
     let iter = {};
     
+    let real_stop = stop < start ? -stop : stop;
+    
     iter[Symbol.iterator] = function*() {
-      let i = 0;
-      while (i < stop) {
+      let i = start;
+      while (i < real_stop) {
         yield i;
-        i++;
+        i += step;
       }
     };
     
@@ -921,10 +921,12 @@ class tndarray {
    * @param {tndarray} b - The subtrahend.
    * @return {tndarray} - The element-wise
    */
-  static sub(a, b) {
+  static sub(a: Broadcastable, b: Broadcastable) {
     if (!tndarray._lengths_exist_and_match(a, b)) {
       throw new errors.MismatchedSizes();
     }
+    
+    let [iter, shape] = tndarray._broadcast(a, b);
   
     const new_data = a.map((e, i) => e - b[i]);
     return tndarray._upcast_data(a, b, new_data);
