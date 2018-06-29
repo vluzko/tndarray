@@ -183,7 +183,7 @@ describe("Indices.", function () {
 
   });
 
-  it("compute_real_index.", function () {
+  it("_compute_real_index.", function () {
     expect(tndarray.tndarray.zeros([2,2])._compute_real_index([1,1])).toBe(3);
     expect(tndarray.tndarray.zeros([2,3,4,5]))
   });
@@ -282,6 +282,26 @@ describe("Indices.", function () {
 
 describe("Methods.", function () {
 
+  describe("_binary_broadcast.", function () {
+    it("return first.", function () {
+      let a = tndarray.tndarray.arange(0, 10);
+      let b = tndarray.tndarray.arange(1);
+      let f = (a, b) => a;
+
+      let broadcasted = tndarray.tndarray._binary_broadcast(a, b, f);
+      expect(broadcasted.equals(a)).toBe(true);
+    });
+
+    it("return second.", function () {
+      let a = tndarray.tndarray.arange(1);
+      let b = tndarray.tndarray.arange(0, 10);
+      let f = (a, b) => b;
+
+      let broadcasted = tndarray.tndarray._binary_broadcast(a, b, f);
+      expect(broadcasted.equals(b)).toBe(true);
+    });
+  });
+
   it("Add.", function () {
 
   });
@@ -301,8 +321,6 @@ describe("Methods.", function () {
       let t = tndarray.tndarray.from_nested_array([0, 1, 2, 3, 4, 5]);
       let sub = a.sub(b);
       expect(sub.equals(t)).toBe(true);
-
-
     });
   });
 

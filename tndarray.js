@@ -505,6 +505,21 @@ class tndarray {
         return value1.length !== undefined && value1.length === value2.length;
     }
     /**
+     *
+     * @param {string} a  - The first dtype.
+     * @param {string} b  - The second dtype.
+     * @return {string} - The smallest dtype that can contain a and b without losing data.
+     * @private
+     */
+    static _dtype_join(a, b) {
+        if (a === b) {
+            return a;
+        }
+        else {
+            return "float64";
+        }
+    }
+    /**
      * Returns a tndarray if a or b are tndarrays, returns the raw data otherwise.
      * @param a - The first value used to produce `new_data`. Has priority.
      * @param b - The second value used to produce `new_data`.
@@ -575,7 +590,7 @@ class tndarray {
             if (a_axis_size === b_axis_size) {
                 dimension = a_axis_size;
             }
-            else if (a_axis_size === 1) {
+            else if (a_axis_size === 1) { // If either dimension is 1, use the other.
                 dimension = b_axis_size;
             }
             else if (b_axis_size === 1) {
@@ -590,14 +605,17 @@ class tndarray {
     }
     /**
      * Broadcast two values together.
-     * @param {Broadcastable} a
-     * @param {Broadcastable} b
+     * Works like numpy broadcasting.
+     * @param {Broadcastable} a - The first broadcastable value.
+     * @param {Broadcastable} b - The second broadcastable value.
+     * @return {[IterableIterator<number[]>, Uint32Array, string]}  - An iterator over that returns a tuple (a_i, b_i) of broadcasted values, the new shape, and the new dtype.
      * @private
      */
     static _broadcast(a, b) {
         let a_array = tndarray._upcast_to_tndarray(a);
         let b_array = tndarray._upcast_to_tndarray(b);
         const new_dimensions = tndarray._broadcast_dims(a_array, b_array);
+        const new_dtype = tndarray._dtype_join(a_array.dtype, b_array.dtype);
         let index_iter = tndarray._slice_iterator(new_dimensions);
         const a_indexer = tndarray._broadcast_indexer(new_dimensions, a_array.shape);
         const b_indexer = tndarray._broadcast_indexer(new_dimensions, b_array.shape);
@@ -607,7 +625,7 @@ class tndarray {
                 yield [a_array.g(a_indexer(index)), b_array.g(b_indexer(index))];
             }
         };
-        return [iter, new_dimensions];
+        return [iter, new_dimensions, new_dtype];
     }
     /**
      * Returns an iterator over the indices of the array.
@@ -833,6 +851,27 @@ class tndarray {
         const dstride = new Uint32Array(final_shape.length);
         return new tndarray(data, final_shape, offset, stride, dstride, size, dtype);
     }
+    /**
+     * Apply a binary function to two broadcastables.
+     * @param {Broadcastable} a - The first argument to f.
+     * @param {Broadcastable} b - The second argument to f.
+     * @param {(a: number, b: number) => number} f  - The function to apply.
+     * @return {Broadcastable}  - The result of applying f to a and b.
+     * @private
+     */
+    static _binary_broadcast(a, b, f) {
+        if (utils.is_numeric(a) && utils.is_numeric(b)) {
+            return f(a, b);
+        }
+        let [iter, shape, dtype] = tndarray._broadcast(a, b);
+        let new_iter = {};
+        new_iter[Symbol.iterator] = function* () {
+            for (let [a_val, b_val] of iter) {
+                yield f(a_val, b_val);
+            }
+        };
+        return tndarray.from_iterable(new_iter, shape, dtype);
+    }
     // TODO: Broadcasting
     // TODO: Allow non-tndarray arrays
     // TODO: Type upcasting.
@@ -864,7 +903,7 @@ class tndarray {
         if (utils.is_numeric(a) && utils.is_numeric(b)) {
             return a - b;
         }
-        let [iter, shape] = tndarray._broadcast(a, b);
+        let [iter, shape, dtype] = tndarray._broadcast(a, b);
         let new_iter = {};
         new_iter[Symbol.iterator] = function* () {
             for (let [a_val, b_val] of iter) {
