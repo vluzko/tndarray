@@ -997,21 +997,8 @@ class tndarray {
    * @param {tndarray} b - The subtrahend.
    * @return {tndarray} - The element-wise
    */
-  static sub(a: Broadcastable, b: Broadcastable) {
-    if (utils.is_numeric(a) && utils.is_numeric(b)) {
-      return a - b;
-    }
-    
-    let [iter, shape, dtype] = tndarray._broadcast(a, b);
-    
-    let new_iter = {};
-    new_iter[Symbol.iterator] = function*() {
-      for (let [a_val, b_val] of iter) {
-        yield a_val - b_val;
-      }
-    };
-    
-    return tndarray.from_iterable(new_iter, shape);
+  static sub(a: Broadcastable, b: Broadcastable): Broadcastable {
+    return tndarray._binary_broadcast(a, b, (x, y) => x - y);
   }
   
   // TODO: Broadcasting

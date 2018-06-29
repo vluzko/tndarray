@@ -310,7 +310,7 @@ describe("Methods.", function () {
     it("Same size tndarray.", function () {
       let a = tndarray.tndarray.arange(0, 5);
       let b = tndarray.tndarray.arange(5, 10);
-      let t = tndarray.tndarray.filled(5, [5]);
+      let t = tndarray.tndarray.filled(5, [5], "int32");
       let sub = tndarray.tndarray.sub(b, a);
       expect(sub.equals(t)).toBe(true);
     });
@@ -318,7 +318,7 @@ describe("Methods.", function () {
     it("Broadcasted array.", function () {
       let a = tndarray.tndarray.arange(0, 6);
       let b = tndarray.tndarray.arange(1);
-      let t = tndarray.tndarray.from_nested_array([0, 1, 2, 3, 4, 5]);
+      let t = tndarray.tndarray.from_nested_array([0, 1, 2, 3, 4, 5], "int32");
       let sub = a.sub(b);
       expect(sub.equals(t)).toBe(true);
     });
