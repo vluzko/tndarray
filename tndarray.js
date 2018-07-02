@@ -154,16 +154,13 @@ class tndarray {
      * @return {tndarray}             - The reshaped array.
      */
     reshape(new_shape) {
-        let copied = tndarray.copy(this);
         const new_size = tndarray._compute_size(new_shape);
         const size = tndarray._compute_size(this.shape);
         if (size !== new_size) {
             throw new errors.BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${new_shape}`);
         }
-        // TODO: Copy data if necessary. This will break for views.
-        copied.shape = new_shape;
-        copied.stride = tndarray._stride_from_shape(new_shape);
-        return copied;
+        let value_iter = this._value_iterator();
+        return tndarray.from_iterable(value_iter, new_shape, this.dtype);
     }
     /**
      *
@@ -299,101 +296,6 @@ class tndarray {
             indices = indices[0];
         }
         return utils.dot(indices, this.stride) + this.initial_offset;
-    }
-    /**
-     * Computes the size of a slice.
-     * @param lower_bounds
-     * @param upper_bounds
-     * @param steps
-     * @private
-     */
-    static _compute_slice_size(lower_bounds, upper_bounds, steps) {
-        const ranges = utils._typed_array_sub(upper_bounds, lower_bounds);
-        const values = tndarray.cdiv(ranges, steps);
-        return values.reduce((a, e) => a * e, 1);
-    }
-    /**
-     * Iterate over a slice.
-     * Coordinates are updated last dimension first.
-     * @param {Uint32Array} lower_or_upper  - If no additional arguments are passed, this is treated as the upper bounds of each dimension.
-     *                                        with lower bound [0]*n and step size [1]*n.
-     *                                        Otherwise, this is the lower bounds of each dimension.
-     * @param {Uint32Array} upper_bounds    - The upper bounds of each dimension. If this is not passed the first argument is treated as
-     *                                        the upper bounds and the lower bounds default to [0]*n.
-     * @param {Uint32Array} steps           - The size of step to take along each dimension. Defaults to [1]*n if not passed.
-     * @return {Iterable<any>}
-     * @private
-     */
-    static _slice_iterator(lower_or_upper, upper_bounds, steps) {
-        if (steps === undefined) {
-            steps = new Uint32Array(lower_or_upper.length);
-            steps.fill(1);
-        }
-        if (upper_bounds === undefined) {
-            upper_bounds = lower_or_upper;
-            lower_or_upper = new Uint32Array(upper_bounds.length);
-        }
-        let iter = {};
-        const size = tndarray._compute_slice_size(lower_or_upper, upper_bounds, steps);
-        const end_dimension = upper_bounds.length - 1;
-        iter[Symbol.iterator] = function* () {
-            let current_index = lower_or_upper.slice();
-            let count = 0;
-            // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
-            for (let i = 0; i < size; i++) {
-                // Yield a copy of the current index.
-                yield current_index.slice();
-                ++current_index[end_dimension];
-                // Carry the ones.
-                let current_dimension = end_dimension;
-                while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
-                    current_index[current_dimension] = lower_or_upper[current_dimension];
-                    current_dimension--;
-                    current_index[current_dimension] += steps[current_dimension];
-                }
-                count++;
-            }
-        };
-        return iter;
-    }
-    // TODO: Make recursive
-    /**
-     * Create an iterator over the real indices of the array.
-     * Equivalent to calling _compute_real_index on result of _slice_iterator, but faster.
-     * @param {Uint32Array} lower_or_upper
-     * @param {Uint32Array} upper_bounds
-     * @param {Uint32Array} steps
-     * @return {Iterable<number>}
-     * @private
-     */
-    _real_index_iterator(lower_or_upper, upper_bounds, steps) {
-        if (lower_or_upper === undefined) {
-            lower_or_upper = this.shape;
-        }
-        if (steps === undefined) {
-            steps = new Uint32Array(lower_or_upper.length);
-            steps.fill(1);
-        }
-        if (upper_bounds === undefined) {
-            upper_bounds = lower_or_upper;
-            lower_or_upper = new Uint32Array(upper_bounds.length);
-        }
-        let iter = {};
-        const start = this._compute_real_index(lower_or_upper);
-        const step = this.stride[this.stride.length - 1];
-        const end = step * upper_bounds[upper_bounds.length - 1];
-        const index_stride = this.stride.slice(0, -1);
-        let starting_indices = tndarray._slice_iterator(lower_or_upper.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
-        iter[Symbol.iterator] = function* () {
-            for (let starting_index of starting_indices) {
-                let current_index = utils.dot(starting_index, index_stride) + start;
-                while (current_index < end) {
-                    yield current_index;
-                    current_index += step;
-                }
-            }
-        };
-        return iter;
     }
     /**
      * Computes the total length of the array from its shape.
@@ -689,6 +591,112 @@ class tndarray {
         return [iter, new_dimensions, new_dtype];
     }
     /**
+     * Computes the size of a slice.
+     * @param lower_bounds
+     * @param upper_bounds
+     * @param steps
+     * @private
+     */
+    static _compute_slice_size(lower_bounds, upper_bounds, steps) {
+        const ranges = utils._typed_array_sub(upper_bounds, lower_bounds);
+        const values = ranges.map((e, i) => Math.ceil(e / steps[i]));
+        return values.reduce((a, e) => a * e, 1);
+    }
+    /**
+     *
+     * @param {Uint32Array} indices
+     * @param {Uint32Array} stride
+     * @param {number} initial_offset
+     * @return {number}
+     * @private
+     */
+    static _index_in_data(indices, stride, initial_offset) {
+        return utils.dot(indices, stride) + initial_offset;
+    }
+    /**
+     * Iterate over a slice.
+     * Coordinates are updated last dimension first.
+     * @param {Uint32Array} lower_or_upper  - If no additional arguments are passed, this is treated as the upper bounds of each dimension.
+     *                                        with lower bound [0]*n and step size [1]*n.
+     *                                        Otherwise, this is the lower bounds of each dimension.
+     * @param {Uint32Array} upper_bounds    - The upper bounds of each dimension. If this is not passed the first argument is treated as
+     *                                        the upper bounds and the lower bounds default to [0]*n.
+     * @param {Uint32Array} steps           - The size of step to take along each dimension. Defaults to [1]*n if not passed.
+     * @return {Iterable<any>}
+     * @private
+     */
+    static _slice_iterator(lower_or_upper, upper_bounds, steps) {
+        if (steps === undefined) {
+            steps = new Uint32Array(lower_or_upper.length);
+            steps.fill(1);
+        }
+        if (upper_bounds === undefined) {
+            upper_bounds = lower_or_upper;
+            lower_or_upper = new Uint32Array(upper_bounds.length);
+        }
+        let iter = {};
+        const size = tndarray._compute_slice_size(lower_or_upper, upper_bounds, steps);
+        const end_dimension = upper_bounds.length - 1;
+        iter[Symbol.iterator] = function* () {
+            let current_index = lower_or_upper.slice();
+            let count = 0;
+            // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
+            for (let i = 0; i < size; i++) {
+                // Yield a copy of the current index.
+                yield current_index.slice();
+                ++current_index[end_dimension];
+                // Carry the ones.
+                let current_dimension = end_dimension;
+                while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
+                    current_index[current_dimension] = lower_or_upper[current_dimension];
+                    current_dimension--;
+                    current_index[current_dimension] += steps[current_dimension];
+                }
+                count++;
+            }
+        };
+        return iter;
+    }
+    // TODO: Make recursive
+    /**
+     * Create an iterator over the real indices of the array.
+     * Equivalent to calling _compute_real_index on result of _slice_iterator, but faster.
+     * @param {Uint32Array} lower_or_upper
+     * @param {Uint32Array} upper_bounds
+     * @param {Uint32Array} steps
+     * @return {Iterable<number>}
+     * @private
+     */
+    _real_index_iterator(lower_or_upper, upper_bounds, steps) {
+        if (lower_or_upper === undefined) {
+            lower_or_upper = this.shape;
+        }
+        if (steps === undefined) {
+            steps = new Uint32Array(lower_or_upper.length);
+            steps.fill(1);
+        }
+        if (upper_bounds === undefined) {
+            upper_bounds = lower_or_upper;
+            lower_or_upper = new Uint32Array(upper_bounds.length);
+        }
+        let iter = {};
+        const start = this._compute_real_index(lower_or_upper);
+        const step = this.stride[this.stride.length - 1];
+        const end = step * upper_bounds[upper_bounds.length - 1];
+        const index_stride = this.stride.slice(0, -1);
+        let starting_indices = tndarray._slice_iterator(lower_or_upper.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
+        iter[Symbol.iterator] = function* () {
+            for (let starting_index of starting_indices) {
+                let current_index = utils.dot(starting_index, index_stride) + start;
+                while (current_index < end) {
+                    yield current_index;
+                    current_index += step;
+                }
+            }
+        };
+        return iter;
+    }
+    /**
      * Returns an iterator over the indices of the array.
      * @private
      */
@@ -700,7 +708,7 @@ class tndarray {
      * Returns a generator of the values of the array, in index order.
      * @private
      */
-    *_value_iterator() {
+    _value_iterator() {
         const index_iterator = tndarray._slice_iterator(this.shape);
         let iter = {};
         // Alas, generators are dynamically scoped.
@@ -783,7 +791,17 @@ class tndarray {
         const final_shape = tndarray._compute_shape(shape);
         const size = tndarray._compute_size(final_shape);
         const array_type = tndarray._dtype_map(dtype);
-        const data = new array_type(iterable);
+        let index_iterator = tndarray._slice_iterator(final_shape);
+        let val_gen = iterable[Symbol.iterator]();
+        let data = new array_type(size);
+        const stride = tndarray._stride_from_shape(final_shape);
+        const initial_offset = 0;
+        let i = 0;
+        for (let index of index_iterator) {
+            let real_index = tndarray._index_in_data(index, stride, initial_offset);
+            let val = val_gen.next();
+            data[real_index] = val.value;
+        }
         if (data.length !== size) {
             throw new errors.MismatchedShapeSize(`Iterable passed has size ${data.length}. Size expected from shape was: ${size}`);
         }
@@ -918,13 +936,10 @@ class tndarray {
      * @param {Broadcastable} b - The second argument to f.
      * @param {(a: number, b: number) => number} f  - The function to apply.
      * @param {string} dtype  - Optional forced data type.
-     * @return {Broadcastable}  - The result of applying f to a and b.
+     * @return {tndarray}  - The result of applying f to a and b.
      * @private
      */
     static _binary_broadcast(a, b, f, dtype) {
-        if (utils.is_numeric(a) && utils.is_numeric(b)) {
-            return f(a, b);
-        }
         let [iter, shape, new_dtype] = tndarray._broadcast_by_index(a, b);
         if (dtype === undefined) {
             dtype = new_dtype;
@@ -971,42 +986,42 @@ class tndarray {
     /**
      * Compute the element-wise quotient of the two inputs.
      * output[i] = a[i] / b[i].
-     * @param {Broadcastable} a - The dividend.
-     * @param {Broadcastable} b - The divisor.
-     * @return {Broadcastable} - The element-wise quotient of value1 and value2.
+     * @param {Broadcastable} a - Dividend array.
+     * @param {Broadcastable} b - Divisor array.
+     * @return {Broadcastable}  - Quotient array.
      */
     static div(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => x / y, "float64");
     }
-    // TODO: Broadcasting
     /**
      * Compute the element-wise quotient of two arrays, rounding values up to the nearest integer.
-     * @param a
-     * @param b
-     * @return {tndarray | tndarray | any}
+     * @param {Broadcastable} a - Dividend array.
+     * @param {Broadcastable} b - Divisor array.
+     * @return {Broadcastable}  - Quotient array.
      */
     static cdiv(a, b) {
-        if (!tndarray._lengths_exist_and_match(a, b)) {
-            throw new errors.MismatchedSizes();
-        }
-        const new_data = a.map((e, i) => Math.ceil(e / b[i]));
-        return tndarray._upcast_data(a, b, new_data);
+        return tndarray._binary_broadcast(a, b, (x, y) => Math.ceil(x / y));
     }
-    // TODO: Broadcasting
     /**
      * Compute the element-wise quotient of two arrays, rounding values down to the nearest integer.
-     * @param a
-     * @param b
+     * @param {Broadcastable} a - Dividend array.
+     * @param {Broadcastable} b - Divisor array.
+     * @return {tndarray}       - Quotient array.
      */
     static fdiv(a, b) {
-        if (!tndarray._lengths_exist_and_match(a, b)) {
-            throw new errors.MismatchedSizes();
-        }
-        const new_data = a.map((e, i) => Math.floor(e / b[i]));
-        return tndarray._upcast_data(a, b, new_data);
+        return tndarray._binary_broadcast(a, b, (x, y) => Math.floor(x / y));
+    }
+    /**
+     * Compute element-wise modulus of two arrays.
+     * @param {Broadcastable} a - First array.
+     * @param {Broadcastable} b - Second array.
+     * @return {tndarray}       - Modulus array.
+     */
+    static mod(a, b) {
+        return tndarray._binary_broadcast(a, b, (x, y) => x % y);
     }
     // TODO: Generalize to an inner product.
-    // TODO: Use the Kahan summation algorithm. This is numerically unstable.
+    // TODO: This is numerically unstable.
     /**
      * Compute the dot product of two arrays.
      * @param {tndarray} a
