@@ -436,6 +436,22 @@ describe("Methods.", function () {
 
 describe("Unary methods.", function () {
 
+  describe("Nonzero.", function () {
+    it("simple.", function () {
+      const array = tndarray.tndarray.from_nested_array([
+        [0, 1, 0], [2, 0, 1]
+      ]);
+      const expected = [
+        new Uint32Array([0, 1]),
+        new Uint32Array([1, 0]),
+        new Uint32Array([1, 2]),
+      ];
+
+      expect(array.nonzero()).toEqual(expected);
+
+    });
+  });
+
   describe("Methods along axes.", function () {
 
     let array = tndarray.tndarray.arange(30).reshape([3, 2, 5]);

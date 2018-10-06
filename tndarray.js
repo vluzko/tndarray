@@ -206,7 +206,19 @@ class tndarray {
     min(axis) {
         return this.apply_to_axis(e => Math.min(...e), axis);
     }
-    nonzero() { }
+    /**
+     * Returns the indices of the nonzero elements of the array.
+     */
+    nonzero() {
+        let indices = [];
+        for (let index of this._index_iterator()) {
+            const real_value = this._compute_real_index(index);
+            if (this.data[real_value] !== 0) {
+                indices.push(index);
+            }
+        }
+        return indices;
+    }
     partition() { }
     /**
      * Compute an element-wise power.
