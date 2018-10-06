@@ -96,14 +96,14 @@ describe("Constructors and factories.", function () {
         let nested = [[[0, 1], [2, 3]], [[4, 5], [6, 7]]];
         let tensor = tndarray.tndarray.from_nested_array(nested);
         expect(tensor.shape).toEqual(new Uint32Array([2, 2, 2]));
-        expect(tensor.g(0, 0, 0)).toBe(0);
-        expect(tensor.g(0, 0, 1)).toBe(1);
-        expect(tensor.g(0, 1, 0)).toBe(2);
-        expect(tensor.g(0, 1, 1)).toBe(3);
-        expect(tensor.g(1, 0, 0)).toBe(4);
-        expect(tensor.g(1, 0, 1)).toBe(5);
-        expect(tensor.g(1, 1, 0)).toBe(6);
-        expect(tensor.g(1, 1, 1)).toBe(7);
+        expect(tensor.g([0, 0, 0])).toBe(0);
+        expect(tensor.g([0, 0, 1])).toBe(1);
+        expect(tensor.g([0, 1, 0])).toBe(2);
+        expect(tensor.g([0, 1, 1])).toBe(3);
+        expect(tensor.g([1, 0, 0])).toBe(4);
+        expect(tensor.g([1, 0, 1])).toBe(5);
+        expect(tensor.g([1, 1, 0])).toBe(6);
+        expect(tensor.g([1, 1, 1])).toBe(7);
 
       });
 
@@ -128,8 +128,8 @@ describe("Constructors and factories.", function () {
           actual = good_nested.g(indices);
           expect(actual).toBe(expected, `index: ${indices}`);
         }
-        expect(nested[0][0][0][0]).toBe(good_nested.g(0, 0, 0, 0));
-        expect(nested[2][0][0][0]).toBe(good_nested.g(2, 0, 0, 0));
+        expect(nested[0][0][0][0]).toBe(good_nested.g([0, 0, 0, 0]));
+        expect(nested[2][0][0][0]).toBe(good_nested.g([2, 0, 0, 0]));
       });
     });
   });
@@ -240,21 +240,21 @@ describe("Indices and slicing.", function () {
   it("g.", function () {
     const array1 = (new Uint32Array(27)).map((e, i) => i);
     let tndarray1 = tndarray.tndarray.array(array1, [3, 3, 3]);
-    expect(tndarray1.g(1, 1, 1)).toBe(13);
-    expect(tndarray1.g(1, 0, 1)).toBe(10);
-    expect(tndarray1.g(2, 1, 0)).toBe(5);
+    expect(tndarray1.g([1, 1, 1])).toBe(13);
+    expect(tndarray1.g([1, 0, 1])).toBe(10);
+    expect(tndarray1.g([2, 1, 0])).toBe(5);
 
     let array2 = (new Uint32Array(120)).map((e, i) => i);
     const tndarray2 = tndarray.tndarray.array(array2, [2, 3, 4, 5]);
-    expect(tndarray2.g(1, 2, 3, 4)).toBe(119);
-    expect(tndarray2.g(0, 2, 3, 4)).toBe(118);
-    expect(tndarray2.g(0, 0, 0, 0)).toBe(0);
+    expect(tndarray2.g([1, 2, 3, 4])).toBe(119);
+    expect(tndarray2.g([0, 2, 3, 4])).toBe(118);
+    expect(tndarray2.g([0, 0, 0, 0])).toBe(0);
 
     const array3 = (new Uint32Array(36)).map((e, i) => i);
     let tndarray3 = tndarray.tndarray.array(array3, [2, 3, 2, 3]);
-    expect(tndarray3.g(1, 2, 1, 2)).toBe(35);
-    expect(tndarray3.g(1, 2, 0, 0)).toBe(5);
-    expect(tndarray3.g(1, 0, 0, 1)).toBe(13);
+    expect(tndarray3.g([1, 2, 1, 2])).toBe(35);
+    expect(tndarray3.g([1, 2, 0, 0])).toBe(5);
+    expect(tndarray3.g([1, 0, 0, 1])).toBe(13);
   });
 
   describe("broadcast_dims.", function () {

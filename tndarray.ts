@@ -2,7 +2,7 @@
 type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array| Int32Array | Uint32Array | Float32Array | Float64Array;
 type Numeric = TypedArray | number[];
 type Broadcastable = number | TypedArray | tndarray;
-
+type Shape = number[] | Uint32Array;
 
 interface NumericalArray {
   byteLength;
@@ -338,7 +338,7 @@ class tndarray {
    * @param indices
    * @return {any}
    */
-  g(...indices) {
+  g(indices) {
     const real_index = this._compute_real_index(indices);
     return this.data[real_index];
   }
@@ -348,7 +348,7 @@ class tndarray {
    * @param {number} value
    * @param indices
    */
-  s(value: number, ...indices) {
+  s(value: number, indices) {
     const real_index = this._compute_real_index(indices);
     this.data[real_index] = value;
   }
@@ -454,10 +454,7 @@ class tndarray {
    * @private
    */
   private _compute_real_index(indices): number {
-    if (ArrayBuffer.isView(indices[0])) {
-      indices = indices[0];
-    }
-    return utils.dot(indices, this.stride) + this.initial_offset;
+    return tndarray._index_in_data(indices, this.stride, this.initial_offset);
   }
   
   /**
@@ -1011,19 +1008,19 @@ class tndarray {
    * @param {string} dtype
    * @return {tndarray}
    */
-  static from_iterable(iterable, shape, dtype?: string) {
+  static from_iterable(iterable: Iterable<number>, shape: Shape, dtype?: string) {
     const final_shape = tndarray._compute_shape(shape);
     
     const size = tndarray._compute_size(final_shape);
     const array_type = tndarray._dtype_map(dtype);
-    let index_iterator = tndarray._slice_iterator(final_shape);
-    let val_gen = iterable[Symbol.iterator]();
+    const index_iterator = tndarray._slice_iterator(final_shape);
+    const val_gen = iterable[Symbol.iterator]();
     let data = new array_type(size);
     const stride = tndarray._stride_from_shape(final_shape);
     const initial_offset = 0;
     let i = 0;
     for (let index of index_iterator) {
-      let real_index = tndarray._index_in_data(index, stride, initial_offset);
+      const real_index = tndarray._index_in_data(index, stride, initial_offset);
       let val = val_gen.next();
       data[real_index] = val.value;
     }
@@ -1121,17 +1118,17 @@ class tndarray {
     
     let size = Math.abs(Math.floor((stop - start) / step));
     const shape = new Uint32Array([size]);
-    let iter = {};
-    
-    let real_stop = stop < start ? -stop : stop;
-    
-    iter[Symbol.iterator] = function*() {
-      let i = start;
-      while (i < real_stop) {
-        yield i;
-        i += step;
+    let iter = {
+      [Symbol.iterator]: function*() {
+        let i = start;
+        while (i < real_stop) {
+          yield i;
+          i += step;
+        }
       }
     };
+    
+    let real_stop = stop < start ? -stop : stop;
     
     return tndarray.from_iterable(iter, shape, "int32");
   }
@@ -1208,7 +1205,7 @@ class tndarray {
     
     for (let [a_val, b_val, index] of iter) {
       const new_val = f(a_val, b_val);
-      new_array.s(new_val, ...index);
+      new_array.s(new_val, index);
     }
     
     return new_array
