@@ -434,6 +434,47 @@ describe("Methods.", function () {
   });
 });
 
+describe("Unary methods.", function () {
+
+  describe("Methods along axes.", function () {
+
+    let array = tndarray.tndarray.arange(30).reshape([3, 2, 5]);
+
+    describe("min.", function () {
+      it("min over all.", function () {
+        expect(array.min()).toBe(0);
+      });
+
+      it("min over 0.", function () {
+        const expected = tndarray.tndarray.from_nested_array([
+          [0, 1, 2, 3, 4],
+          [5, 6, 7, 8, 9]
+        ], "int32");
+        expect(array.min(0).equals(expected)).toBe(true);
+      });
+    });
+
+    describe("max.", function () {
+      it("max over all.", function () {
+        expect(array.max()).toBe(29);
+      });
+
+      it("max over 0.", function () {
+        const expected = tndarray.tndarray.from_nested_array([
+          [20, 21, 22, 23, 24],
+          [25, 26, 27, 28, 29]
+        ], "int32");
+        expect(array.max(0).equals(expected)).toBe(true);
+      });
+    });
+
+    describe("mean.", function () {
+
+    });
+  });
+
+});
+
 describe("Broadcasting", function () {
   it("Broadcast on axis", function () {
     let x = tndarray.tndarray.arange(30).reshape([3, 2, 5]);
@@ -446,8 +487,6 @@ describe("Broadcasting", function () {
     ];
 
     const expected_array = tndarray.tndarray.from_nested_array(expected_data, 'int32');
-    console.log(expected_array)
-    console.log(y);
     expect(expected_array.equals(y)).toBe(true);
   });
 });

@@ -1,6 +1,8 @@
+
 type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array| Int32Array | Uint32Array | Float32Array | Float64Array;
 type Numeric = TypedArray | number[];
 type Broadcastable = number | TypedArray | tndarray;
+
 
 interface NumericalArray {
   byteLength;
@@ -38,6 +40,10 @@ namespace errors {
   export class MismatchedShapeSize extends Error {}
   export class WrongIterableSize extends Error {}
   export class NestedArrayHasInconsistentDimensions extends Error {}
+}
+
+namespace  temp {
+  export function ab() {}
 }
 
 export namespace utils {
@@ -122,6 +128,7 @@ export namespace utils {
     // @ts-ignore
     return a.map((e, i) => e - b[i]);
   }
+  
 }
 
 class tndarray {
@@ -207,47 +214,45 @@ class tndarray {
   
   flatten() {}
   
-  // TODO: Axes.
   /**
    * Returns the maximum element of the array.
    * @param {number} axis
    * @return {number}
    */
-  max(axis?: number): number {
-    return Math.max(...this.data);
+  max(axis?: number): tndarray | number {
+    return this.apply_to_axis(e => Math.max(...e), axis);
   }
   
-  // TODO: Axes
   /**
    * Calculate the mean of the array.
    * @param {number} axis
    */
-  mean(axis?: number): number {
-    // return this.sum() / this.length;
-    return 0
+  mean(axis?: number): tndarray | number {
+    if (axis === undefined) {
+      return <number> this.sum() / this.length;
+    } else {
+      return tndarray._div(this.sum(axis), this.shape[axis]);
+    }
   }
   
-  // TODO: Axes.
   /**
    * Returns the minimum element of the array along the specified axis.
    * @param {number} axis
    * @return {number}
    */
-  min(axis?: number): number {
-    return Math.min(...this.data);
+  min(axis?: number): tndarray | number {
+    return this.apply_to_axis(e => Math.min(...e), axis);
   }
   
   nonzero() {}
   
   partition() {}
   
-  // TODO: Axes
   /**
    * Compute an element-wise power.
    * @param {number} exp
-   * @param {number} axis
    */
-  power(exp: number, axis?: number) {
+  power(exp: number ) {
     return this.map(e => Math.pow(e, exp));
   }
   
@@ -365,16 +370,48 @@ class tndarray {
   }
   
   /**
-   * Reduce the array.
-   * @param f
+   * Apply the given function along the given axis.
+   * @param {(a: (TypedArray | number[])) => any} f
    * @param {number} axis
+   * @param {string} dtype
+   * @return {tndarray | number}
    */
-  reduce(f, axis?: number): number | tndarray {
+  apply_to_axis(f: (a: TypedArray | number[]) => any, axis?: number, dtype?: string): tndarray | number {
+    dtype = dtype === undefined ? this.dtype : dtype;
     if (axis === undefined) {
-      const new_data = this.data.reduce(f);
+      return f(this.data);
     } else {
       const new_shape = tndarray._new_shape_from_axis(this.shape, axis);
-      let new_array = tndarray.zeros(new_shape, this.dtype);
+      let new_array = tndarray.zeros(new_shape, dtype);
+      const step_along_axis = this.stride[axis];
+      for (let [old_index, new_index] of tndarray._true_index_iterator_over_axes(this, axis)) {
+        let axis_values = [];
+        for (let i = 0; i < this.shape[axis]; i ++) {
+          axis_values.push(this.data[old_index + i * step_along_axis]);
+        }
+        
+        new_array.data[new_index] = f(axis_values);
+      }
+    
+      return new_array;
+    }
+  }
+  
+  /**
+   * Reduce the array over the specified axes with the specified function.
+   * @param f
+   * @param {number} axis
+   * @param {string} dtype
+   */
+  reduce(f, axis?: number, dtype?: string): number | tndarray {
+    dtype = dtype === undefined ? this.dtype : dtype;
+    
+    if (axis === undefined) {
+      const new_data = this.data.reduce(f);
+      return tndarray.array(new_data, this.shape, {dtype: dtype})
+    } else {
+      const new_shape = tndarray._new_shape_from_axis(this.shape, axis);
+      let new_array = tndarray.zeros(new_shape, dtype);
       const step_along_axis = this.stride[axis];
       for (let [old_index, new_index] of tndarray._true_index_iterator_over_axes(this, axis)) {
         let accum = this.data[old_index];
@@ -397,8 +434,6 @@ class tndarray {
   equals(a: tndarray) {
     return tndarray.equals(this, a);
   }
-  
-
   
   /**
    * Computes the index of a value in the underlying data array based on a passed index.
@@ -1214,6 +1249,17 @@ class tndarray {
   }
   
   /**
+   * Compute the element-wise power of two inputs
+   * @param {Broadcastable} a - Base array.
+   * @param {Broadcastable} b - Exponent array.
+   * @return {tndarray}       - Result array.
+   * @private
+   */
+  static _power(a: Broadcastable, b: Broadcastable): tndarray {
+    return tndarray._binary_broadcast(a, b, (x, y) => Math.pow(x, y));
+  }
+  
+  /**
    * Compute the element-wise quotient of two arrays, rounding values up to the nearest integer.
    * @param {Broadcastable} a - Dividend array.
    * @param {Broadcastable} b - Divisor array.
@@ -1264,7 +1310,7 @@ class tndarray {
    * @param {tndarray} a
    * @param {tndarray} b
    */
-  static lt(a: tndarray, b: tndarray) {
+  static _lt(a: tndarray, b: tndarray) {
     return tndarray._binary_broadcast(a, b, (x, y) => +(x < y), "uint8");
   }
   
@@ -1273,7 +1319,7 @@ class tndarray {
    * @param {tndarray} a
    * @param {tndarray} b
    */
-  static gt(a: tndarray, b: tndarray) {
+  static _gt(a: tndarray, b: tndarray) {
     return tndarray._binary_broadcast(a, b, (x, y) => +(x > y), "uint8");
   }
   
@@ -1282,7 +1328,7 @@ class tndarray {
    * @param {tndarray} a
    * @param {tndarray} b
    */
-  static le(a: tndarray, b: tndarray) {
+  static _le(a: tndarray, b: tndarray) {
     return tndarray._binary_broadcast(a, b, (x, y) => +(x <= y), "uint8");
   }
   
@@ -1291,7 +1337,7 @@ class tndarray {
    * @param {tndarray} a
    * @param {tndarray} b
    */
-  static ge(a: tndarray, b: tndarray) {
+  static _ge(a: tndarray, b: tndarray) {
     return tndarray._binary_broadcast(a, b, (x, y) => +(x >= y), "uint8");
   }
   
@@ -1300,7 +1346,7 @@ class tndarray {
    * @param {tndarray} a
    * @param {tndarray} b
    */
-  static ne(a: tndarray, b: tndarray) {
+  static _ne(a: tndarray, b: tndarray) {
     return tndarray._binary_broadcast(a, b, (x, y) => +(x !== y), "uint8");
   }
   
@@ -1309,7 +1355,7 @@ class tndarray {
    * @param {tndarray} a
    * @param {tndarray} b
    */
-  static eq(a: tndarray, b: tndarray) {
+  static _eq(a: tndarray, b: tndarray) {
     return tndarray._binary_broadcast(a, b, (x, y) => +(x === y), "uint8");
   }
   
@@ -1390,7 +1436,7 @@ export function sub(a, b) {
 }
 
 /**
- *
+ * Return indices
  * @param condition
  * @param a
  * @param b
@@ -1398,6 +1444,62 @@ export function sub(a, b) {
 export function where(condition, a, b?) {
 
 }
+
+/**
+ * Produces a column-major stride from an array shape.
+ * @param {Uint32Array} shape
+ * @private
+ */
+function _stride_from_shape(shape: Uint32Array): Uint32Array {
+  let stride = new Uint32Array(shape.length);
+  stride[0] = 1;
+  let i;
+  for (i = 0; i < shape.length - 1; i++) {
+    stride[i + 1] = stride[i] * shape[i];
+  }
+  return stride;
+}
+
+/**
+ * Create a tndarray containing the specified data
+ * @param data
+ * @param shape
+ * @param options
+ * @return {tndarray}
+ */
+// export function array(data, shape?, options?: ArrayOptions): tndarray {
+//   let final_shape;
+//   let size;
+//   let dtype;
+//
+//   if (options && options.dtype) {
+//     dtype = options.dtype
+//   }
+//
+//   if (options && options.disable_checks === true) {
+//     final_shape = shape;
+//     size = tndarray._compute_size(shape);
+//   } else {
+//     if (!tndarray._is_numeric_array(data)) {
+//       throw new errors.BadData();
+//     }
+//
+//     final_shape = tndarray._compute_final_shape(shape, data.length);
+//
+//     // Compute length
+//     size = tndarray._compute_size(final_shape);
+//
+//     if (size !== data.length) {
+//       throw new errors.MismatchedShapeSize()
+//     }
+//   }
+//
+//   const stride = _stride_from_shape(final_shape);
+//   const offset = new Uint32Array(final_shape.length);
+//   const dstride = new Uint32Array(final_shape.length);
+//
+//   return new tndarray(data, final_shape, offset, stride, dstride, size, dtype);
+// }
 
 
 export {tndarray, errors};

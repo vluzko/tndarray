@@ -40,6 +40,11 @@ var errors;
     errors.NestedArrayHasInconsistentDimensions = NestedArrayHasInconsistentDimensions;
 })(errors || (errors = {}));
 exports.errors = errors;
+var temp;
+(function (temp) {
+    function ab() { }
+    temp.ab = ab;
+})(temp || (temp = {}));
 var utils;
 (function (utils) {
     /**
@@ -173,42 +178,41 @@ class tndarray {
     dot() { }
     fill() { }
     flatten() { }
-    // TODO: Axes.
     /**
      * Returns the maximum element of the array.
      * @param {number} axis
      * @return {number}
      */
     max(axis) {
-        return Math.max(...this.data);
+        return this.apply_to_axis(e => Math.max(...e), axis);
     }
-    // TODO: Axes
     /**
      * Calculate the mean of the array.
      * @param {number} axis
      */
     mean(axis) {
-        // return this.sum() / this.length;
-        return 0;
+        if (axis === undefined) {
+            return this.sum() / this.length;
+        }
+        else {
+            return tndarray._div(this.sum(axis), this.shape[axis]);
+        }
     }
-    // TODO: Axes.
     /**
      * Returns the minimum element of the array along the specified axis.
      * @param {number} axis
      * @return {number}
      */
     min(axis) {
-        return Math.min(...this.data);
+        return this.apply_to_axis(e => Math.min(...e), axis);
     }
     nonzero() { }
     partition() { }
-    // TODO: Axes
     /**
      * Compute an element-wise power.
      * @param {number} exp
-     * @param {number} axis
      */
-    power(exp, axis) {
+    power(exp) {
         return this.map(e => Math.pow(e, exp));
     }
     prod() { }
@@ -308,17 +312,46 @@ class tndarray {
         return tndarray._sub(this, b);
     }
     /**
-     * Reduce the array.
-     * @param f
+     * Apply the given function along the given axis.
+     * @param {(a: (TypedArray | number[])) => any} f
      * @param {number} axis
+     * @param {string} dtype
+     * @return {tndarray | number}
      */
-    reduce(f, axis) {
+    apply_to_axis(f, axis, dtype) {
+        dtype = dtype === undefined ? this.dtype : dtype;
         if (axis === undefined) {
-            const new_data = this.data.reduce(f);
+            return f(this.data);
         }
         else {
             const new_shape = tndarray._new_shape_from_axis(this.shape, axis);
-            let new_array = tndarray.zeros(new_shape, this.dtype);
+            let new_array = tndarray.zeros(new_shape, dtype);
+            const step_along_axis = this.stride[axis];
+            for (let [old_index, new_index] of tndarray._true_index_iterator_over_axes(this, axis)) {
+                let axis_values = [];
+                for (let i = 0; i < this.shape[axis]; i++) {
+                    axis_values.push(this.data[old_index + i * step_along_axis]);
+                }
+                new_array.data[new_index] = f(axis_values);
+            }
+            return new_array;
+        }
+    }
+    /**
+     * Reduce the array over the specified axes with the specified function.
+     * @param f
+     * @param {number} axis
+     * @param {string} dtype
+     */
+    reduce(f, axis, dtype) {
+        dtype = dtype === undefined ? this.dtype : dtype;
+        if (axis === undefined) {
+            const new_data = this.data.reduce(f);
+            return tndarray.array(new_data, this.shape, { dtype: dtype });
+        }
+        else {
+            const new_shape = tndarray._new_shape_from_axis(this.shape, axis);
+            let new_array = tndarray.zeros(new_shape, dtype);
             const step_along_axis = this.stride[axis];
             for (let [old_index, new_index] of tndarray._true_index_iterator_over_axes(this, axis)) {
                 let accum = this.data[old_index];
@@ -1069,6 +1102,16 @@ class tndarray {
         return tndarray._binary_broadcast(a, b, (x, y) => x / y, "float64");
     }
     /**
+     * Compute the element-wise power of two inputs
+     * @param {Broadcastable} a - Base array.
+     * @param {Broadcastable} b - Exponent array.
+     * @return {tndarray}       - Result array.
+     * @private
+     */
+    static _power(a, b) {
+        return tndarray._binary_broadcast(a, b, (x, y) => Math.pow(x, y));
+    }
+    /**
      * Compute the element-wise quotient of two arrays, rounding values up to the nearest integer.
      * @param {Broadcastable} a - Dividend array.
      * @param {Broadcastable} b - Divisor array.
@@ -1115,7 +1158,7 @@ class tndarray {
      * @param {tndarray} a
      * @param {tndarray} b
      */
-    static lt(a, b) {
+    static _lt(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => +(x < y), "uint8");
     }
     /**
@@ -1123,7 +1166,7 @@ class tndarray {
      * @param {tndarray} a
      * @param {tndarray} b
      */
-    static gt(a, b) {
+    static _gt(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => +(x > y), "uint8");
     }
     /**
@@ -1131,7 +1174,7 @@ class tndarray {
      * @param {tndarray} a
      * @param {tndarray} b
      */
-    static le(a, b) {
+    static _le(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => +(x <= y), "uint8");
     }
     /**
@@ -1139,7 +1182,7 @@ class tndarray {
      * @param {tndarray} a
      * @param {tndarray} b
      */
-    static ge(a, b) {
+    static _ge(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => +(x >= y), "uint8");
     }
     /**
@@ -1147,7 +1190,7 @@ class tndarray {
      * @param {tndarray} a
      * @param {tndarray} b
      */
-    static ne(a, b) {
+    static _ne(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => +(x !== y), "uint8");
     }
     /**
@@ -1155,7 +1198,7 @@ class tndarray {
      * @param {tndarray} a
      * @param {tndarray} b
      */
-    static eq(a, b) {
+    static _eq(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => +(x === y), "uint8");
     }
     /**
@@ -1227,7 +1270,7 @@ function sub(a, b) {
 }
 exports.sub = sub;
 /**
- *
+ * Return indices
  * @param condition
  * @param a
  * @param b
@@ -1235,4 +1278,18 @@ exports.sub = sub;
 function where(condition, a, b) {
 }
 exports.where = where;
+/**
+ * Produces a column-major stride from an array shape.
+ * @param {Uint32Array} shape
+ * @private
+ */
+function _stride_from_shape(shape) {
+    let stride = new Uint32Array(shape.length);
+    stride[0] = 1;
+    let i;
+    for (i = 0; i < shape.length - 1; i++) {
+        stride[i + 1] = stride[i] * shape[i];
+    }
+    return stride;
+}
 //# sourceMappingURL=tndarray.js.map
