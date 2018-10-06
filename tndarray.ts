@@ -40,7 +40,7 @@ namespace errors {
   export class NestedArrayHasInconsistentDimensions extends Error {}
 }
 
-namespace utils {
+export namespace utils {
   /**
    * TODO: Move to a static function in tndarray
    * @param array1
@@ -75,6 +75,32 @@ namespace utils {
     return !isNaN(value) && value !== null;
   }
   
+  export function zip_iterable(...iters: Iterator<number>[]): Iterable<number[]> {
+    let iterators = iters.map(e => e[Symbol.iterator]());
+    
+    let iter = {
+    };
+    iter[Symbol.iterator] = function*() {
+      let all_done = false;
+      while (!all_done) {
+        let results = [];
+        iterators.forEach(e => {
+          let {value, done} = e.next();
+          if (done) {
+            all_done = true;
+          }
+          results.push(value);
+        });
+        
+        if (!all_done) {
+          yield results;
+        }
+      }
+    };
+    
+    return <Iterable<number[]>> iter;
+  }
+  
   // TODO: Test
   /**
    * Check if value is an ArrayBuffer
@@ -98,14 +124,13 @@ namespace utils {
   }
 }
 
-
 class tndarray {
   
   private data;
-  private offset: Uint32Array;
-  private stride: Uint32Array;
-  private dstride: Uint32Array;
-  private initial_offset: number;
+  readonly offset: Uint32Array;
+  readonly stride: Uint32Array;
+  readonly dstride: Uint32Array;
+  readonly initial_offset: number;
   public shape: Uint32Array;
   public length: number;
   public dtype: string;
@@ -150,6 +175,131 @@ class tndarray {
     this.is_view = false;
   }
   
+  add() {
+  
+  }
+  
+  all() {}
+  
+  any() {}
+  
+  argmax() {}
+  
+  argmin() {}
+  
+  argpartition() {}
+  
+  argsort() {}
+  
+  as_type() {}
+  
+  clip() {}
+  
+  cumprod() {}
+  
+  cumsum() {}
+  
+  diagonal() {}
+  
+  dot() {}
+  
+  fill() {}
+  
+  flatten() {}
+  
+  // TODO: Axes.
+  /**
+   * Returns the maximum element of the array.
+   * @param {number} axis
+   * @return {number}
+   */
+  max(axis?: number): number {
+    return Math.max(...this.data);
+  }
+  
+  // TODO: Axes
+  /**
+   * Calculate the mean of the array.
+   * @param {number} axis
+   */
+  mean(axis?: number): number {
+    // return this.sum() / this.length;
+    return 0
+  }
+  
+  // TODO: Axes.
+  /**
+   * Returns the minimum element of the array along the specified axis.
+   * @param {number} axis
+   * @return {number}
+   */
+  min(axis?: number): number {
+    return Math.min(...this.data);
+  }
+  
+  nonzero() {}
+  
+  partition() {}
+  
+  // TODO: Axes
+  /**
+   * Compute an element-wise power.
+   * @param {number} exp
+   * @param {number} axis
+   */
+  power(exp: number, axis?: number) {
+    return this.map(e => Math.pow(e, exp));
+  }
+  
+  prod() {}
+  
+  /**
+   * Create a copy of this with a different shape.
+   * @param {Uint32Array} new_shape - The shape to make the new array.
+   * @return {tndarray}             - The reshaped array.
+   */
+  reshape(new_shape: Uint32Array | number[]): tndarray {
+    if (Array.isArray(new_shape)) {
+      new_shape = new Uint32Array(new_shape);
+    }
+    const new_size = tndarray._compute_size(new_shape);
+    const size = tndarray._compute_size(this.shape);
+    if (size !== new_size) {
+      throw new errors.BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${new_shape}`);
+    }
+    let value_iter = this._value_iterator();
+    return tndarray.from_iterable(value_iter, new_shape, this.dtype);
+  }
+  
+  round() {}
+  
+  sort() {}
+  
+  squeeze() {}
+  
+  // TODO: Axes
+  /**
+   * Return the standard deviation along the specified axis.
+   * @param {number} axis
+   * @return {number}
+   */
+  stdev(axis?: number): number {
+    const mean = this.mean();
+    throw Error("Not implemented");
+  }
+  
+  // TODO: Axes
+  /**
+   * Sum the entries of the array along the specified axis.
+   * @param {number} axis
+   * @return {number}
+   */
+  sum(axis?: number): number | tndarray {
+    return this.reduce((a, e) => a + e, axis);
+  }
+  
+  trace() {}
+  
   /**
    * Return a slice of an array. Copies the underlying data.
    * @param indices
@@ -164,21 +314,6 @@ class tndarray {
    */
   slice(...indices) {
   
-  }
-  
-  /**
-   * Create a copy of this with a different shape.
-   * @param {Uint32Array} new_shape - The shape to make the new array.
-   * @return {tndarray}             - The reshaped array.
-   */
-  reshape(new_shape: Uint32Array): tndarray {
-    const new_size = tndarray._compute_size(new_shape);
-    const size = tndarray._compute_size(this.shape);
-    if (size !== new_size) {
-      throw new errors.BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${new_shape}`);
-    }
-    let value_iter = this._value_iterator();
-    return tndarray.from_iterable(value_iter, new_shape, this.dtype);
   }
   
   /**
@@ -209,67 +344,6 @@ class tndarray {
     return tndarray.array(new_data, this.shape, {disable_checks: true, dtype: this.dtype});
   }
   
-  // TODO: Axes.
-  /**
-   * Returns the maximum element of the array.
-   * @param {number} axis
-   * @return {number}
-   */
-  max(axis?: number): number {
-    return Math.max(...this.data);
-  }
-  
-  // TODO: Axes.
-  /**
-   * Returns the minimum element of the array.
-   * @param {number} axis
-   * @return {number}
-   */
-  min(axis?: number): number {
-    return Math.min(...this.data);
-  }
-  
-  // TODO: Axes
-  /**
-   * Compute an element-wise power.
-   * @param {number} exp
-   * @param {number} axis
-   */
-  power(exp: number, axis?: number) {
-    return this.map(e => Math.pow(e, exp));
-  }
-  
-  // TODO: Axes
-  /**
-   * Sum the entries of an array.
-   * @param {number} axis
-   * @return {number}
-   */
-  sum(axis?: number): number {
-    return this.reduce((a, e) => a + e, 0);
-  }
-  
-  // TODO: Axes
-  /**
-   * Calculate the mean of the array.
-   * @param {number} axis
-   */
-  mean(axis?: number): number {
-    return this.sum() / this.length;
-  }
-  
-  // TODO: Axes
-  /**
-   *
-   * @param {number} axis
-   * @return {number}
-   */
-  stdev(axis?: number): number {
-    const mean = this.mean();
-    throw Error("Not implemented");
-  }
-  
-  // TODO: Axes.
   /**
    * Map the array.
    * @param f
@@ -287,17 +361,32 @@ class tndarray {
    * @return {number | tndarray}
    */
   sub(b: Broadcastable) {
-    return tndarray.sub(this, b);
+    return tndarray._sub(this, b);
   }
   
-  // TODO: Axes.
   /**
    * Reduce the array.
    * @param f
    * @param {number} axis
    */
-  reduce(f, axis?: number) {
-    return this.data.reduce(f);
+  reduce(f, axis?: number): number | tndarray {
+    if (axis === undefined) {
+      const new_data = this.data.reduce(f);
+    } else {
+      const new_shape = tndarray._new_shape_from_axis(this.shape, axis);
+      let new_array = tndarray.zeros(new_shape, this.dtype);
+      const step_along_axis = this.stride[axis];
+      for (let [old_index, new_index] of tndarray._true_index_iterator_over_axes(this, axis)) {
+        let accum = this.data[old_index];
+        for (let i = 1; i < this.shape[axis]; i ++) {
+          accum = f(accum, this.data[old_index + i * step_along_axis]);
+        }
+  
+        new_array.data[new_index] = accum;
+      }
+      
+      return new_array;
+    }
   }
   
   /**
@@ -309,14 +398,7 @@ class tndarray {
     return tndarray.equals(this, a);
   }
   
-  // /**
-  //  * Similar to filter, but avoids the issue of having to compute the shape of the new array.
-  //  * @param f
-  //  * @return {tndarray}
-  //  */
-  // where(f): tndarray {
-  //   return
-  // }
+
   
   /**
    * Computes the index of a value in the underlying data array based on a passed index.
@@ -668,7 +750,7 @@ class tndarray {
   }
   
   /**
-   * Iterate over a slice.
+   * Iterate over the indices of a slice.
    * Coordinates are updated last dimension first.
    * @param {Uint32Array} lower_or_upper  - If no additional arguments are passed, this is treated as the upper bounds of each dimension.
    *                                        with lower bound [0]*n and step size [1]*n.
@@ -730,7 +812,7 @@ class tndarray {
    * @return {Iterable<number>}
    * @private
    */
-  private _real_index_iterator(lower_or_upper: Uint32Array, upper_bounds?: Uint32Array, steps?: Uint32Array): Iterable<number> {
+  private _real_index_iterator(lower_or_upper?: Uint32Array, upper_bounds?: Uint32Array, steps?: Uint32Array): Iterable<number> {
     
     if (lower_or_upper === undefined) {
       lower_or_upper = this.shape;
@@ -747,23 +829,38 @@ class tndarray {
     }
     
     let iter = {};
+    const upper_inclusive = upper_bounds.map(e => e - 1);
     const start = this._compute_real_index(lower_or_upper);
     const step = this.stride[this.stride.length - 1];
-    const end = step * upper_bounds[upper_bounds.length - 1];
+    const end = this._compute_real_index(upper_inclusive);
     const index_stride = this.stride.slice(0, -1);
-    
     let starting_indices = tndarray._slice_iterator(lower_or_upper.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
     
     iter[Symbol.iterator] = function* () {
       for (let starting_index of starting_indices) {
+        
         let current_index = utils.dot(starting_index, index_stride) + start;
-        while (current_index < end) {
+        while (current_index <= end) {
           yield current_index;
           current_index += step;
         }
       }
     };
     return <Iterable<number>> iter;
+  }
+  
+  private static _true_index_iterator_over_axes(full_array: tndarray, axis: number): Iterable<number[]> {
+    const new_shape = tndarray._new_shape_from_axis(full_array.shape, axis);
+    let new_array = tndarray.zeros(new_shape, full_array.dtype);
+    let lower = new Uint32Array(full_array.shape.length);
+    let upper = full_array.shape.slice(0);
+    let steps = new Uint32Array(full_array.shape.length);
+    steps.fill(1);
+    upper[axis] = 1;
+  
+    let old_iter = full_array._real_index_iterator(lower, upper, steps)[Symbol.iterator]();
+    let new_iter = new_array._real_index_iterator()[Symbol.iterator]();
+    return utils.zip_iterable(old_iter, new_iter);
   }
   
   /**
@@ -909,9 +1006,8 @@ class tndarray {
   }
   
   /**
-   * A special case of filled that produces an array of zeros.
-   * Implemented without actually calling filled, because TypedArray constructors initialize everything to 0 already.
-   * @param {AnyNumerical} shape
+   * Return an array of the specified size filled with zeroes.
+   * @param {number} shape
    * @param {string} dtype
    * @return {tndarray}
    */
@@ -925,8 +1021,8 @@ class tndarray {
   }
   
   /**
-   * A special called of filled that produces an array of ones.
-   * @param {AnyNumerical | number} shape
+   * Return an array of the specified size filled with ones.
+   * @param {number} shape
    * @param {string} dtype
    * @return {tndarray}
    */
@@ -963,7 +1059,7 @@ class tndarray {
    * @param {number} step           - The step size between elements in the range.
    * @return {tndarray}             - A one-dimensional array containing the range.
    */
-  static arange(start_or_stop: number, stop?: number, step?: number) {
+  static arange(start_or_stop: number, stop?: number, step?: number): tndarray {
     if (step === undefined) {
       step = 1;
     }
@@ -1034,6 +1130,16 @@ class tndarray {
     return new tndarray(data, final_shape, offset, stride, dstride, size, dtype);
   }
   
+  private static _new_shape_from_axis(old_shape: Uint32Array, axis: number): Uint32Array {
+    let new_shape;
+    if (old_shape.length === 1) {
+      new_shape = new Uint32Array(1);
+    } else {
+      new_shape = old_shape.filter((e, i) => i !== axis);
+    }
+    return new_shape
+  }
+  
   /**
    * Apply a binary function to two broadcastables.
    * @param {Broadcastable} a - The first argument to f.
@@ -1070,7 +1176,7 @@ class tndarray {
    * @param b
    * @return {number | tndarray}
    */
-  static add(a, b) {
+  static _add(a, b) {
     return tndarray._binary_broadcast(a, b, (x, y) => x + y);
   }
   
@@ -1081,7 +1187,7 @@ class tndarray {
    * @param {Broadcastable} b - The subtrahend.
    * @return {Broadcastable} - The element-wise difference.
    */
-  static sub(a: Broadcastable, b: Broadcastable): tndarray {
+  static _sub(a: Broadcastable, b: Broadcastable): tndarray {
     return tndarray._binary_broadcast(a, b, (x, y) => x - y);
   }
   
@@ -1092,7 +1198,7 @@ class tndarray {
    * @param {Broadcastable} b - Second factor.
    * @return {Broadcastable} - The element-wise product of the two inputs.
    */
-  static mult(a: Broadcastable, b: Broadcastable): tndarray {
+  static _mult(a: Broadcastable, b: Broadcastable): tndarray {
      return tndarray._binary_broadcast(a, b, (x, y) => x * y);
   }
   
@@ -1103,7 +1209,7 @@ class tndarray {
    * @param {Broadcastable} b - Divisor array.
    * @return {Broadcastable}  - Quotient array.
    */
-  static div(a: Broadcastable, b: Broadcastable): tndarray {
+  static _div(a: Broadcastable, b: Broadcastable): tndarray {
     return tndarray._binary_broadcast(a, b, (x, y) => x / y, "float64");
   }
   
@@ -1113,7 +1219,7 @@ class tndarray {
    * @param {Broadcastable} b - Divisor array.
    * @return {Broadcastable}  - Quotient array.
    */
-  static cdiv(a: Broadcastable, b: Broadcastable): tndarray {
+  static _cdiv(a: Broadcastable, b: Broadcastable): tndarray {
     return tndarray._binary_broadcast(a, b, (x, y) => Math.ceil(x / y));
   }
   
@@ -1123,7 +1229,7 @@ class tndarray {
    * @param {Broadcastable} b - Divisor array.
    * @return {tndarray}       - Quotient array.
    */
-  static fdiv(a: Broadcastable, b: Broadcastable): tndarray {
+  static _fdiv(a: Broadcastable, b: Broadcastable): tndarray {
     return tndarray._binary_broadcast(a, b, (x, y) => Math.floor(x / y));
   }
   
@@ -1133,7 +1239,7 @@ class tndarray {
    * @param {Broadcastable} b - Second array.
    * @return {tndarray}       - Modulus array.
    */
-  static mod(a: Broadcastable, b: Broadcastable): tndarray {
+  static _mod(a: Broadcastable, b: Broadcastable): tndarray {
     return tndarray._binary_broadcast(a, b, (x, y) => x % y);
   }
   
@@ -1153,14 +1259,13 @@ class tndarray {
     return acc;
   }
   
-  // TODO: Broadcasting
   /**
    * Compute element-wise less than.
    * @param {tndarray} a
    * @param {tndarray} b
    */
   static lt(a: tndarray, b: tndarray) {
-  
+    return tndarray._binary_broadcast(a, b, (x, y) => +(x < y), "uint8");
   }
   
   /**
@@ -1169,7 +1274,7 @@ class tndarray {
    * @param {tndarray} b
    */
   static gt(a: tndarray, b: tndarray) {
-  
+    return tndarray._binary_broadcast(a, b, (x, y) => +(x > y), "uint8");
   }
   
   /**
@@ -1178,7 +1283,7 @@ class tndarray {
    * @param {tndarray} b
    */
   static le(a: tndarray, b: tndarray) {
-  
+    return tndarray._binary_broadcast(a, b, (x, y) => +(x <= y), "uint8");
   }
   
   /**
@@ -1187,7 +1292,25 @@ class tndarray {
    * @param {tndarray} b
    */
   static ge(a: tndarray, b: tndarray) {
+    return tndarray._binary_broadcast(a, b, (x, y) => +(x >= y), "uint8");
+  }
   
+  /**
+   * Compute element-wise not equal to.
+   * @param {tndarray} a
+   * @param {tndarray} b
+   */
+  static ne(a: tndarray, b: tndarray) {
+    return tndarray._binary_broadcast(a, b, (x, y) => +(x !== y), "uint8");
+  }
+  
+  /**
+   * Compute element-wise equal to.
+   * @param {tndarray} a
+   * @param {tndarray} b
+   */
+  static eq(a: tndarray, b: tndarray) {
+    return tndarray._binary_broadcast(a, b, (x, y) => +(x === y), "uint8");
   }
   
   /**
@@ -1241,5 +1364,40 @@ class tndarray {
   }
 }
 
+// TODO: Allow non-tndarray arrays
+// TODO: Type upcasting.
+/**
+ * Compute the sum of two arrays.
+ * output[i] = a[i] + [i].
+ * @param a
+ * @param b
+ * @return {number | tndarray}
+ */
+export function add(a, b) {
+  return tndarray._add(a, b);
+}
 
-export {tndarray, errors, utils};
+export function div(a, b) {
+  return tndarray._div(a, b);
+}
+
+export function mult(a, b) {
+  return tndarray._mult(a, b);
+}
+
+export function sub(a, b) {
+  return tndarray._sub(a, b);
+}
+
+/**
+ *
+ * @param condition
+ * @param a
+ * @param b
+ */
+export function where(condition, a, b?) {
+
+}
+
+
+export {tndarray, errors};
