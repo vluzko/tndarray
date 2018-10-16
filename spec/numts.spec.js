@@ -147,10 +147,6 @@ describe("Constructors and factories.", function () {
       expect(numts.tndarray._stride_from_shape([2, 2, 3])).toEqual(new Uint32Array([1, 2, 4]));
       expect(numts.tndarray._stride_from_shape([2, 5])).toEqual(new Uint32Array([1, 2]));
     });
-
-    it("_dtype_join.", function () {
-      throw new Error();
-    });
   });
 });
 
@@ -492,46 +488,6 @@ describe("Unary methods.", function () {
 
     describe("mean.", function () {
 
-    });
-
-    describe("cumsum.", function () {
-      it("No axes.", function () {
-        const input = numts.arange(12).reshape([3, 4]);
-        const x = input.cumsum();
-        const expected = numts.tndarray.from_iterable([0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66], [12], 'int32');
-        expect(x.equals(expected)).toBe(true);
-      });
-
-      fit("2d, axis 1.", function () {
-        const input = numts.arange(12).reshape([3, 4]);
-        const result = input.cumsum(1);
-        const expected = numts.tndarray.from_nested_array([
-          [0, 1, 3, 6],
-          [4, 9, 15, 22],
-          [8, 17, 27, 38]
-        ], "int32");
-        expect(result.equals(expected)).toBe(true);
-      });
-    });
-
-    describe("cumprod.", function () {
-      fit("No axes.", function () {
-        const input = numts.arange(1, 13).reshape([3, 4]);
-        const x = input.cumprod();
-        const expected = numts.tndarray.from_iterable([1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600], [12], 'int32');
-        expect(x.equals(expected)).toBe(true);
-      });
-
-      fit("2d, axis 1.", function () {
-        const input = numts.arange(1, 13).reshape([3, 4]);
-        const result = input.cumprod(1);
-        const expected = numts.tndarray.from_nested_array([
-          [1, 2, 6, 24],
-          [5, 30, 210, 1680],
-          [9, 90, 990, 11880]
-        ], "int32");
-        expect(result.equals(expected)).toBe(true);
-      });
     });
   });
 

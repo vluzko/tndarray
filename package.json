@@ -3,15 +3,13 @@
   "version": "1.0.0",
   "description": "Typed n-dimensional arrays",
   "main": "tndarray.js",
-  "dependencies": {
-    "jasmine": "^2.7.0"
-  },
   "devDependencies": {
+    "jest": "^23.6.0",
     "jsverify": "^0.8.3",
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.11"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jasmine"
   },
   "repository": {
     "type": "git",

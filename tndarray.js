@@ -170,13 +170,50 @@ class tndarray {
     argmin() { }
     argpartition() { }
     argsort() { }
-    as_type() { }
-    clip() { }
-    cumprod() { }
-    cumsum() { }
+    as_type(dtype) { }
+    clip(lower, upper) {
+        return this.map(e => {
+            if (e < lower) {
+                return lower;
+            }
+            else if (e > upper) {
+                return upper;
+            }
+            else {
+                return e;
+            }
+        });
+    }
+    /**
+     * The cumulative product along the given axis.
+     * @param {number} axis
+     * @param {string} dtype
+     * @return {number | tndarray}
+     */
+    cumprod(axis, dtype) {
+        return this.accum_map((acc, b) => acc * b, axis, undefined, dtype);
+    }
+    /**
+     * The cumulative sum of the array along the given axis.
+     * @param {number} axis
+     * @param {string} dtype
+     */
+    cumsum(axis, dtype) {
+        return this.accum_map((acc, b) => acc + b, axis, undefined, dtype);
+    }
     diagonal() { }
     dot() { }
-    fill() { }
+    /**
+     * Fill the array with value, in-place.
+     * @param {number} value  - The value to fill the array with
+     * @return {tndarray}     - The filled array.
+     */
+    fill(value) {
+        for (let i = 0; i < this.data.length; i++) {
+            this.data[i] = value;
+        }
+        return this;
+    }
     flatten() { }
     /**
      * Returns the maximum element of the array.
@@ -324,6 +361,62 @@ class tndarray {
         return tndarray._sub(this, b);
     }
     /**
+     * Accumulating map over the entire array or along a particular axis.
+     * If no axis is provided a flat array is returned.
+     * Otherwise the shape of the result is the same as the shape of the original array.
+     * @param f - Function to use.
+     * @param {number} axis - Axis to map over.
+     * @param {number} start  - Initial value.
+     * @param {string} dtype  - Dtype of the result array.
+     * @return {tndarray | number}
+     */
+    accum_map(f, axis, start, dtype) {
+        dtype = dtype === undefined ? this.dtype : dtype;
+        let new_array;
+        if (axis === undefined) {
+            const data_type = tndarray._dtype_map(dtype);
+            // TODO: Views: Use size of view.
+            new_array = tndarray.zeros(this.length, dtype);
+            let first_value;
+            if (start !== undefined) {
+                first_value = f(start, this.data[0]);
+            }
+            else {
+                first_value = this.data[0];
+            }
+            new_array.data[0] = first_value;
+            let previous_index = 0;
+            let index_in_new = 0;
+            for (let index of this._real_index_iterator()) {
+                new_array.data[index_in_new] = f(new_array.data[previous_index], this.data[index]);
+                previous_index = index_in_new;
+                index_in_new += 1;
+            }
+        }
+        else {
+            const [lower, upper, steps] = tndarray._slice_for_axis(this, axis);
+            new_array = tndarray.zeros(this.shape, dtype);
+            const step_along_axis = this.stride[axis];
+            for (let index of this._real_index_iterator(lower, upper, steps)) {
+                let first_value;
+                if (start !== undefined) {
+                    first_value = f(start, this.data[index]);
+                }
+                else {
+                    first_value = this.data[index];
+                }
+                new_array.data[index] = first_value;
+                let previous_index = index;
+                for (let i = 1; i < this.shape[axis]; i++) {
+                    const new_index = index + i * step_along_axis;
+                    new_array.data[new_index] = f(new_array.data[previous_index], this.data[new_index]);
+                    previous_index = new_index;
+                }
+            }
+        }
+        return new_array;
+    }
+    /**
      * Apply the given function along the given axis.
      * @param {(a: (TypedArray | number[])) => any} f
      * @param {number} axis
@@ -351,7 +444,7 @@ class tndarray {
     }
     /**
      * Reduce the array over the specified axes with the specified function.
-     * @param f
+     * @param {(number, number, number?, array?) => number} f
      * @param {number} axis
      * @param {string} dtype
      */
@@ -550,11 +643,21 @@ class tndarray {
      * @private
      */
     static _dtype_join(a, b) {
+        // type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array| Int32Array | Uint32Array | Float32Array | Float64Array;
+        const ordering = [["int8", "uint8", "uint8c"], ["int16", "uint16"], ["int32", "uint32", "float32"], ["float64"]];
+        const a_index = ordering.reduce((acc, e, i) => e.indexOf(a) === -1 ? acc : i, -1);
+        const b_index = ordering.reduce((acc, e, i) => e.indexOf(b) === -1 ? acc : i, -1);
         if (a === b) {
             return a;
         }
+        else if (a_index === b_index) {
+            return ordering[a_index + 1][0];
+        }
+        else if (a_index < b_index) {
+            return b;
+        }
         else {
-            return "float64";
+            return a;
         }
     }
     /**
@@ -792,14 +895,32 @@ class tndarray {
         };
         return iter;
     }
-    static _true_index_iterator_over_axes(full_array, axis) {
-        const new_shape = tndarray._new_shape_from_axis(full_array.shape, axis);
-        let new_array = tndarray.zeros(new_shape, full_array.dtype);
+    /**
+     * Compute lower, upper, and steps for a slice of `full_array` along `axis`.
+     * @param {tndarray} full_array
+     * @param {number} axis
+     * @return {[Uint32Array, Uint32Array, Uint32Array]}  - [lower, upper, steps]
+     * @private
+     */
+    static _slice_for_axis(full_array, axis) {
         let lower = new Uint32Array(full_array.shape.length);
         let upper = full_array.shape.slice(0);
         let steps = new Uint32Array(full_array.shape.length);
         steps.fill(1);
         upper[axis] = 1;
+        return [lower, upper, steps];
+    }
+    /**
+     * Return an iterator over real indices of the old array and real indices of the new array.
+     * @param {tndarray} full_array
+     * @param {number} axis
+     * @return {Iterable<number[]>}
+     * @private
+     */
+    static _true_index_iterator_over_axes(full_array, axis) {
+        const new_shape = tndarray._new_shape_from_axis(full_array.shape, axis);
+        let new_array = tndarray.zeros(new_shape, full_array.dtype);
+        let [lower, upper, steps] = tndarray._slice_for_axis(full_array, axis);
         let old_iter = full_array._real_index_iterator(lower, upper, steps)[Symbol.iterator]();
         let new_iter = new_array._real_index_iterator()[Symbol.iterator]();
         return utils.zip_iterable(old_iter, new_iter);
@@ -1254,52 +1375,4 @@ class tndarray {
     }
 }
 exports.tndarray = tndarray;
-// TODO: Allow non-tndarray arrays
-// TODO: Type upcasting.
-/**
- * Compute the sum of two arrays.
- * output[i] = a[i] + [i].
- * @param a
- * @param b
- * @return {number | tndarray}
- */
-function add(a, b) {
-    return tndarray._add(a, b);
-}
-exports.add = add;
-function div(a, b) {
-    return tndarray._div(a, b);
-}
-exports.div = div;
-function mult(a, b) {
-    return tndarray._mult(a, b);
-}
-exports.mult = mult;
-function sub(a, b) {
-    return tndarray._sub(a, b);
-}
-exports.sub = sub;
-/**
- * Return indices
- * @param condition
- * @param a
- * @param b
- */
-function where(condition, a, b) {
-}
-exports.where = where;
-/**
- * Produces a column-major stride from an array shape.
- * @param {Uint32Array} shape
- * @private
- */
-function _stride_from_shape(shape) {
-    let stride = new Uint32Array(shape.length);
-    stride[0] = 1;
-    let i;
-    for (i = 0; i < shape.length - 1; i++) {
-        stride[i + 1] = stride[i] * shape[i];
-    }
-    return stride;
-}
 //# sourceMappingURL=tndarray.js.map
