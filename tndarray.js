@@ -216,6 +216,26 @@ class tndarray {
     }
     flatten() { }
     /**
+     * Multiply two 2D matrices.
+     * @param {tndarray} a
+     * @param {tndarray} b
+     */
+    static matmul_2d(a, b) {
+        const new_shape = new Uint32Array([a.shape[0], b.shape[1]]);
+        let iter = {
+            [Symbol.iterator]: function* () {
+                for (let i = 0; i < new_shape[0]; i++) {
+                    for (let j = 0; j < new_shape[1]; j++) {
+                        let x = tndarray.dot(a.slice(i), b.slice(null, j));
+                        console.log(`${i}, ${j}: ${x}`);
+                        yield x;
+                    }
+                }
+            }
+        };
+        return tndarray.from_iterable(iter, new_shape);
+    }
+    /**
      * Returns the maximum element of the array.
      * @param {number} axis
      * @return {number}
@@ -312,10 +332,40 @@ class tndarray {
     c_slice(...indices) {
     }
     /**
+     * TODO: Return a view instead of a copy.
      * Return a slice of an array. Does not copy the underlying data.
      * @param indices
      */
     slice(...indices) {
+        let start = new Uint32Array(this.shape.length);
+        let end = new Uint32Array(this.shape);
+        let steps = new Uint32Array(this.shape.length);
+        steps.fill(1);
+        let i = 0;
+        for (let index of indices) {
+            if (index === null) {
+                end[i] = this.shape[i];
+            }
+            else if (utils.is_numeric(index)) {
+                start[i] = index;
+                end[i] = index + 1;
+            }
+            else if (index.length === 2) {
+                start[i] = index[0];
+                end[i] = index[1];
+            }
+            else if (index.length === 3) {
+                start[i] = index[0];
+                end[i] = index[1];
+                steps[i] = index[2];
+            }
+            else {
+                throw new Error(`Arguments to slice were wrong: ${indices}. Broke on ${index}.`);
+            }
+            i += 1;
+        }
+        const new_shape = tndarray._new_shape_from_slice(start, end, steps);
+        return tndarray.from_iterable(this._value_iterator(start, end, steps), new_shape, this.dtype);
     }
     /**
      *
@@ -937,8 +987,19 @@ class tndarray {
      * Returns a generator of the values of the array, in index order.
      * @private
      */
-    _value_iterator() {
-        const index_iterator = tndarray._slice_iterator(this.shape);
+    _value_iterator(lower_or_upper, upper_bounds, steps) {
+        if (lower_or_upper === undefined) {
+            lower_or_upper = this.shape;
+        }
+        if (steps === undefined) {
+            steps = new Uint32Array(lower_or_upper.length);
+            steps.fill(1);
+        }
+        if (upper_bounds === undefined) {
+            upper_bounds = lower_or_upper;
+            lower_or_upper = new Uint32Array(upper_bounds.length);
+        }
+        const index_iterator = tndarray._slice_iterator(lower_or_upper, upper_bounds, steps);
         let iter = {};
         // Alas, generators are dynamically scoped.
         const self = this;
@@ -1159,6 +1220,18 @@ class tndarray {
         const dstride = new Uint32Array(final_shape.length);
         return new tndarray(data, final_shape, offset, stride, dstride, size, dtype);
     }
+    /**
+     * Calculate a shape from a slice.
+     * @param {Uint32Array} start
+     * @param {Uint32Array} stop
+     * @param {Uint32Array} steps
+     * @private
+     */
+    static _new_shape_from_slice(start, stop, steps) {
+        const diff = stop.map((e, i) => e - start[i]);
+        const required_steps = diff.map((e, i) => Math.floor(e / steps[i]));
+        return new Uint32Array(required_steps);
+    }
     static _new_shape_from_axis(old_shape, axis) {
         let new_shape;
         if (old_shape.length === 1) {
@@ -1279,8 +1352,8 @@ class tndarray {
      */
     static dot(a, b) {
         let acc = 0;
-        for (let i = 0; i++; i < a.length) {
-            acc += a.data[i] + b.data[i];
+        for (let i = 0; i < a.length; i++) {
+            acc += a.data[i] * b.data[i];
         }
         return acc;
     }
