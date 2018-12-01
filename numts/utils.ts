@@ -40,6 +40,15 @@ export namespace utils {
   }
 
   /**
+   * Check whether a value is an integer.
+   * @param {any} value - The value to check.
+   * @return {boolean}
+   */
+  export function is_int(value: any): value is number {
+    return Number.isInteger(value);
+  }
+
+  /**
    * Checks whether a value is an array(like) of numbers.
    * @param array
    * @return {boolean}

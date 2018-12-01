@@ -1,5 +1,7 @@
 import {utils} from "./utils";
 
+type Shape = number[] | Uint32Array;
+
 export namespace indexing {
   /**
    * Computes the total length of the array from its shape.
@@ -7,7 +9,8 @@ export namespace indexing {
    * @return {number}
    * @private
    */
-  export function compute_size(shape: Uint32Array): number {
+  export function compute_size(shape: Shape): number {
+    // @ts-ignore
     return shape.reduce((a, b) => a * b);
   }
 
@@ -18,11 +21,14 @@ export namespace indexing {
    * @return {Uint32Array}
    * @private
    */
-  export function compute_shape(shape): Uint32Array {
+  export function compute_shape(shape: number | Shape): Uint32Array {
     let final_shape;
-    // Compute shapes.
-    if (Number.isInteger(shape)) {
+
+    // Convert integer to shape.
+    if (utils.is_int(shape)) {
       final_shape = new Uint32Array([shape]);
+
+    // Convert standard array to shape.
     } else if (Array.isArray(shape)) {
       // TODO: Error is not a numerical array.
       if (shape.length === 0) {
@@ -30,31 +36,15 @@ export namespace indexing {
       } else if (utils.is_numeric_array(shape)) {
         final_shape = new Uint32Array(shape);
       } else {
-        throw new Error("Bad shape")
+        throw new Error("Shape array must be numeric.")
       }
+
+    // Convert TypedArray to shape.
     } else if (ArrayBuffer.isView(shape)) {
       final_shape = shape;
-    } else {
-      throw new Error("Shape must be an int, an array of numbers, or a TypedArray.");
-    }
-    return final_shape;
-  }
 
-
-  /**
-   * Compute the final shape for the new ndarray.
-   * @param shape
-   * @param data_length
-   * @return {Uint32Array}
-   * @private
-   */
-  export function compute_final_shape(shape: any, data_length): Uint32Array {
-    let final_shape;
-    // Compute shapes.
-    if (shape === undefined || shape === null) {
-      final_shape = new Uint32Array([data_length]);
     } else {
-      final_shape = compute_shape(shape);
+      throw new Error("Shape must be an int, an array of numbers, or a Uint32Array.");
     }
     return final_shape;
   }
@@ -111,5 +101,57 @@ export namespace indexing {
    */
   export function index_in_data(indices: Uint32Array, stride: Uint32Array, initial_offset: number): number {
     return utils.dot(indices, stride) + initial_offset;
+  }
+
+  /**
+   * Return an iterator over the indices of a slice.
+   * Coordinates are updated last dimension first.
+   * @param {Uint32Array} lower_or_upper  - If no additional arguments are passed, this is treated as the upper bounds of each dimension.
+   *                                        with lower bound [0]*n and step size [1]*n.
+   *                                        Otherwise, this is the lower bounds of each dimension.
+   * @param {Uint32Array} upper_bounds    - The upper bounds of each dimension. If this is not passed the first argument is treated as
+   *                                        the upper bounds and the lower bounds default to [0]*n.
+   * @param {Uint32Array} steps           - The size of step to take along each dimension. Defaults to [1]*n if not passed.
+   * @return {Iterable<any>}
+   * @private
+   */
+  export function slice_iterator(lower_or_upper: Uint32Array, upper_bounds?: Uint32Array, steps?: Uint32Array): Iterable<Uint32Array> {
+    if (steps === undefined) {
+      steps = new Uint32Array(lower_or_upper.length);
+      steps.fill(1);
+    }
+
+    if (upper_bounds === undefined) {
+      upper_bounds = lower_or_upper;
+      lower_or_upper = new Uint32Array(upper_bounds.length);
+    }
+
+    let iter = {};
+    const size = indexing.compute_slice_size(lower_or_upper, upper_bounds, steps);
+    const end_dimension = upper_bounds.length - 1;
+    iter[Symbol.iterator] = function* () {
+
+      let current_index = lower_or_upper.slice();
+      let count = 0;
+
+      // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
+      for (let i = 0; i < size; i++) {
+        // Yield a copy of the current index.
+        yield current_index.slice();
+
+        ++current_index[end_dimension];
+
+        // Carry the ones.
+        let current_dimension = end_dimension;
+        while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
+          current_index[current_dimension] = lower_or_upper[current_dimension];
+          current_dimension--;
+          current_index[current_dimension] += steps[current_dimension];
+        }
+
+        count++;
+      }
+    };
+    return <Iterable<Uint32Array>> iter
   }
 }

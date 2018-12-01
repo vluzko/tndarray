@@ -682,7 +682,7 @@ class tndarray {
         let b_array = tndarray._upcast_to_tndarray(b);
         const new_dimensions = tndarray._broadcast_dims(a_array, b_array);
         const new_dtype = tndarray._dtype_join(a_array.dtype, b_array.dtype);
-        let index_iter = tndarray._slice_iterator(new_dimensions);
+        let index_iter = indexing_1.indexing.slice_iterator(new_dimensions);
         const a_indexer = tndarray._broadcast_indexer(new_dimensions, a_array.shape);
         const b_indexer = tndarray._broadcast_indexer(new_dimensions, b_array.shape);
         let iter = {};
@@ -707,38 +707,46 @@ class tndarray {
      * @return {Iterable<any>}
      * @private
      */
-    static _slice_iterator(lower_or_upper, upper_bounds, steps) {
-        if (steps === undefined) {
-            steps = new Uint32Array(lower_or_upper.length);
-            steps.fill(1);
-        }
-        if (upper_bounds === undefined) {
-            upper_bounds = lower_or_upper;
-            lower_or_upper = new Uint32Array(upper_bounds.length);
-        }
-        let iter = {};
-        const size = indexing_1.indexing.compute_slice_size(lower_or_upper, upper_bounds, steps);
-        const end_dimension = upper_bounds.length - 1;
-        iter[Symbol.iterator] = function* () {
-            let current_index = lower_or_upper.slice();
-            let count = 0;
-            // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
-            for (let i = 0; i < size; i++) {
-                // Yield a copy of the current index.
-                yield current_index.slice();
-                ++current_index[end_dimension];
-                // Carry the ones.
-                let current_dimension = end_dimension;
-                while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
-                    current_index[current_dimension] = lower_or_upper[current_dimension];
-                    current_dimension--;
-                    current_index[current_dimension] += steps[current_dimension];
-                }
-                count++;
-            }
-        };
-        return iter;
-    }
+    // static _slice_iterator(lower_or_upper: Uint32Array, upper_bounds?: Uint32Array, steps?: Uint32Array): Iterable<Uint32Array> {
+    //
+    //   if (steps === undefined) {
+    //     steps = new Uint32Array(lower_or_upper.length);
+    //     steps.fill(1);
+    //   }
+    //
+    //   if (upper_bounds === undefined) {
+    //     upper_bounds = lower_or_upper;
+    //     lower_or_upper = new Uint32Array(upper_bounds.length);
+    //   }
+    //
+    //   let iter = {};
+    //   const size = indexing.compute_slice_size(lower_or_upper, upper_bounds, steps);
+    //   const end_dimension = upper_bounds.length - 1;
+    //   iter[Symbol.iterator] = function* () {
+    //
+    //     let current_index = lower_or_upper.slice();
+    //     let count = 0;
+    //
+    //     // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
+    //     for (let i = 0; i < size; i++) {
+    //       // Yield a copy of the current index.
+    //       yield current_index.slice();
+    //
+    //       ++current_index[end_dimension];
+    //
+    //       // Carry the ones.
+    //       let current_dimension = end_dimension;
+    //       while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
+    //         current_index[current_dimension] = lower_or_upper[current_dimension];
+    //         current_dimension--;
+    //         current_index[current_dimension] += steps[current_dimension];
+    //       }
+    //
+    //       count++;
+    //     }
+    //   };
+    //   return <Iterable<Uint32Array>> iter
+    // }
     // TODO: Make recursive
     /**
      * Create an iterator over the real indices of the array.
@@ -767,7 +775,7 @@ class tndarray {
         const step = this.stride[this.stride.length - 1];
         const end = this._compute_real_index(upper_inclusive);
         const index_stride = this.stride.slice(0, -1);
-        let starting_indices = tndarray._slice_iterator(lower_or_upper.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
+        let starting_indices = indexing_1.indexing.slice_iterator(lower_or_upper.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
         iter[Symbol.iterator] = function* () {
             for (let starting_index of starting_indices) {
                 let current_index = utils_1.utils.dot(starting_index, index_stride) + start;
@@ -814,7 +822,7 @@ class tndarray {
      * @private
      */
     _index_iterator() {
-        return tndarray._slice_iterator(this.shape);
+        return indexing_1.indexing.slice_iterator(this.shape);
     }
     /**
      * TODO: Test
@@ -833,7 +841,7 @@ class tndarray {
             upper_bounds = lower_or_upper;
             lower_or_upper = new Uint32Array(upper_bounds.length);
         }
-        const index_iterator = tndarray._slice_iterator(lower_or_upper, upper_bounds, steps);
+        const index_iterator = indexing_1.indexing.slice_iterator(lower_or_upper, upper_bounds, steps);
         let iter = {};
         // Alas, generators are dynamically scoped.
         const self = this;
@@ -855,7 +863,7 @@ class tndarray {
         const final_shape = indexing_1.indexing.compute_shape(shape);
         const size = indexing_1.indexing.compute_size(final_shape);
         const array_type = utils_1.utils.dtype_map(dtype);
-        const index_iterator = tndarray._slice_iterator(final_shape);
+        const index_iterator = indexing_1.indexing.slice_iterator(final_shape);
         const val_gen = iterable[Symbol.iterator]();
         let data = new array_type(size);
         const stride = tndarray._stride_from_shape(final_shape);
@@ -910,7 +918,12 @@ class tndarray {
             if (!utils_1.utils.is_numeric_array(data)) {
                 throw new errors.BadData();
             }
-            final_shape = indexing_1.indexing.compute_final_shape(shape, data.length);
+            if (shape === undefined || shape === null) {
+                final_shape = new Uint32Array([data.length]);
+            }
+            else {
+                final_shape = indexing_1.indexing.compute_shape(shape);
+            }
             // Compute length
             size = indexing_1.indexing.compute_size(final_shape);
             if (size !== data.length) {

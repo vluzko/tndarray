@@ -38,6 +38,15 @@ var utils;
     }
     utils.is_numeric = is_numeric;
     /**
+     * Check whether a value is an integer.
+     * @param {any} value - The value to check.
+     * @return {boolean}
+     */
+    function is_int(value) {
+        return Number.isInteger(value);
+    }
+    utils.is_int = is_int;
+    /**
      * Checks whether a value is an array(like) of numbers.
      * @param array
      * @return {boolean}

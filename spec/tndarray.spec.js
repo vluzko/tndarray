@@ -52,7 +52,7 @@ describe("Constructors and factories.", function () {
       });
 
       it("Wrong shape type.", function () {
-        expect(() => tndarray.array([], "asdf")).toThrow(new z.errors.BadShape("Shape must be an int, an array of numbers, or a TypedArray."));
+        expect(() => tndarray.array([], "asdf")).toThrow(new Error("Shape must be an int, an array of numbers, or a Uint32Array."));
       });
 
       it("No shape parameter.", function () {
@@ -67,7 +67,7 @@ describe("Constructors and factories.", function () {
         });
 
         it("Null shape", function () {
-          expect(() => tndarray.array([1, 2, 3], [null])).toThrow(new Error("Bad shape"));
+          expect(() => tndarray.array([1, 2, 3], [null])).toThrow(new Error("Shape array must be numeric."));
         });
 
         it("Empty shape.", function () {
@@ -91,23 +91,6 @@ describe("Constructors and factories.", function () {
 });
 
 describe("Indices and slicing.", function () {
-
-  describe("_slice_iterator", function() {
-
-    it("3 2 5", function () {
-      let iter = tndarray._slice_iterator([0, 0], [3, 1], [1, 1]);
-      let x = Array.from(iter);
-      expect(x).toEqual([[0, 0], [1, 0], [2, 0]]);
-    });
-
-    it("_slice_iterator.", function () {
-      let i = 0;
-      throw new Error();
-      for (let index of tndarray._slice_iterator([0, 5], [4, 0], [5, 5])) {
-        throw new Error();
-      }
-    });
-  });
 
   it("_real_index_iterator", function () {
     let tensor =numts.arange(0, 100).reshape(new Uint32Array([5, 5, 2, 2]));

@@ -1,8 +1,7 @@
 {
   "name": "@vluzko/tndarray",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Typed n-dimensional arrays",
-  "main": "tndarray.js",
   "devDependencies": {
     "jest": "^23.6.0",
     "jsverify": "^0.8.4",

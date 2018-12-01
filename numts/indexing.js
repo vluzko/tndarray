@@ -10,6 +10,7 @@ var indexing;
      * @private
      */
     function compute_size(shape) {
+        // @ts-ignore
         return shape.reduce((a, b) => a * b);
     }
     indexing.compute_size = compute_size;
@@ -21,9 +22,10 @@ var indexing;
      */
     function compute_shape(shape) {
         let final_shape;
-        // Compute shapes.
-        if (Number.isInteger(shape)) {
+        // Convert integer to shape.
+        if (utils_1.utils.is_int(shape)) {
             final_shape = new Uint32Array([shape]);
+            // Convert standard array to shape.
         }
         else if (Array.isArray(shape)) {
             // TODO: Error is not a numerical array.
@@ -34,37 +36,19 @@ var indexing;
                 final_shape = new Uint32Array(shape);
             }
             else {
-                throw new Error("Bad shape");
+                throw new Error("Shape array must be numeric.");
             }
+            // Convert TypedArray to shape.
         }
         else if (ArrayBuffer.isView(shape)) {
             final_shape = shape;
         }
         else {
-            throw new Error("Shape must be an int, an array of numbers, or a TypedArray.");
+            throw new Error("Shape must be an int, an array of numbers, or a Uint32Array.");
         }
         return final_shape;
     }
     indexing.compute_shape = compute_shape;
-    /**
-     * Compute the final shape for the new ndarray.
-     * @param shape
-     * @param data_length
-     * @return {Uint32Array}
-     * @private
-     */
-    function compute_final_shape(shape, data_length) {
-        let final_shape;
-        // Compute shapes.
-        if (shape === undefined || shape === null) {
-            final_shape = new Uint32Array([data_length]);
-        }
-        else {
-            final_shape = compute_shape(shape);
-        }
-        return final_shape;
-    }
-    indexing.compute_final_shape = compute_final_shape;
     /**
      * Calculate a shape from a slice.
      * @param {Uint32Array} start
@@ -120,5 +104,50 @@ var indexing;
         return utils_1.utils.dot(indices, stride) + initial_offset;
     }
     indexing.index_in_data = index_in_data;
+    /**
+     * Return an iterator over the indices of a slice.
+     * Coordinates are updated last dimension first.
+     * @param {Uint32Array} lower_or_upper  - If no additional arguments are passed, this is treated as the upper bounds of each dimension.
+     *                                        with lower bound [0]*n and step size [1]*n.
+     *                                        Otherwise, this is the lower bounds of each dimension.
+     * @param {Uint32Array} upper_bounds    - The upper bounds of each dimension. If this is not passed the first argument is treated as
+     *                                        the upper bounds and the lower bounds default to [0]*n.
+     * @param {Uint32Array} steps           - The size of step to take along each dimension. Defaults to [1]*n if not passed.
+     * @return {Iterable<any>}
+     * @private
+     */
+    function slice_iterator(lower_or_upper, upper_bounds, steps) {
+        if (steps === undefined) {
+            steps = new Uint32Array(lower_or_upper.length);
+            steps.fill(1);
+        }
+        if (upper_bounds === undefined) {
+            upper_bounds = lower_or_upper;
+            lower_or_upper = new Uint32Array(upper_bounds.length);
+        }
+        let iter = {};
+        const size = indexing.compute_slice_size(lower_or_upper, upper_bounds, steps);
+        const end_dimension = upper_bounds.length - 1;
+        iter[Symbol.iterator] = function* () {
+            let current_index = lower_or_upper.slice();
+            let count = 0;
+            // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
+            for (let i = 0; i < size; i++) {
+                // Yield a copy of the current index.
+                yield current_index.slice();
+                ++current_index[end_dimension];
+                // Carry the ones.
+                let current_dimension = end_dimension;
+                while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
+                    current_index[current_dimension] = lower_or_upper[current_dimension];
+                    current_dimension--;
+                    current_index[current_dimension] += steps[current_dimension];
+                }
+                count++;
+            }
+        };
+        return iter;
+    }
+    indexing.slice_iterator = slice_iterator;
 })(indexing = exports.indexing || (exports.indexing = {}));
 //# sourceMappingURL=indexing.js.map
