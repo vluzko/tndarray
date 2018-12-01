@@ -1,6 +1,7 @@
 import {utils} from "./utils";
+import {errors, tndarray} from "./tndarray";
+import {Broadcastable, Shape} from "./types";
 
-type Shape = number[] | Uint32Array;
 
 export namespace indexing {
   /**
@@ -104,6 +105,21 @@ export namespace indexing {
   }
 
   /**
+   * Produces a column-major stride from an array shape.
+   * @param {Uint32Array} shape
+   * @private
+   */
+  export  function stride_from_shape(shape: Uint32Array): Uint32Array {
+    let stride = new Uint32Array(shape.length);
+    stride[0] = 1;
+    let i;
+    for (i = 0; i < shape.length - 1; i++) {
+      stride[i + 1] = stride[i] * shape[i];
+    }
+    return stride;
+  }
+
+  /**
    * Return an iterator over the indices of a slice.
    * Coordinates are updated last dimension first.
    * @param {Uint32Array} lower_or_upper  - If no additional arguments are passed, this is treated as the upper bounds of each dimension.
@@ -154,4 +170,5 @@ export namespace indexing {
     };
     return <Iterable<Uint32Array>> iter
   }
+
 }

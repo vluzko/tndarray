@@ -37,6 +37,10 @@ describe("Basic calculations.", function () {
     });
   });
 
+  it("_stride_from_shape.", function () {
+    expect(indexing.stride_from_shape([2, 2, 3])).toEqual(new Uint32Array([1, 2, 4]));
+    expect(indexing.stride_from_shape([2, 5])).toEqual(new Uint32Array([1, 2]));
+  });
 
 });
 

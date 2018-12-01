@@ -105,6 +105,21 @@ var indexing;
     }
     indexing.index_in_data = index_in_data;
     /**
+     * Produces a column-major stride from an array shape.
+     * @param {Uint32Array} shape
+     * @private
+     */
+    function stride_from_shape(shape) {
+        let stride = new Uint32Array(shape.length);
+        stride[0] = 1;
+        let i;
+        for (i = 0; i < shape.length - 1; i++) {
+            stride[i + 1] = stride[i] * shape[i];
+        }
+        return stride;
+    }
+    indexing.stride_from_shape = stride_from_shape;
+    /**
      * Return an iterator over the indices of a slice.
      * Coordinates are updated last dimension first.
      * @param {Uint32Array} lower_or_upper  - If no additional arguments are passed, this is treated as the upper bounds of each dimension.

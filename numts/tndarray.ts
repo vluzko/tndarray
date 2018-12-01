@@ -599,39 +599,6 @@ export class tndarray {
   }
   
   /**
-   * Compute the final shape for the new ndarray.
-   * @param shape
-   * @param data_length
-   * @return {Uint32Array}
-   * @private
-   */
-  // private static _compute_final_shape(shape: any, data_length): Uint32Array {
-  //   let final_shape;
-  //   // Compute shapes.
-  //   if (shape === undefined || shape === null) {
-  //     final_shape = new Uint32Array([data_length]);
-  //   } else {
-  //     final_shape = indexing.compute_shape(shape);
-  //   }
-  //   return final_shape;
-  // }
-  
-  /**
-   * Produces a column-major stride from an array shape.
-   * @param {Uint32Array} shape
-   * @private
-   */
-  private static _stride_from_shape(shape: Uint32Array): Uint32Array {
-    let stride = new Uint32Array(shape.length);
-    stride[0] = 1;
-    let i;
-    for (i = 0; i < shape.length - 1; i++) {
-      stride[i + 1] = stride[i] * shape[i];
-    }
-    return stride;
-  }
-  
-  /**
    *
    * @param {string} a  - The first dtype.
    * @param {string} b  - The second dtype.
@@ -670,7 +637,6 @@ export class tndarray {
     } else {
       return new_data;
     }
-    
   }
   
   /**
@@ -908,7 +874,7 @@ export class tndarray {
     const index_iterator = indexing.slice_iterator(final_shape);
     const val_gen = iterable[Symbol.iterator]();
     let data = new array_type(size);
-    const stride = tndarray._stride_from_shape(final_shape);
+    const stride = indexing.stride_from_shape(final_shape);
     const initial_offset = 0;
     let i = 0;
     for (let index of index_iterator) {
@@ -983,7 +949,7 @@ export class tndarray {
       }
     }
     
-    const stride = tndarray._stride_from_shape(final_shape);
+    const stride = indexing.stride_from_shape(final_shape);
     const offset = new Uint32Array(final_shape.length);
     const dstride = new Uint32Array(final_shape.length);
     

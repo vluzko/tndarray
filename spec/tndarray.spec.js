@@ -79,10 +79,7 @@ describe("Constructors and factories.", function () {
 
   describe("Helper methods.", function () {
 
-    it("_stride_from_shape.", function () {
-      expect(tndarray._stride_from_shape([2, 2, 3])).toEqual(new Uint32Array([1, 2, 4]));
-      expect(tndarray._stride_from_shape([2, 5])).toEqual(new Uint32Array([1, 2]));
-    });
+
 
     it("_dtype_join.", function () {
       throw new Error();
