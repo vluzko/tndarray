@@ -1,5 +1,4 @@
 import {utils} from "./utils";
-import {errors, tndarray} from "./tndarray";
 import {Broadcastable, Shape} from "./types";
 
 

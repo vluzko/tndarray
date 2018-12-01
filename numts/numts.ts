@@ -1,6 +1,7 @@
 import {tndarray} from "./tndarray";
 import {indexing} from "./indexing";
 import {utils} from "./utils";
+import {Shape} from "./types";
 
 /**
  * Return indices
@@ -62,9 +63,10 @@ export function ones(shape: number[] | Uint32Array, dtype?: string): tndarray {
  * @param {number} start_or_stop  - If no other arguments are passed, the upper bound of the range (with lower bound zero). Otherwise this is the lower bound.
  * @param {number} stop           - The upper bound of the range.
  * @param {number} step           - The step size between elements in the range.
+ * @param {Shape} shape           - The shape to return.
  * @return {tndarray}             - A one-dimensional array containing the range.
  */
-export function arange(start_or_stop: number, stop?: number, step?: number): tndarray {
+export function arange(start_or_stop: number, stop?: number, step?: number, shape?: Shape): tndarray {
   if (step === undefined) {
     step = 1;
   }
@@ -78,7 +80,15 @@ export function arange(start_or_stop: number, stop?: number, step?: number): tnd
   }
   
   let size = Math.abs(Math.floor((stop - start) / step));
-  const shape = new Uint32Array([size]);
+  if (shape === undefined) {
+    shape = new Uint32Array([size]);
+  } else {
+    const shape_size = indexing.compute_size(shape);
+    if (shape_size !== size) {
+      throw new Error(`Mismatch between size of range (${size}) and size of shape (${shape_size}`);
+    }
+  }
+
   let iter = {
     [Symbol.iterator]: function*() {
       let i = start;

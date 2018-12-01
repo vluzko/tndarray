@@ -52,9 +52,10 @@ class tndarray {
      * @param {Uint32Array} dstride - The stride of the underlying data.
      * @param {number} size         - The number of elements in the array.
      * @param {string} dtype
+     * @param {boolean} is_view
      * @constructor
      */
-    constructor(data, shape, offset, stride, dstride, size, dtype) {
+    constructor(data, shape, offset, stride, dstride, size, dtype, is_view) {
         this.shape = shape;
         this.offset = offset;
         this.stride = stride;
@@ -75,7 +76,7 @@ class tndarray {
             this.dtype = "float64";
         }
         this.initial_offset = utils_1.utils.dot(this.dstride, this.offset);
-        this.is_view = false;
+        this.is_view = is_view === undefined ? false : is_view;
     }
     add() {
     }
@@ -251,8 +252,8 @@ class tndarray {
      * @param indices
      */
     slice(...indices) {
-        let start = new Uint32Array(this.shape.length);
-        let end = new Uint32Array(this.shape);
+        let start = this.offset.slice();
+        let end = this.shape.slice();
         let steps = new Uint32Array(this.shape.length);
         steps.fill(1);
         let i = 0;
@@ -279,7 +280,9 @@ class tndarray {
             i += 1;
         }
         const new_shape = indexing_1.indexing.new_shape_from_slice(start, end, steps);
-        return tndarray.from_iterable(this._value_iterator(start, end, steps), new_shape, this.dtype);
+        const size = indexing_1.indexing.compute_size(new_shape);
+        const view = new tndarray(this.data, new_shape, start, this.stride, this.stride, size, this.dtype, true);
+        return view;
     }
     /**
      *
@@ -560,6 +563,55 @@ class tndarray {
         };
         return [iter, new_dimensions, new_dtype];
     }
+    /**
+     * Apply a binary function to two broadcastables.
+     * @param {Broadcastable} a - The first argument to f.
+     * @param {Broadcastable} b - The second argument to f.
+     * @param {(a: number, b: number) => number} f  - The function to apply.
+     * @param {string} dtype  - Optional forced data type.
+     * @return {tndarray}  - The result of applying f to a and b.
+     * @private
+     */
+    static _binary_broadcast(a, b, f, dtype) {
+        let [iter, shape, new_dtype] = tndarray._broadcast_by_index(a, b);
+        if (dtype === undefined) {
+            dtype = new_dtype;
+        }
+        let new_array = tndarray.filled(0, shape, dtype);
+        for (let [a_val, b_val, index] of iter) {
+            const new_val = f(a_val, b_val);
+            new_array.s(new_val, index);
+        }
+        return new_array;
+    }
+    /**
+     * Compute lower, upper, and steps for a slice of `full_array` along `axis`.
+     * @param {number} axis
+     * @return {[Uint32Array, Uint32Array, Uint32Array]}  - [lower, upper, steps]
+     * @private
+     */
+    _slice_for_axis(axis) {
+        let lower = new Uint32Array(this.shape.length);
+        let upper = this.shape.slice(0);
+        let steps = new Uint32Array(this.shape.length);
+        steps.fill(1);
+        upper[axis] = 1;
+        return [lower, upper, steps];
+    }
+    /**
+     * Return an iterator over real indices of the old array and real indices of the new array.
+     * @param {number} axis
+     * @return {Iterable<number[]>}
+     * @private
+     */
+    _true_index_iterator_over_axes(axis) {
+        const new_shape = indexing_1.indexing.new_shape_from_axis(this.shape, axis);
+        let new_array = tndarray.zeros(new_shape, this.dtype);
+        let [lower, upper, steps] = this._slice_for_axis(axis);
+        let old_iter = this._real_index_iterator(lower, upper, steps)[Symbol.iterator]();
+        let new_iter = new_array._real_index_iterator()[Symbol.iterator]();
+        return utils_1.utils.zip_iterable(old_iter, new_iter);
+    }
     // TODO: Make recursive
     /**
      * Create an iterator over the real indices of the array.
@@ -601,39 +653,11 @@ class tndarray {
         return iter;
     }
     /**
-     * Compute lower, upper, and steps for a slice of `full_array` along `axis`.
-     * @param {number} axis
-     * @return {[Uint32Array, Uint32Array, Uint32Array]}  - [lower, upper, steps]
-     * @private
-     */
-    _slice_for_axis(axis) {
-        let lower = new Uint32Array(this.shape.length);
-        let upper = this.shape.slice(0);
-        let steps = new Uint32Array(this.shape.length);
-        steps.fill(1);
-        upper[axis] = 1;
-        return [lower, upper, steps];
-    }
-    /**
-     * Return an iterator over real indices of the old array and real indices of the new array.
-     * @param {number} axis
-     * @return {Iterable<number[]>}
-     * @private
-     */
-    _true_index_iterator_over_axes(axis) {
-        const new_shape = indexing_1.indexing.new_shape_from_axis(this.shape, axis);
-        let new_array = tndarray.zeros(new_shape, this.dtype);
-        let [lower, upper, steps] = this._slice_for_axis(axis);
-        let old_iter = this._real_index_iterator(lower, upper, steps)[Symbol.iterator]();
-        let new_iter = new_array._real_index_iterator()[Symbol.iterator]();
-        return utils_1.utils.zip_iterable(old_iter, new_iter);
-    }
-    /**
      * Returns an iterator over the indices of the array.
      * @private
      */
     _index_iterator() {
-        return indexing_1.indexing.slice_iterator(this.shape);
+        return indexing_1.indexing.slice_iterator(this.offset, this.shape);
     }
     /**
      * TODO: Test
@@ -748,6 +772,7 @@ class tndarray {
     }
     /**
      * Return an array of the specified size filled with zeroes.
+     * Equivalent to `tndarray.filled`, but slightly faster.
      * @param {number} shape
      * @param {string} dtype
      * @return {tndarray}
@@ -758,27 +783,6 @@ class tndarray {
         const array_type = utils_1.utils.dtype_map(dtype);
         const data = new array_type(size);
         return tndarray.array(data, final_shape, { disable_checks: true, dtype: dtype });
-    }
-    /**
-     * Apply a binary function to two broadcastables.
-     * @param {Broadcastable} a - The first argument to f.
-     * @param {Broadcastable} b - The second argument to f.
-     * @param {(a: number, b: number) => number} f  - The function to apply.
-     * @param {string} dtype  - Optional forced data type.
-     * @return {tndarray}  - The result of applying f to a and b.
-     * @private
-     */
-    static _binary_broadcast(a, b, f, dtype) {
-        let [iter, shape, new_dtype] = tndarray._broadcast_by_index(a, b);
-        if (dtype === undefined) {
-            dtype = new_dtype;
-        }
-        let new_array = tndarray.filled(0, shape, dtype);
-        for (let [a_val, b_val, index] of iter) {
-            const new_val = f(a_val, b_val);
-            new_array.s(new_val, index);
-        }
-        return new_array;
     }
     // TODO: Broadcasting
     /**
@@ -898,32 +902,32 @@ class tndarray {
     }
     /**
      * Compute element-wise less than or equal to.
-     * @param {tndarray} a
-     * @param {tndarray} b
+     * @param {Broadcastable} a
+     * @param {Broadcastable} b
      */
     static _le(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => +(x <= y), "uint8");
     }
     /**
      * Compute element-wise greater than or equal to.
-     * @param {tndarray} a
-     * @param {tndarray} b
+     * @param {Broadcastable} a
+     * @param {Broadcastable} b
      */
     static _ge(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => +(x >= y), "uint8");
     }
     /**
      * Compute element-wise not equal to.
-     * @param {tndarray} a
-     * @param {tndarray} b
+     * @param {Broadcastable} a
+     * @param {Broadcastable} b
      */
     static _ne(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => +(x !== y), "uint8");
     }
     /**
      * Compute element-wise equality.
-     * @param {tndarray} a
-     * @param {tndarray} b
+     * @param {Broadcastable} a
+     * @param {Broadcastable} b
      */
     static _eq(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => +(x === y), "uint8");

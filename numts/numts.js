@@ -63,9 +63,10 @@ exports.ones = ones;
  * @param {number} start_or_stop  - If no other arguments are passed, the upper bound of the range (with lower bound zero). Otherwise this is the lower bound.
  * @param {number} stop           - The upper bound of the range.
  * @param {number} step           - The step size between elements in the range.
+ * @param {Shape} shape           - The shape to return.
  * @return {tndarray}             - A one-dimensional array containing the range.
  */
-function arange(start_or_stop, stop, step) {
+function arange(start_or_stop, stop, step, shape) {
     if (step === undefined) {
         step = 1;
     }
@@ -78,7 +79,15 @@ function arange(start_or_stop, stop, step) {
         start = start_or_stop;
     }
     let size = Math.abs(Math.floor((stop - start) / step));
-    const shape = new Uint32Array([size]);
+    if (shape === undefined) {
+        shape = new Uint32Array([size]);
+    }
+    else {
+        const shape_size = indexing_1.indexing.compute_size(shape);
+        if (shape_size !== size) {
+            throw new Error(`Mismatch between size of range (${size}) and size of shape (${shape_size}`);
+        }
+    }
     let iter = {
         [Symbol.iterator]: function* () {
             let i = start;

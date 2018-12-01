@@ -89,62 +89,62 @@ describe("Constructors and factories.", function () {
 
 describe("Indices and slicing.", function () {
 
-  it("_real_index_iterator", function () {
-    let tensor =numts.arange(0, 100).reshape(new Uint32Array([5, 5, 2, 2]));
-    let indices = [...tensor._index_iterator()];
-    let real_indices = [...tensor._real_index_iterator()];
+  describe("data_index_iterator.", function () {
 
-    indices.forEach((e, i) => {
-      let real_index = real_indices[i];
-      let computed = tensor._compute_real_index(e);
-      expect(real_index).toBe(computed);
+    it("one-dimensional.", function () {
+      let tensor = numts.arange(0, 10);
+      let indices = [...tensor._index_iterator()];
+      let real_indices = [...tensor._real_index_iterator()];
+
+      indices.forEach((e, i) => {
+        let real_index = real_indices[i];
+        let computed = tensor._compute_real_index(e);
+        expect(real_index).toBe(computed);
+      });
     });
 
+    it("two-dimensional.", function () {
+      let tensor = numts.arange(0, 10).reshape([5, 2]);
+      let indices = [...tensor._index_iterator()];
+      let real_indices = [...tensor._real_index_iterator()];
+
+      indices.forEach((e, i) => {
+        let real_index = real_indices[i];
+        let computed = tensor._compute_real_index(e);
+        expect(real_index).toBe(computed);
+      });
+    });
+
+    it("four-dimensional.", function () {
+      let tensor = numts.arange(0, 16).reshape(new Uint32Array([2, 2, 2, 2]));
+      let indices = [...tensor._index_iterator()];
+      let real_indices = [...tensor._real_index_iterator()];
+
+      indices.forEach((e, i) => {
+        let real_index = real_indices[i];
+        let computed = tensor._compute_real_index(e);
+        expect(real_index).toBe(computed);
+      });
+
+    });
   });
 
-  it("_index_iterator.", function () {
-    let array = numts.zeros([2, 2]);
-    let i = 0;
-    for (let index of array._index_iterator()) {
-      switch (i) {
-        case 0:
-          expect(index).toEqual(new Uint32Array([0, 0]));
-          break;
-        case 1:
-          expect(index).toEqual(new Uint32Array([0, 1]));
-          break;
-        case 2:
-          expect(index).toEqual(new Uint32Array([1, 0]));
-          break;
-        case 3:
-          expect(index).toEqual(new Uint32Array([1, 1]));
-          break;
-      }
-      ++i;
-    }
+  describe("_index_iterator.", function () {
+    it("two-dimensional", function () {
+      let array = numts.zeros([2, 2]);
+      const expected = [[0, 0], [0, 1], [1, 0], [1, 1]].map(e => new Uint32Array(e));
+      const actual = Array.from(array._index_iterator());
+      expect(actual).toEqual(expected);
+    });
   });
+
+
 
   it("_value_iterator.", function () {
     let array = tndarray.array([1, 2, 3, 4]);
-
-    let i = 0;
-    for (let val of array._value_iterator()) {
-      switch (i) {
-        case 0:
-          expect(val).toEqual(1);
-          break;
-        case 1:
-          expect(val).toEqual(2);
-          break;
-        case 2:
-          expect(val).toEqual(3);
-          break;
-        case 3:
-          expect(val).toEqual(4);
-          break;
-      }
-      ++i;
-    }
+    const expected = [1, 2, 3, 4];
+    const actual = Array.from(array._value_iterator());
+    expect(actual).toEqual(expected);
 
   });
 
@@ -157,21 +157,27 @@ describe("Indices and slicing.", function () {
 
   describe("slice.", function () {
     it("basic test.", function () {
-      const base_array =numts.arange(16).reshape([4, 4]);
+      const base_array = numts.arange(16).reshape([4, 4]);
       const slice = base_array.slice([0, 2], [1, 3]);
-      
+
       const expected = numts.from_nested_array([
         [1, 2],
         [5, 6]
       ], "int32");
-      expect(expected.equals(slice)).toBe(true);
+
+      const actual = tndarray.from_iterable(slice._value_iterator(), slice.shape, "int32");
+      expect(expected.equals(actual)).toBe(true);
+      expect(slice.data).toEqual(base_array.data);
     });
 
     it("single value slice.", function () {
-      const base_array =numts.arange(16).reshape([4, 4]);
+      const base_array = numts.arange(16).reshape([4, 4]);
       const slice = base_array.slice(0);
-      const expected =numts.arange(4).reshape([1, 4]);
-      expect(slice.equals(expected)).toBe(true);
+      const expected = numts.arange(4).reshape([1, 4]);
+
+      const actual = tndarray.from_iterable(slice._value_iterator(), slice.shape, "int32");
+      expect(expected.equals(actual)).toBe(true);
+      expect(slice.data).toEqual(base_array.data);
     });
   });
 
@@ -335,7 +341,9 @@ describe("Methods.", function () {
         let b = numts.arange(1, 6);
 
         let product = tndarray._div(a, b);
-        let expected = numts.from_nested_array([[0, 1 / 2, 2 / 3, 3 / 4, 4 / 5], [5, 6 / 2, 7 / 3, 8 / 4, 9 / 5]], "float64");
+        let expected = numts.from_nested_array([
+          [0, 1 / 2, 2 / 3, 3 / 4, 4 / 5],
+          [5, 6 / 2, 7 / 3, 8 / 4, 9 / 5]], "float64");
         expect(product.equals(expected)).toBe(true);
       });
 
