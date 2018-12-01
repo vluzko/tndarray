@@ -274,9 +274,13 @@ export class tndarray {
    * @param {number} axis
    * @return {number}
    */
-  stdev(axis?: number): number {
-    const mean = this.mean();
-    throw Error("Not implemented");
+  stdev(axis?: number): tndarray | number {
+    const mean = this.mean(axis);
+    const squared_values = this.power(2);
+    const mean_of_squares = squared_values.mean(axis);
+    const squared_mean = tndarray._power(mean, 2);
+    const difference = tndarray._sub(squared_mean, mean_of_squares);
+    return tndarray._power(difference, 0.5);
   }
   
   // TODO: Axes
@@ -373,7 +377,6 @@ export class tndarray {
       new_shape.filter(filt),
       offset.filter(filt),
       new_stride, new_dstride, size, this.dtype, true);
-  debugger;
     return view;
   }
 
@@ -521,8 +524,7 @@ export class tndarray {
     dtype = dtype === undefined ? this.dtype : dtype;
     
     if (axis === undefined) {
-      const new_data = this.data.reduce(f);
-      return tndarray.array(new_data, this.shape, {dtype: dtype})
+      return this.data.reduce(f);
     } else {
       const new_shape = indexing.new_shape_from_axis(this.shape, axis);
       let new_array = tndarray.zeros(new_shape, dtype);

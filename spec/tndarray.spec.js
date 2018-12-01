@@ -588,3 +588,23 @@ describe("Math.", function () {
     });
   });
 });
+
+describe("Basic statistics.", function () {
+
+  describe("mean.", function () {
+    it('2d.', function () {
+      const array = numts.arange(25).reshape([5, 5]);
+      const mean = array.mean();
+      expect(mean).toBeCloseTo(12.0);
+
+    });
+  });
+
+  describe("stdev.", function () {
+    fit("2d.", function () {
+      const array = numts.arange(25).reshape([5, 5]);
+      const stdev = array.stdev();
+      expect(stdev).toBeCloseTo(7.211);
+    });
+  });
+});
