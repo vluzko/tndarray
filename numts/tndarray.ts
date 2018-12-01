@@ -412,7 +412,7 @@ export class tndarray {
       }
 
     } else {
-      const [lower, upper, steps] = tndarray._slice_for_axis(this, axis);
+      const [lower, upper, steps] = this._slice_for_axis(axis);
       new_array = tndarray.zeros(this.shape, dtype);
       const step_along_axis = this.stride[axis];
       
@@ -452,7 +452,7 @@ export class tndarray {
       const new_shape = indexing.new_shape_from_axis(this.shape, axis);
       let new_array = tndarray.zeros(new_shape, dtype);
       const step_along_axis = this.stride[axis];
-      for (let [old_index, new_index] of tndarray._true_index_iterator_over_axes(this, axis)) {
+      for (let [old_index, new_index] of this._true_index_iterator_over_axes(axis)) {
         let axis_values = [];
         for (let i = 0; i < this.shape[axis]; i ++) {
           axis_values.push(this.data[old_index + i * step_along_axis]);
@@ -481,7 +481,7 @@ export class tndarray {
       const new_shape = indexing.new_shape_from_axis(this.shape, axis);
       let new_array = tndarray.zeros(new_shape, dtype);
       const step_along_axis = this.stride[axis];
-      for (let [old_index, new_index] of tndarray._true_index_iterator_over_axes(this, axis)) {
+      for (let [old_index, new_index] of this._true_index_iterator_over_axes( axis)) {
         let accum = this.data[old_index];
         for (let i = 1; i < this.shape[axis]; i ++) {
           accum = f(accum, this.data[old_index + i * step_along_axis]);
@@ -773,59 +773,6 @@ export class tndarray {
     return [<IterableIterator<[number, number, Uint32Array]>>iter, new_dimensions, new_dtype];
   }
   
-  /**
-   * Iterate over the indices of a slice.
-   * Coordinates are updated last dimension first.
-   * @param {Uint32Array} lower_or_upper  - If no additional arguments are passed, this is treated as the upper bounds of each dimension.
-   *                                        with lower bound [0]*n and step size [1]*n.
-   *                                        Otherwise, this is the lower bounds of each dimension.
-   * @param {Uint32Array} upper_bounds    - The upper bounds of each dimension. If this is not passed the first argument is treated as
-   *                                        the upper bounds and the lower bounds default to [0]*n.
-   * @param {Uint32Array} steps           - The size of step to take along each dimension. Defaults to [1]*n if not passed.
-   * @return {Iterable<any>}
-   * @private
-   */
-  // static _slice_iterator(lower_or_upper: Uint32Array, upper_bounds?: Uint32Array, steps?: Uint32Array): Iterable<Uint32Array> {
-  //
-  //   if (steps === undefined) {
-  //     steps = new Uint32Array(lower_or_upper.length);
-  //     steps.fill(1);
-  //   }
-  //
-  //   if (upper_bounds === undefined) {
-  //     upper_bounds = lower_or_upper;
-  //     lower_or_upper = new Uint32Array(upper_bounds.length);
-  //   }
-  //
-  //   let iter = {};
-  //   const size = indexing.compute_slice_size(lower_or_upper, upper_bounds, steps);
-  //   const end_dimension = upper_bounds.length - 1;
-  //   iter[Symbol.iterator] = function* () {
-  //
-  //     let current_index = lower_or_upper.slice();
-  //     let count = 0;
-  //
-  //     // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
-  //     for (let i = 0; i < size; i++) {
-  //       // Yield a copy of the current index.
-  //       yield current_index.slice();
-  //
-  //       ++current_index[end_dimension];
-  //
-  //       // Carry the ones.
-  //       let current_dimension = end_dimension;
-  //       while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
-  //         current_index[current_dimension] = lower_or_upper[current_dimension];
-  //         current_dimension--;
-  //         current_index[current_dimension] += steps[current_dimension];
-  //       }
-  //
-  //       count++;
-  //     }
-  //   };
-  //   return <Iterable<Uint32Array>> iter
-  // }
-  
   // TODO: Make recursive
   /**
    * Create an iterator over the real indices of the array.
@@ -875,15 +822,14 @@ export class tndarray {
   
   /**
    * Compute lower, upper, and steps for a slice of `full_array` along `axis`.
-   * @param {tndarray} full_array
    * @param {number} axis
    * @return {[Uint32Array, Uint32Array, Uint32Array]}  - [lower, upper, steps]
    * @private
    */
-  private static _slice_for_axis(full_array: tndarray, axis: number): [Uint32Array, Uint32Array, Uint32Array] {
-    let lower = new Uint32Array(full_array.shape.length);
-    let upper = full_array.shape.slice(0);
-    let steps = new Uint32Array(full_array.shape.length);
+  private _slice_for_axis(axis: number): [Uint32Array, Uint32Array, Uint32Array] {
+    let lower = new Uint32Array(this.shape.length);
+    let upper = this.shape.slice(0);
+    let steps = new Uint32Array(this.shape.length);
     steps.fill(1);
     upper[axis] = 1;
     return [lower, upper, steps];
@@ -891,18 +837,17 @@ export class tndarray {
   
   /**
    * Return an iterator over real indices of the old array and real indices of the new array.
-   * @param {tndarray} full_array
    * @param {number} axis
    * @return {Iterable<number[]>}
    * @private
    */
-  private static _true_index_iterator_over_axes(full_array: tndarray, axis: number): Iterable<number[]> {
-    const new_shape = indexing.new_shape_from_axis(full_array.shape, axis);
-    let new_array = tndarray.zeros(new_shape, full_array.dtype);
+  private _true_index_iterator_over_axes(axis: number): Iterable<number[]> {
+    const new_shape = indexing.new_shape_from_axis(this.shape, axis);
+    let new_array = tndarray.zeros(new_shape, this.dtype);
     
-    let [lower, upper, steps] = tndarray._slice_for_axis(full_array, axis);
+    let [lower, upper, steps] = this._slice_for_axis(axis);
   
-    let old_iter = full_array._real_index_iterator(lower, upper, steps)[Symbol.iterator]();
+    let old_iter = this._real_index_iterator(lower, upper, steps)[Symbol.iterator]();
     let new_iter = new_array._real_index_iterator()[Symbol.iterator]();
     return utils.zip_iterable(old_iter, new_iter);
   }
