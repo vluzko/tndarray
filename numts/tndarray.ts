@@ -176,7 +176,6 @@ export class tndarray {
           for (let j = 0; j < new_shape[1]; j++) {
             let x = tndarray.dot(a.slice(i), b.slice(null, j));
             
-            console.log(`${i}, ${j}: ${x}`);
             yield x;
           }
         }
@@ -606,16 +605,16 @@ export class tndarray {
    * @return {Uint32Array}
    * @private
    */
-  private static _compute_final_shape(shape: any, data_length): Uint32Array {
-    let final_shape;
-    // Compute shapes.
-    if (shape === undefined || shape === null) {
-      final_shape = new Uint32Array([data_length]);
-    } else {
-      final_shape = indexing.compute_shape(shape);
-    }
-    return final_shape;
-  }
+  // private static _compute_final_shape(shape: any, data_length): Uint32Array {
+  //   let final_shape;
+  //   // Compute shapes.
+  //   if (shape === undefined || shape === null) {
+  //     final_shape = new Uint32Array([data_length]);
+  //   } else {
+  //     final_shape = indexing.compute_shape(shape);
+  //   }
+  //   return final_shape;
+  // }
   
   /**
    * Produces a column-major stride from an array shape.
@@ -631,17 +630,6 @@ export class tndarray {
     }
     return stride;
   }
-  
-  // /**
-  //  * Checks that the inputs have a `length` property, and that their lengths are equal.
-  //  * @param value1
-  //  * @param value2
-  //  * @return {boolean}
-  //  * @private
-  //  */
-  // private static _lengths_exist_and_match(value1: any, value2: any): boolean {
-  //   return value1.length !== undefined && value1.length === value2.length;
-  // }
   
   /**
    *
@@ -1036,7 +1024,7 @@ export class tndarray {
         throw new errors.BadData();
       }
       
-      final_shape = tndarray._compute_final_shape(shape, data.length);
+      final_shape = indexing.compute_final_shape(shape, data.length);
       
       // Compute length
       size = indexing.compute_size(final_shape);

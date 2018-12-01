@@ -102,8 +102,9 @@ describe("Indices and slicing.", function () {
 
     it("_slice_iterator.", function () {
       let i = 0;
+      throw new Error();
       for (let index of tndarray._slice_iterator([0, 5], [4, 0], [5, 5])) {
-        console.log(index);
+        throw new Error();
       }
     });
   });

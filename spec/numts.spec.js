@@ -263,7 +263,6 @@ describe("Unary methods.", function () {
 describe("Broadcasting", function () {
   it("Broadcast on axis", function () {
     let x = numts.arange(30).reshape([3, 2, 5]);
-    // console.log(x);
     let y = x.sum(1);
     const expected_data = [
       [5, 7, 9, 11, 13],
