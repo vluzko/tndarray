@@ -241,29 +241,52 @@ class tndarray {
     }
     trace() { }
     /**
+     * Drop any dimensions that equal 1.
+     * @return {tndarray}
+     */
+    drop_unit_dimensions() {
+        // Drop extra dimensions.
+        let flattened_shape = [];
+        let flattened_stride = [];
+        let flattened_offset = [];
+        this.shape.forEach((e, i) => {
+            if (e > 1) {
+                flattened_shape.push(e);
+                flattened_stride.push(this.stride[i]);
+                flattened_offset.push(this.offset[i]);
+            }
+        });
+        const size = indexing_1.indexing.compute_size(flattened_shape);
+        const new_shape = new Uint32Array(flattened_shape);
+        const new_offset = new Uint32Array(flattened_offset);
+        const new_stride = new Uint32Array(flattened_stride);
+        const view = new tndarray(this.data, new_shape, new_offset, new_stride, new_stride, size, this.dtype, true);
+        return view;
+    }
+    /**
      * Return a slice of an array. Copies the underlying data.
      * @param indices
      */
     c_slice(...indices) {
     }
     /**
-     * TODO: Return a view instead of a copy.
-     * Return a slice of an array. Does not copy the underlying data.
+     * Return a slice of an array. Does not copy the underlying data. Does not drop dimensions.
      * @param indices
      */
     slice(...indices) {
-        let start = this.offset.slice();
+        let start = new Uint32Array(this.shape.length);
         let end = this.shape.slice();
         let steps = new Uint32Array(this.shape.length);
+        let dims_to_drop = new Set();
         steps.fill(1);
         let i = 0;
         for (let index of indices) {
             if (index === null) {
-                end[i] = this.shape[i];
             }
             else if (utils_1.utils.is_numeric(index)) {
                 start[i] = index;
                 end[i] = index + 1;
+                dims_to_drop.add(i);
             }
             else if (index.length === 2) {
                 start[i] = index[0];
@@ -281,7 +304,13 @@ class tndarray {
         }
         const new_shape = indexing_1.indexing.new_shape_from_slice(start, end, steps);
         const size = indexing_1.indexing.compute_size(new_shape);
-        const view = new tndarray(this.data, new_shape, start, this.stride, this.stride, size, this.dtype, true);
+        const offset = start.map((e, j) => e + this.offset[j]);
+        const stride = steps.map((e, j) => e * this.stride[j]);
+        const filt = (e, j) => !dims_to_drop.has(j);
+        const new_stride = stride.filter(filt);
+        const new_dstride = this.dstride.filter(filt);
+        const view = new tndarray(this.data, new_shape.filter(filt), offset.filter(filt), new_stride, new_dstride, size, this.dtype, true);
+        debugger;
         return view;
     }
     /**
@@ -767,7 +796,7 @@ class tndarray {
         }
         const stride = indexing_1.indexing.stride_from_shape(final_shape);
         const offset = new Uint32Array(final_shape.length);
-        const dstride = new Uint32Array(final_shape.length);
+        const dstride = stride.slice();
         return new tndarray(data, final_shape, offset, stride, dstride, size, dtype);
     }
     /**

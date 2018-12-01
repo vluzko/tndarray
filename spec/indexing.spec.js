@@ -26,13 +26,25 @@ describe("Basic calculations.", function () {
       expect(shape).toEqual(ends);
     });
 
-    it("Complicated test.", function () {
+    it("With steps and offsets.", function () {
+      const starts = new Uint32Array([2, 6, 9]);
+      const ends = new Uint32Array([10, 12, 11]);
+      const steps = new Uint32Array([2, 3, 1]);
+
+      const shape = indexing.new_shape_from_slice(starts, ends, steps);
+      const expected = new Uint32Array([4, 2, 2]);
+      expect(shape).toEqual(expected);
+    });
+
+
+    it("With unit dimension.", function () {
       const starts = new Uint32Array([2, 6, 10]);
       const ends = new Uint32Array([10, 12, 11]);
       const steps = new Uint32Array([2, 3, 1]);
 
       const shape = indexing.new_shape_from_slice(starts, ends, steps);
       const expected = new Uint32Array([4, 2, 1]);
+
       expect(shape).toEqual(expected);
     });
   });

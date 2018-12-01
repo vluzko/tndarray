@@ -87,7 +87,34 @@ describe("Constructors and factories.", function () {
   });
 });
 
-describe("Indices and slicing.", function () {
+describe("Indices.", function () {
+  it("_compute_real_index.", function () {
+    expect(numts.zeros([2, 2])._compute_real_index([1, 1])).toBe(3);
+    expect(numts.zeros([2, 3, 4, 5]));
+  });
+
+  it("g.", function () {
+    const array1 = (new Uint32Array(27)).map((e, i) => i);
+    let tndarray1 = tndarray.array(array1, [3, 3, 3]);
+    expect(tndarray1.g([1, 1, 1])).toBe(13);
+    expect(tndarray1.g([1, 0, 1])).toBe(10);
+    expect(tndarray1.g([2, 1, 0])).toBe(5);
+
+    let array2 = (new Uint32Array(120)).map((e, i) => i);
+    const tndarray2 = tndarray.array(array2, [2, 3, 4, 5]);
+    expect(tndarray2.g([1, 2, 3, 4])).toBe(119);
+    expect(tndarray2.g([0, 2, 3, 4])).toBe(118);
+    expect(tndarray2.g([0, 0, 0, 0])).toBe(0);
+
+    const array3 = (new Uint32Array(36)).map((e, i) => i);
+    let tndarray3 = tndarray.array(array3, [2, 3, 2, 3]);
+    expect(tndarray3.g([1, 2, 1, 2])).toBe(35);
+    expect(tndarray3.g([1, 2, 0, 0])).toBe(5);
+    expect(tndarray3.g([1, 0, 0, 1])).toBe(13);
+  });
+});
+
+describe("Iterators.", function () {
 
   describe("data_index_iterator.", function () {
 
@@ -138,8 +165,6 @@ describe("Indices and slicing.", function () {
     });
   });
 
-
-
   it("_value_iterator.", function () {
     let array = tndarray.array([1, 2, 3, 4]);
     const expected = [1, 2, 3, 4];
@@ -148,12 +173,9 @@ describe("Indices and slicing.", function () {
 
   });
 
-  it("_compute_real_index.", function () {
-    expect(numts.zeros([2, 2])._compute_real_index([1, 1])).toBe(3);
-    expect(numts.zeros([2, 3, 4, 5]));
-  });
+});
 
-
+describe("Slicing.", function () {
 
   describe("slice.", function () {
     it("basic test.", function () {
@@ -173,77 +195,68 @@ describe("Indices and slicing.", function () {
     it("single value slice.", function () {
       const base_array = numts.arange(16).reshape([4, 4]);
       const slice = base_array.slice(0);
-      const expected = numts.arange(4).reshape([1, 4]);
+      const expected = numts.arange(4);
 
       const actual = tndarray.from_iterable(slice._value_iterator(), slice.shape, "int32");
       expect(expected.equals(actual)).toBe(true);
       expect(slice.data).toEqual(base_array.data);
     });
-  });
 
-  it("g.", function () {
-    const array1 = (new Uint32Array(27)).map((e, i) => i);
-    let tndarray1 = tndarray.array(array1, [3, 3, 3]);
-    expect(tndarray1.g([1, 1, 1])).toBe(13);
-    expect(tndarray1.g([1, 0, 1])).toBe(10);
-    expect(tndarray1.g([2, 1, 0])).toBe(5);
+    it("Successive slices.", function () {
+      const base_array = numts.arange(16).reshape([4, 4]);
+      const first_slice = base_array.slice([0, 2], [1, 3]);
+      expect(first_slice.shape).toEqual(new Uint32Array([2, 2]));
+      const second_slice = first_slice.slice(0);
 
-    let array2 = (new Uint32Array(120)).map((e, i) => i);
-    const tndarray2 = tndarray.array(array2, [2, 3, 4, 5]);
-    expect(tndarray2.g([1, 2, 3, 4])).toBe(119);
-    expect(tndarray2.g([0, 2, 3, 4])).toBe(118);
-    expect(tndarray2.g([0, 0, 0, 0])).toBe(0);
+      const expected = numts.arange(1, 3);
 
-    const array3 = (new Uint32Array(36)).map((e, i) => i);
-    let tndarray3 = tndarray.array(array3, [2, 3, 2, 3]);
-    expect(tndarray3.g([1, 2, 1, 2])).toBe(35);
-    expect(tndarray3.g([1, 2, 0, 0])).toBe(5);
-    expect(tndarray3.g([1, 0, 0, 1])).toBe(13);
-  });
+      const actual = tndarray.from_iterable(second_slice._value_iterator(), second_slice.shape, "int32");
+      expect(expected.equals(actual)).toBe(true);
+    });
 
-  describe("broadcast_dims.", function () {
-    it("same dims.", function () {
-      for (let i = 0; i < 100; i++) {
-        let number_of_dims = _.random(1, 8);
-        let dims = _.range(number_of_dims).map(() => _.random(1, 10));
-        let a = numts.zeros(dims);
-        let b = numts.zeros(dims);
-        let result = tndarray._broadcast_dims(a, b);
-        expect(result).toEqual(new Uint32Array(dims), `Input dims: ${dims}. Result: ${result}`);
-      }
+    it("Slice with large steps.", function () {
+      const base_array = numts.arange(16).reshape([4, 4]);
+      const slice = base_array.slice([0, 4, 2], [1, 3]);
+
+      const expected = numts.from_nested_array([
+        [1, 2],
+        [9, 10]
+      ], "int32");
+      const actual = tndarray.from_iterable(slice._value_iterator(), slice.shape, "int32");
+
+      expect(expected.equals(actual)).toBe(true);
 
     });
 
-    it("One shorter.", function () {
-      for (let i = 0; i < 10; i++) {
-        let number_of_dims = _.random(1, 8);
-        let dims = _.range(number_of_dims).map(() => _.random(1, 10));
-        let a = numts.zeros(dims);
-        let b = numts.zeros(dims.slice(number_of_dims - 3));
-        let result = tndarray._broadcast_dims(a, b);
-        expect(result).toEqual(new Uint32Array(dims), `Input dims: ${dims}. Result: ${result}`);
-      }
+    it("Subdimensions", function () {
+      const base_array = numts.arange(120).reshape([4, 5, 6]);
+      const first = base_array.slice([0, 4, 2], [1, 3, 2]);
+      expect(first.shape).toEqual(new Uint32Array([2, 1, 6]));
+      const expected = numts.from_nested_array([
+        [[6, 7, 8, 9, 10, 11]],
+        [[66, 67, 68, 69, 70, 71]]
+      ], "int32");
+
+
+      const actual = tndarray.from_iterable(first._value_iterator(), first.shape, "int32");
+      expect(expected).toEqual(actual);
     });
 
-    it("Random ones.", function () {
-      for (let i = 0; i < 100; i++) {
-        let number_of_dims = _.random(1, 8);
-        let a_dims = _.range(number_of_dims).map(() => _.random(1, 10));
-        let b_dims = a_dims.slice(0);
+    it("Successive slice, large steps.", function () {
+      const base_array = numts.arange(120).reshape([4, 5, 6]);
+      const first = base_array.slice([0, 4, 2], [1, 3, 2]);
+      expect(first.shape).toEqual(new Uint32Array([2, 1, 6]));
 
-        _.range(a_dims.length).map((j, i) => {
-          let sw = Math.random() < 1 / a_dims.length;
-          if (sw) {
-            a_dims[i] = 1;
-          }
-        });
+      const second = first.slice(null, null, [0, 6, 3]);
+      expect(second.shape).toEqual(new Uint32Array([2, 1, 2]));
 
-        let a = numts.zeros(a_dims);
-        let b = numts.zeros(b_dims);
+      const expected = numts.from_nested_array([
+        [[6, 9]],
+        [[66, 69]]
+      ], "int32");
 
-        let result = tndarray._broadcast_dims(a, b);
-        expect(result).toEqual(new Uint32Array(b_dims), `Input dims: ${b_dims}. Result: ${result}`);
-      }
+      const actual = tndarray.from_iterable(second._value_iterator(), second.shape, "int32");
+      expect(expected.equals(actual)).toBe(true);
     });
   });
 
@@ -272,7 +285,7 @@ describe("Indices and slicing.", function () {
   //   });
   // });
 
-  it("Reshape.", function () {
+  it("reshape.", function () {
     let start = numts.from_nested_array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
     let reshaped = start.reshape(new Uint32Array([2, 2, 3]));
     let expected = numts.from_nested_array([
@@ -284,6 +297,22 @@ describe("Indices and slicing.", function () {
     ]);
 
     expect(reshaped.equals(expected)).toBe(true);
+  });
+
+  describe("drop_unit_dimensions." ,function () {
+    it("Simple test.", function () {
+      const array = numts.arange(5).reshape([1, 5]);
+      const dropped = array.drop_unit_dimensions();
+      const expected = numts.arange(5);
+      expect(expected.equals(dropped)).toBe(true);
+    });
+
+    it("Multiple dimensions.", function () {
+      const array = numts.arange(25).reshape([1, 5, 1, 1, 5, 1]);
+      const dropped = array.drop_unit_dimensions();
+      const expected = numts.arange(25).reshape([5, 5]);
+      expect(expected.equals(dropped)).toBe(true);
+    })
   });
 });
 
@@ -478,6 +507,53 @@ describe("Unary methods.", function () {
 });
 
 describe("Broadcasting", function () {
+
+  describe("broadcast_dims.", function () {
+    it("same dims.", function () {
+      for (let i = 0; i < 100; i++) {
+        let number_of_dims = _.random(1, 8);
+        let dims = _.range(number_of_dims).map(() => _.random(1, 10));
+        let a = numts.zeros(dims);
+        let b = numts.zeros(dims);
+        let result = tndarray._broadcast_dims(a, b);
+        expect(result).toEqual(new Uint32Array(dims), `Input dims: ${dims}. Result: ${result}`);
+      }
+
+    });
+
+    it("One shorter.", function () {
+      for (let i = 0; i < 10; i++) {
+        let number_of_dims = _.random(1, 8);
+        let dims = _.range(number_of_dims).map(() => _.random(1, 10));
+        let a = numts.zeros(dims);
+        let b = numts.zeros(dims.slice(number_of_dims - 3));
+        let result = tndarray._broadcast_dims(a, b);
+        expect(result).toEqual(new Uint32Array(dims), `Input dims: ${dims}. Result: ${result}`);
+      }
+    });
+
+    it("Random ones.", function () {
+      for (let i = 0; i < 100; i++) {
+        let number_of_dims = _.random(1, 8);
+        let a_dims = _.range(number_of_dims).map(() => _.random(1, 10));
+        let b_dims = a_dims.slice(0);
+
+        _.range(a_dims.length).map((j, i) => {
+          let sw = Math.random() < 1 / a_dims.length;
+          if (sw) {
+            a_dims[i] = 1;
+          }
+        });
+
+        let a = numts.zeros(a_dims);
+        let b = numts.zeros(b_dims);
+
+        let result = tndarray._broadcast_dims(a, b);
+        expect(result).toEqual(new Uint32Array(b_dims), `Input dims: ${b_dims}. Result: ${result}`);
+      }
+    });
+  });
+
   it("Broadcast on axis", function () {
     let x = numts.arange(30).reshape([3, 2, 5]);
     let y = x.sum(1);
