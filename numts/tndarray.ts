@@ -275,12 +275,18 @@ export class tndarray {
    * @return {number}
    */
   stdev(axis?: number): tndarray | number {
+    debugger;
     const mean = this.mean(axis);
     const squared_values = this.power(2);
     const mean_of_squares = squared_values.mean(axis);
     const squared_mean = tndarray._power(mean, 2);
-    const difference = tndarray._sub(squared_mean, mean_of_squares);
-    return tndarray._power(difference, 0.5);
+    const difference = tndarray._sub(mean_of_squares, squared_mean);
+    const result = tndarray._power(difference, 0.5);
+    if (axis === undefined) {
+      return result.data[0];
+    } else {
+      return result;
+    }
   }
   
   // TODO: Axes
@@ -593,7 +599,7 @@ export class tndarray {
   private static _upcast_to_tndarray(value: Broadcastable): tndarray {
     let a_array;
     if (utils.is_numeric(value)) {
-      a_array = tndarray.array(new Uint32Array([value]), new Uint32Array([1]), {disable_checks: true});
+      a_array = tndarray.array(new Float64Array([value]), new Uint32Array([1]), {disable_checks: true});
     } else if (utils.is_typed_array(value)) {
       a_array = tndarray.array(value, new Uint32Array([value.length]), {disable_checks: true});
     } else {
@@ -1021,7 +1027,7 @@ export class tndarray {
    * @private
    */
   static _power(a: Broadcastable, b: Broadcastable): tndarray {
-    return tndarray._binary_broadcast(a, b, (x, y) => Math.pow(x, y));
+    return tndarray._binary_broadcast(a, b, (x, y) => Math.pow(x, y), "float64");
   }
   
   /**
