@@ -1,5 +1,5 @@
-let z = require("../tndarray");
-let numts = require("../numts");
+let z = require("../numts/tndarray");
+let numts = require("../numts/numts");
 let tndarray = numts.tndarray;
 let _ = require("lodash");
 
@@ -67,7 +67,7 @@ describe("Constructors and factories.", function () {
         });
 
         it("Null shape", function () {
-          expect(() => tndarray.array([1, 2, 3], [null])).toThrow(new z.errors.MismatchedShapeSize());
+          expect(() => tndarray.array([1, 2, 3], [null])).toThrow(new Error("Bad shape"));
         });
 
         it("Empty shape.", function () {
@@ -77,72 +77,7 @@ describe("Constructors and factories.", function () {
     });
   });
 
-  describe("Specialized factories.", function () {
-    it("zeros.", function () {
-      expect(tndarray.zeros([2, 2]).data).toEqual(new Float64Array([0, 0, 0, 0]));
-      expect(tndarray.zeros(4).data).toEqual(new Float64Array([0, 0, 0, 0]));
-    });
-
-    it("ones.", function () {
-      expect(tndarray.ones([2, 2]).data).toEqual(new Float64Array([1, 1, 1, 1]));
-      expect(tndarray.ones(4).data).toEqual(new Float64Array([1, 1, 1, 1]));
-    });
-
-    it("filled.", function () {
-      expect(tndarray.filled(-1, [2, 2]).data).toEqual(new Float64Array([-1, -1, -1, -1]));
-      expect(tndarray.filled(10, 4).data).toEqual(new Float64Array([10, 10, 10, 10]));
-    });
-
-    describe("from_nested_array.", function () {
-
-      it("hand array.", function () {
-        let nested = [[[0, 1], [2, 3]], [[4, 5], [6, 7]]];
-        let tensor = tndarray.from_nested_array(nested);
-        expect(tensor.shape).toEqual(new Uint32Array([2, 2, 2]));
-        expect(tensor.g([0, 0, 0])).toBe(0);
-        expect(tensor.g([0, 0, 1])).toBe(1);
-        expect(tensor.g([0, 1, 0])).toBe(2);
-        expect(tensor.g([0, 1, 1])).toBe(3);
-        expect(tensor.g([1, 0, 0])).toBe(4);
-        expect(tensor.g([1, 0, 1])).toBe(5);
-        expect(tensor.g([1, 1, 0])).toBe(6);
-        expect(tensor.g([1, 1, 1])).toBe(7);
-
-      });
-
-      it("larger array", function () {
-        // Create nested array with dimensions 3 x 2 x 3 x 5
-        let nested = [1, 2, 3].map(
-          x => _.range(x, x + 2).map(
-            y => _.range(y, y + 4).map(
-              z => _.range(y + 2, y + 7),
-            ),
-          ),
-        );
-
-        let good_nested = tndarray.from_nested_array(nested);
-        expect(good_nested.shape).toEqual(new Uint32Array([3, 2, 4, 5]));
-        for (let indices of good_nested._index_iterator()) {
-          let expected = tndarray._nested_array_value_from_index(nested, indices);
-          let actual = good_nested.g(indices);
-          expect(actual).toBe(expected, `index: ${indices}`);
-
-          expected = nested[indices[0]][indices[1]][indices[2]][indices[3]];
-          actual = good_nested.g(indices);
-          expect(actual).toBe(expected, `index: ${indices}`);
-        }
-        expect(nested[0][0][0][0]).toBe(good_nested.g([0, 0, 0, 0]));
-        expect(nested[2][0][0][0]).toBe(good_nested.g([2, 0, 0, 0]));
-      });
-    });
-  });
-
   describe("Helper methods.", function () {
-
-    it("_compute_slice_size.", function () {
-      expect(tndarray._compute_slice_size([0, 0], [2, 2], [1, 1])).toBe(4);
-      expect(tndarray._compute_slice_size(new Uint32Array([0, 5]), new Uint32Array([6, 10]), new Uint32Array([5, 2]))).toBe(6);
-    });
 
     it("_stride_from_shape.", function () {
       expect(tndarray._stride_from_shape([2, 2, 3])).toEqual(new Uint32Array([1, 2, 4]));
@@ -156,13 +91,6 @@ describe("Constructors and factories.", function () {
 });
 
 describe("Indices and slicing.", function () {
-
-  describe("_compute_slice_size", function () {
-    it("From test", function () {
-      let x = tndarray._compute_slice_size([0, 0], [3, 1], [1, 1]);
-      expect(x).toBe(3);
-    });
-  });
 
   describe("_slice_iterator", function() {
 
@@ -181,7 +109,7 @@ describe("Indices and slicing.", function () {
   });
 
   it("_real_index_iterator", function () {
-    let tensor = tndarray.arange(0, 100).reshape(new Uint32Array([5, 5, 2, 2]));
+    let tensor =numts.arange(0, 100).reshape(new Uint32Array([5, 5, 2, 2]));
     let indices = [...tensor._index_iterator()];
     let real_indices = [...tensor._real_index_iterator()];
 
@@ -194,7 +122,7 @@ describe("Indices and slicing.", function () {
   });
 
   it("_index_iterator.", function () {
-    let array = tndarray.zeros([2, 2]);
+    let array = numts.zeros([2, 2]);
     let i = 0;
     for (let index of array._index_iterator()) {
       switch (i) {
@@ -240,38 +168,18 @@ describe("Indices and slicing.", function () {
   });
 
   it("_compute_real_index.", function () {
-    expect(tndarray.zeros([2, 2])._compute_real_index([1, 1])).toBe(3);
-    expect(tndarray.zeros([2, 3, 4, 5]));
+    expect(numts.zeros([2, 2])._compute_real_index([1, 1])).toBe(3);
+    expect(numts.zeros([2, 3, 4, 5]));
   });
 
-  describe("_new_shape_from_slice.", function () {
-    it("Basic test.", function () {
-      const starts = new Uint32Array(3);
-      const ends = new Uint32Array([1, 2, 3]);
-      const steps = new Uint32Array(3);
-      steps.fill(1);
 
-      const shape = tndarray._new_shape_from_slice(starts, ends, steps);
-      expect(shape).toEqual(ends);
-    });
-
-    it("Complicated test.", function () {
-      const starts = new Uint32Array([2, 6, 10]);
-      const ends = new Uint32Array([10, 12, 11]);
-      const steps = new Uint32Array([2, 3, 1]);
-
-      const shape = tndarray._new_shape_from_slice(starts, ends, steps);
-      const expected = new Uint32Array([4, 2, 1]);
-      expect(shape).toEqual(expected);
-    });
-  });
 
   describe("slice.", function () {
     it("basic test.", function () {
-      const base_array = tndarray.arange(16).reshape([4, 4]);
+      const base_array =numts.arange(16).reshape([4, 4]);
       const slice = base_array.slice([0, 2], [1, 3]);
       
-      const expected = tndarray.from_nested_array([
+      const expected = numts.from_nested_array([
         [1, 2],
         [5, 6]
       ], "int32");
@@ -279,9 +187,9 @@ describe("Indices and slicing.", function () {
     });
 
     it("single value slice.", function () {
-      const base_array = tndarray.arange(16).reshape([4, 4]);
+      const base_array =numts.arange(16).reshape([4, 4]);
       const slice = base_array.slice(0);
-      const expected = tndarray.arange(4).reshape([1, 4]);
+      const expected =numts.arange(4).reshape([1, 4]);
       expect(slice.equals(expected)).toBe(true);
     });
   });
@@ -311,8 +219,8 @@ describe("Indices and slicing.", function () {
       for (let i = 0; i < 100; i++) {
         let number_of_dims = _.random(1, 8);
         let dims = _.range(number_of_dims).map(() => _.random(1, 10));
-        let a = tndarray.zeros(dims);
-        let b = tndarray.zeros(dims);
+        let a = numts.zeros(dims);
+        let b = numts.zeros(dims);
         let result = tndarray._broadcast_dims(a, b);
         expect(result).toEqual(new Uint32Array(dims), `Input dims: ${dims}. Result: ${result}`);
       }
@@ -323,8 +231,8 @@ describe("Indices and slicing.", function () {
       for (let i = 0; i < 10; i++) {
         let number_of_dims = _.random(1, 8);
         let dims = _.range(number_of_dims).map(() => _.random(1, 10));
-        let a = tndarray.zeros(dims);
-        let b = tndarray.zeros(dims.slice(number_of_dims - 3));
+        let a = numts.zeros(dims);
+        let b = numts.zeros(dims.slice(number_of_dims - 3));
         let result = tndarray._broadcast_dims(a, b);
         expect(result).toEqual(new Uint32Array(dims), `Input dims: ${dims}. Result: ${result}`);
       }
@@ -343,8 +251,8 @@ describe("Indices and slicing.", function () {
           }
         });
 
-        let a = tndarray.zeros(a_dims);
-        let b = tndarray.zeros(b_dims);
+        let a = numts.zeros(a_dims);
+        let b = numts.zeros(b_dims);
 
         let result = tndarray._broadcast_dims(a, b);
         expect(result).toEqual(new Uint32Array(b_dims), `Input dims: ${b_dims}. Result: ${result}`);
@@ -352,35 +260,35 @@ describe("Indices and slicing.", function () {
     });
   });
 
-  describe("broadcast.", function () {
-    it("Same dims.", function () {
-      let a = tndarray.from_nested_array([[1, 2, 3], [3, 4, 5]]);
-      let b = tndarray.from_nested_array([[1, 2, 3], [3, 4, 5]]);
-      let iter = tndarray._broadcast(a, b)[0];
-      for (let [first, second] of iter) {
-        expect(first).toBe(second);
-      }
-    });
-
-    it("One smaller.", function () {
-      let a = tndarray.from_nested_array([[1, 2, 3], [3, 4, 5]]);
-      let b = tndarray.from_nested_array([[3, 4, 5]]);
-      let iter = tndarray._broadcast(a, b)[0];
-      const expected = [[1, 3], [2, 4], [3, 5], [3, 3], [4, 4], [5, 5]];
-      let i = 0;
-      for (let [first, second] of iter) {
-        let [e1, e2] = expected[i];
-        expect(first).toBe(e1);
-        expect(second).toBe(e2);
-        i++;
-      }
-    });
-  });
+  // describe("broadcast.", function () {
+  //   it("Same dims.", function () {
+  //     let a = numts.from_nested_array([[1, 2, 3], [3, 4, 5]]);
+  //     let b = numts.from_nested_array([[1, 2, 3], [3, 4, 5]]);
+  //     let iter = tndarray._broadcast(a, b)[0];
+  //     for (let [first, second] of iter) {
+  //       expect(first).toBe(second);
+  //     }
+  //   });
+  //
+  //   it("One smaller.", function () {
+  //     let a = numts.from_nested_array([[1, 2, 3], [3, 4, 5]]);
+  //     let b = numts.from_nested_array([[3, 4, 5]]);
+  //     let iter = tndarray._broadcast(a, b)[0];
+  //     const expected = [[1, 3], [2, 4], [3, 5], [3, 3], [4, 4], [5, 5]];
+  //     let i = 0;
+  //     for (let [first, second] of iter) {
+  //       let [e1, e2] = expected[i];
+  //       expect(first).toBe(e1);
+  //       expect(second).toBe(e2);
+  //       i++;
+  //     }
+  //   });
+  // });
 
   it("Reshape.", function () {
-    let start = tndarray.from_nested_array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    let start = numts.from_nested_array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
     let reshaped = start.reshape(new Uint32Array([2, 2, 3]));
-    let expected = tndarray.from_nested_array([
+    let expected = numts.from_nested_array([
       [
         [0, 1, 2], [3, 4, 5],
       ], [
@@ -396,8 +304,8 @@ describe("Methods.", function () {
 
   describe("_binary_broadcast.", function () {
     it("return first.", function () {
-      let a = tndarray.arange(0, 10);
-      let b = tndarray.arange(1);
+      let a = numts.arange(0, 10);
+      let b = numts.arange(1);
       let f = (a, b) => a;
 
       let broadcasted = tndarray._binary_broadcast(a, b, f);
@@ -405,8 +313,8 @@ describe("Methods.", function () {
     });
 
     it("return second.", function () {
-      let a = tndarray.arange(1);
-      let b = tndarray.arange(0, 10);
+      let a = numts.arange(1);
+      let b = numts.arange(0, 10);
       let f = (a, b) => b;
 
       let broadcasted = tndarray._binary_broadcast(a, b, f);
@@ -415,65 +323,65 @@ describe("Methods.", function () {
 
     describe("arithmetic", function () {
       it("add.", function () {
-        let a = tndarray.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
-        let b = tndarray.arange(5);
+        let a = numts.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
+        let b = numts.arange(5);
 
         let summed = numts.add(a, b);
-        let expected = tndarray.from_nested_array([[0, 2, 4, 6, 8], [5, 7, 9, 11, 13]], "int32");
+        let expected = numts.from_nested_array([[0, 2, 4, 6, 8], [5, 7, 9, 11, 13]], "int32");
         expect(summed.equals(expected)).toBe(true);
       });
 
       it("sub.", function () {
-        let a = tndarray.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
-        let b = tndarray.arange(5);
+        let a = numts.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
+        let b = numts.arange(5);
 
         let sub = tndarray._sub(a, b);
-        let expected = tndarray.from_nested_array([[0, 0, 0, 0, 0], [5, 5, 5, 5, 5]], "int32");
+        let expected = numts.from_nested_array([[0, 0, 0, 0, 0], [5, 5, 5, 5, 5]], "int32");
         expect(sub.equals(expected)).toBe(true);
       });
 
       it("mult.", function () {
-        let a = tndarray.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
-        let b = tndarray.arange(5);
+        let a = numts.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
+        let b = numts.arange(5);
 
         let product = tndarray._mult(a, b);
-        let expected = tndarray.from_nested_array([[0, 1, 4, 9, 16], [0, 6, 14, 24, 36]], "int32");
+        let expected = numts.from_nested_array([[0, 1, 4, 9, 16], [0, 6, 14, 24, 36]], "int32");
         expect(product.equals(expected)).toBe(true);
       });
 
       it("div.", function () {
-        let a = tndarray.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
-        let b = tndarray.arange(1, 6);
+        let a = numts.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
+        let b = numts.arange(1, 6);
 
         let product = tndarray._div(a, b);
-        let expected = tndarray.from_nested_array([[0, 1 / 2, 2 / 3, 3 / 4, 4 / 5], [5, 6 / 2, 7 / 3, 8 / 4, 9 / 5]], "float64");
+        let expected = numts.from_nested_array([[0, 1 / 2, 2 / 3, 3 / 4, 4 / 5], [5, 6 / 2, 7 / 3, 8 / 4, 9 / 5]], "float64");
         expect(product.equals(expected)).toBe(true);
       });
 
       it("mod.", function () {
-        let a = tndarray.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
-        let b = tndarray.arange(1, 6);
+        let a = numts.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
+        let b = numts.arange(1, 6);
 
         let product = tndarray._mod(a, b);
-        let expected = tndarray.from_nested_array([[0, 1, 2, 3, 4], [0, 0, 1, 0, 4]], "int32");
+        let expected = numts.from_nested_array([[0, 1, 2, 3, 4], [0, 0, 1, 0, 4]], "int32");
         expect(product.equals(expected)).toBe(true);
       });
 
       it("fdiv.", function () {
-        let a = tndarray.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
-        let b = tndarray.arange(1, 6);
+        let a = numts.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
+        let b = numts.arange(1, 6);
 
         let product = tndarray._fdiv(a, b);
-        let expected = tndarray.from_nested_array([[0, 0, 0, 0, 0], [5, 3, 2, 2, 1]], "int32");
+        let expected = numts.from_nested_array([[0, 0, 0, 0, 0], [5, 3, 2, 2, 1]], "int32");
         expect(product.equals(expected)).toBe(true);
       });
 
       it("cdiv.", function () {
-        let a = tndarray.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
-        let b = tndarray.arange(1, 6);
+        let a = numts.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
+        let b = numts.arange(1, 6);
 
         let product = tndarray._cdiv(a, b);
-        let expected = tndarray.from_nested_array([[0, 1, 1, 1, 1], [5, 3, 3, 2, 2]], "int32");
+        let expected = numts.from_nested_array([[0, 1, 1, 1, 1], [5, 3, 3, 2, 2]], "int32");
         expect(product.equals(expected)).toBe(true);
       });
     });
@@ -487,7 +395,7 @@ describe("Unary methods.", function () {
 
   describe("Nonzero.", function () {
     it("simple.", function () {
-      const array = tndarray.from_nested_array([
+      const array = numts.from_nested_array([
         [0, 1, 0], [2, 0, 1]
       ]);
       const expected = [
@@ -503,7 +411,7 @@ describe("Unary methods.", function () {
 
   describe("Methods along axes.", function () {
 
-    let array = tndarray.arange(30).reshape([3, 2, 5]);
+    let array = numts.arange(30).reshape([3, 2, 5]);
 
     describe("min.", function () {
       it("min over all.", function () {
@@ -511,7 +419,7 @@ describe("Unary methods.", function () {
       });
 
       it("min over 0.", function () {
-        const expected = tndarray.from_nested_array([
+        const expected = numts.from_nested_array([
           [0, 1, 2, 3, 4],
           [5, 6, 7, 8, 9]
         ], "int32");
@@ -525,7 +433,7 @@ describe("Unary methods.", function () {
       });
 
       it("max over 0.", function () {
-        const expected = tndarray.from_nested_array([
+        const expected = numts.from_nested_array([
           [20, 21, 22, 23, 24],
           [25, 26, 27, 28, 29]
         ], "int32");
@@ -548,7 +456,7 @@ describe("Unary methods.", function () {
       it("2d, axis 1.", function () {
         const input = numts.arange(12).reshape([3, 4]);
         const result = input.cumsum(1);
-        const expected = tndarray.from_nested_array([
+        const expected = numts.from_nested_array([
           [0, 1, 3, 6],
           [4, 9, 15, 22],
           [8, 17, 27, 38]
@@ -568,7 +476,7 @@ describe("Unary methods.", function () {
       it("2d, axis 1.", function () {
         const input = numts.arange(1, 13).reshape([3, 4]);
         const result = input.cumprod(1);
-        const expected = tndarray.from_nested_array([
+        const expected = numts.from_nested_array([
           [1, 2, 6, 24],
           [5, 30, 210, 1680],
           [9, 90, 990, 11880]
@@ -582,7 +490,7 @@ describe("Unary methods.", function () {
 
 describe("Broadcasting", function () {
   it("Broadcast on axis", function () {
-    let x = tndarray.arange(30).reshape([3, 2, 5]);
+    let x = numts.arange(30).reshape([3, 2, 5]);
     let y = x.sum(1);
     const expected_data = [
       [5, 7, 9, 11, 13],
@@ -590,7 +498,7 @@ describe("Broadcasting", function () {
       [45, 47, 49, 51, 53]
     ];
 
-    const expected_array = tndarray.from_nested_array(expected_data, 'int32');
+    const expected_array = numts.from_nested_array(expected_data, 'int32');
     expect(expected_array.equals(y)).toBe(true);
   });
 });
@@ -598,18 +506,18 @@ describe("Broadcasting", function () {
 describe("Math.", function () {
   describe("matmul.", function () {
     it("scalar.", function () {
-      let a = tndarray.arange(1, 2).reshape([1, 1]);
-      let b = tndarray.arange(10, 11).reshape([1, 1]);
+      let a = numts.arange(1, 2).reshape([1, 1]);
+      let b = numts.arange(10, 11).reshape([1, 1]);
       let x = tndarray.matmul_2d(a, b);
-      const expected = tndarray.from_nested_array([[10]]);
+      const expected = numts.from_nested_array([[10]]);
       expect(expected.equals(x)).toBe(true);
     });
   });
 
   describe("dot.", function () {
     it("simple.", function () {
-      const a = tndarray.arange(10, 20);
-      const b = tndarray.arange(20, 30);
+      const a = numts.arange(10, 20);
+      const b = numts.arange(20, 30);
       const dot = tndarray.dot(a, b);
       expect(dot).toBe(3635)
     });

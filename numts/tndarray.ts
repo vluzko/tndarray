@@ -1,4 +1,5 @@
-import is_numeric = utils.is_numeric;
+import {utils} from "./utils";
+import {indexing} from "./indexing";
 
 type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array| Int32Array | Uint32Array | Float32Array | Float64Array;
 type Numeric = TypedArray | number[];
@@ -43,95 +44,6 @@ namespace errors {
   export class NestedArrayHasInconsistentDimensions extends Error {}
 }
 
-namespace  temp {
-  export function ab() {}
-}
-
-export namespace utils {
-  /**
-   * TODO: Move to a static function in tndarray
-   * @param array1
-   * @param array2
-   * @return {number}
-   */
-  export function dot(array1, array2): number {
-    return array1.reduce((a, b, i) => a + b * array2[i], 0);
-  }
-  
-  /**
-   * TODO: Move to a static function in tndarray
-   * @param array1
-   * @param array2
-   * @return {boolean}
-   */
-  export function array_equal(array1, array2) {
-    if (array1.length !== array2.length) {
-      return false;
-    } else {
-      return array1.reduce((a, b, i) => a && (b === array2[i]), true);
-    }
-  }
-  
-  /**
-   * TODO: Test
-   * Checks whether a value is a number and isn't null.
-   * @param value - The value to check.
-   * @return {boolean}
-   */
-  export function is_numeric(value: any): value is number {
-    return !isNaN(value) && value !== null;
-  }
-  
-  export function zip_iterable(...iters: Iterator<number>[]): Iterable<number[]> {
-    let iterators = iters.map(e => e[Symbol.iterator]());
-    
-    let iter = {
-    };
-    iter[Symbol.iterator] = function*() {
-      let all_done = false;
-      while (!all_done) {
-        let results = [];
-        iterators.forEach(e => {
-          let {value, done} = e.next();
-          if (done) {
-            all_done = true;
-          }
-          results.push(value);
-        });
-        
-        if (!all_done) {
-          yield results;
-        }
-      }
-    };
-    
-    return <Iterable<number[]>> iter;
-  }
-  
-  // TODO: Test
-  /**
-   * Check if value is an ArrayBuffer
-   * @param value
-   * @return {boolean}
-   */
-  export function is_typed_array(value: any): value is TypedArray {
-    return !!(value.buffer instanceof ArrayBuffer && value.BYTES_PER_ELEMENT);
-  }
-  
-  /**
-   * Subtract two typed arrays. Should only be called on typed array that are guaranteed to be the same size.
-   * @param {TypedArray} a
-   * @param {TypedArray} b
-   * @return {TypedArray}
-   * @private
-   */
-  export function _typed_array_sub(a: TypedArray, b: TypedArray) {
-    // @ts-ignore
-    return a.map((e, i) => e - b[i]);
-  }
-  
-}
-
 export class tndarray {
   
   private data;
@@ -168,7 +80,7 @@ export class tndarray {
     this.length = size;
     this.dstride = dstride;
     if (dtype !== undefined) {
-      const array_type = tndarray._dtype_map(dtype);
+      const array_type = utils.dtype_map(dtype);
       if (!(data instanceof array_type)) {
         this.data = new array_type(data);
       } else {
@@ -220,7 +132,7 @@ export class tndarray {
    * @return {number | tndarray}
    */
   cumprod(axis?: number, dtype?: string): number | tndarray {
-    return this.accum_map((acc, b) => acc * b, axis, undefined, dtype);
+    return this.accum_map((acc, b) => acc * b, axis, 1, dtype);
   }
   
   /**
@@ -339,8 +251,8 @@ export class tndarray {
     if (Array.isArray(new_shape)) {
       new_shape = new Uint32Array(new_shape);
     }
-    const new_size = tndarray._compute_size(new_shape);
-    const size = tndarray._compute_size(this.shape);
+    const new_size = indexing.compute_size(new_shape);
+    const size = indexing.compute_size(this.shape);
     if (size !== new_size) {
       throw new errors.BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${new_shape}`);
     }
@@ -416,7 +328,7 @@ export class tndarray {
       i += 1;
     }
     
-    const new_shape = tndarray._new_shape_from_slice(start, end, steps);
+    const new_shape = indexing.new_shape_from_slice(start, end, steps);
     
     return tndarray.from_iterable(this._value_iterator(start, end, steps), new_shape, this.dtype);
   }
@@ -483,17 +395,15 @@ export class tndarray {
     dtype = dtype === undefined ? this.dtype : dtype;
     let new_array;
     if (axis === undefined) {
-      const data_type = tndarray._dtype_map(dtype);
       // TODO: Views: Use size of view.
+
       new_array = tndarray.zeros(this.length, dtype);
       let first_value;
+
       if (start !== undefined) {
-        first_value = f(start, this.data[0])
-      } else {
-        first_value = this.data[0]
+        new_array.data[0] = start;
       }
-      
-      new_array.data[0] = first_value;
+
       let previous_index = 0;
       let index_in_new = 0;
       for (let index of this._real_index_iterator()) {
@@ -501,6 +411,7 @@ export class tndarray {
         previous_index = index_in_new;
         index_in_new += 1;
       }
+
     } else {
       const [lower, upper, steps] = tndarray._slice_for_axis(this, axis);
       new_array = tndarray.zeros(this.shape, dtype);
@@ -508,11 +419,13 @@ export class tndarray {
       
       for (let index of this._real_index_iterator(lower, upper, steps)) {
         let first_value;
+
         if (start !== undefined) {
           first_value = f(start, this.data[index]);
         } else {
           first_value = this.data[index];
         }
+
         new_array.data[index] = first_value;
         let previous_index = index;
         for (let i = 1; i < this.shape[axis]; i++) {
@@ -537,7 +450,7 @@ export class tndarray {
     if (axis === undefined) {
       return f(this.data);
     } else {
-      const new_shape = tndarray._new_shape_from_axis(this.shape, axis);
+      const new_shape = indexing.new_shape_from_axis(this.shape, axis);
       let new_array = tndarray.zeros(new_shape, dtype);
       const step_along_axis = this.stride[axis];
       for (let [old_index, new_index] of tndarray._true_index_iterator_over_axes(this, axis)) {
@@ -566,7 +479,7 @@ export class tndarray {
       const new_data = this.data.reduce(f);
       return tndarray.array(new_data, this.shape, {dtype: dtype})
     } else {
-      const new_shape = tndarray._new_shape_from_axis(this.shape, axis);
+      const new_shape = indexing.new_shape_from_axis(this.shape, axis);
       let new_array = tndarray.zeros(new_shape, dtype);
       const step_along_axis = this.stride[axis];
       for (let [old_index, new_index] of tndarray._true_index_iterator_over_axes(this, axis)) {
@@ -597,18 +510,8 @@ export class tndarray {
    * @return {number} - The index
    * @private
    */
-  private _compute_real_index(indices): number {
-    return tndarray._index_in_data(indices, this.stride, this.initial_offset);
-  }
-  
-  /**
-   * Computes the total length of the array from its shape.
-   * @param {NumericalArray} shape
-   * @return {number}
-   * @private
-   */
-  private static _compute_size(shape: Uint32Array): number {
-    return shape.reduce((a, b) => a * b);
+  _compute_real_index(indices): number {
+    return indexing.index_in_data(indices, this.stride, this.initial_offset);
   }
   
   /**
@@ -617,7 +520,7 @@ export class tndarray {
    * @return {any}
    * @private
    */
-  private static _dtype_map(dtype: string) {
+  static _dtype_map(dtype: string) {
     let array_type;
     switch (dtype) {
       case "int8":
@@ -667,28 +570,14 @@ export class tndarray {
       throw new errors.DataNullOrNotNumeric();
     }
   }
-  
-  /**
-   * Checks whether a value is an array(like) of numbers.
-   * @param array
-   * @return {boolean}
-   * @private
-   */
-  private static _is_numeric_array(array): boolean {
-    if (!Array.isArray(array) && !ArrayBuffer.isView(array)) {
-      return false;
-    } else {
-      return (<number[]>array).reduce((a, b) => utils.is_numeric(b) && a, true);
-    }
-  }
-  
+
   /**
    * Compute a shape array from a shape parameter.
    * @param shape
    * @return {Uint32Array}
    * @private
    */
-  private static _compute_shape(shape): Uint32Array {
+  static _compute_shape(shape): Uint32Array {
     let final_shape;
     // Compute shapes.
     if (Number.isInteger(shape)) {
@@ -697,7 +586,7 @@ export class tndarray {
       // TODO: Error is not a numerical array.
       if (shape.length === 0) {
         final_shape = new Uint32Array([0]);
-      } else if (tndarray._is_numeric_array(shape)) {
+      } else if (utils.is_numeric_array(shape)) {
         final_shape = new Uint32Array(shape);
       } else {
         throw new errors.BadShape();
@@ -723,7 +612,7 @@ export class tndarray {
     if (shape === undefined || shape === null) {
       final_shape = new Uint32Array([data_length]);
     } else {
-      final_shape = tndarray._compute_shape(shape);
+      final_shape = indexing.compute_shape(shape);
     }
     return final_shape;
   }
@@ -743,16 +632,16 @@ export class tndarray {
     return stride;
   }
   
-  /**
-   * Checks that the inputs have a `length` property, and that their lengths are equal.
-   * @param value1
-   * @param value2
-   * @return {boolean}
-   * @private
-   */
-  private static _lengths_exist_and_match(value1: any, value2: any): boolean {
-    return value1.length !== undefined && value1.length === value2.length;
-  }
+  // /**
+  //  * Checks that the inputs have a `length` property, and that their lengths are equal.
+  //  * @param value1
+  //  * @param value2
+  //  * @return {boolean}
+  //  * @private
+  //  */
+  // private static _lengths_exist_and_match(value1: any, value2: any): boolean {
+  //   return value1.length !== undefined && value1.length === value2.length;
+  // }
   
   /**
    *
@@ -827,7 +716,7 @@ export class tndarray {
       return index.slice(first_elem).map((e, i) => Math.min(e, array_shape[i] - 1));
     }
   }
-  
+
   /**
    * Calculate the shape from broadcasting two arrays together.
    * @param {tndarray} a    - First array.
@@ -838,16 +727,16 @@ export class tndarray {
   private static _broadcast_dims(a: tndarray, b: tndarray) {
     let a_number_of_dims = a.shape.length;
     let b_number_of_dims = b.shape.length;
-  
+
     const number_of_dimensions = Math.max(a_number_of_dims, b_number_of_dims);
     const new_dimensions = new Uint32Array(number_of_dimensions);
-    
+
     for (let j = 1; j <= number_of_dimensions; j++) {
       let a_axis_size = a_number_of_dims - j >= 0 ? a.shape[a_number_of_dims - j] : 1;
       let b_axis_size = b_number_of_dims - j >= 0 ? b.shape[b_number_of_dims - j] : 1;
-    
+
       let dimension;
-    
+
       // If the axes match in size, that is the broadcasted dimension.
       if (a_axis_size === b_axis_size) {
         dimension = a_axis_size;
@@ -860,10 +749,10 @@ export class tndarray {
       }
       new_dimensions[number_of_dimensions - j] = dimension;
     }
-    
+
     return new_dimensions;
   }
-  
+
   /**
    * Broadcast two values together.
    * Works like numpy broadcasting.
@@ -873,17 +762,17 @@ export class tndarray {
    * @private
    */
   private static _broadcast_by_index(a: Broadcastable, b: Broadcastable): [IterableIterator<[number, number, Uint32Array]>, Uint32Array, string] {
-    
+
     let a_array = tndarray._upcast_to_tndarray(a);
     let b_array = tndarray._upcast_to_tndarray(b);
-    
+
     const new_dimensions = tndarray._broadcast_dims(a_array, b_array);
     const new_dtype = tndarray._dtype_join(a_array.dtype, b_array.dtype);
     let index_iter = tndarray._slice_iterator(new_dimensions);
-    
+
     const a_indexer = tndarray._broadcast_indexer(new_dimensions, a_array.shape);
     const b_indexer = tndarray._broadcast_indexer(new_dimensions, b_array.shape);
-    
+
     let iter = {};
     iter[Symbol.iterator] = function* () {
       for (let index of index_iter) {
@@ -892,57 +781,8 @@ export class tndarray {
         yield [a_val, b_val, index];
       }
     };
-    
+
     return [<IterableIterator<[number, number, Uint32Array]>>iter, new_dimensions, new_dtype];
-  }
-  
-  private static _broadcast(a: Broadcastable, b: Broadcastable): [IterableIterator<[number, number, Uint32Array]>, Uint32Array, string] {
-    
-    let a_array = tndarray._upcast_to_tndarray(a);
-    let b_array = tndarray._upcast_to_tndarray(b);
-    
-    const new_dimensions = tndarray._broadcast_dims(a_array, b_array);
-    const new_dtype = tndarray._dtype_join(a_array.dtype, b_array.dtype);
-    let index_iter = tndarray._slice_iterator(new_dimensions);
-    
-    const a_indexer = tndarray._broadcast_indexer(new_dimensions, a_array.shape);
-    const b_indexer = tndarray._broadcast_indexer(new_dimensions, b_array.shape);
-    
-    let iter = {};
-    iter[Symbol.iterator] = function* () {
-      for (let index of index_iter) {
-        let a_val = a_array.g(a_indexer(index));
-        let b_val = b_array.g(b_indexer(index));
-        yield [a_val, b_val, index];
-      }
-    };
-    
-    return [<IterableIterator<[number, number, Uint32Array]>>iter, new_dimensions, new_dtype];
-  }
-  
-  /**
-   * Computes the size of a slice.
-   * @param lower_bounds
-   * @param upper_bounds
-   * @param steps
-   * @private
-   */
-  private static _compute_slice_size(lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array): number {
-    const ranges = utils._typed_array_sub(upper_bounds, lower_bounds);
-    const values = ranges.map((e, i) => Math.ceil(e / steps[i]));
-    return values.reduce((a, e) => a * e, 1);
-  }
-  
-  /**
-   *
-   * @param {Uint32Array} indices
-   * @param {Uint32Array} stride
-   * @param {number} initial_offset
-   * @return {number}
-   * @private
-   */
-  private static _index_in_data(indices: Uint32Array, stride: Uint32Array, initial_offset: number): number {
-    return utils.dot(indices, stride) + initial_offset;
   }
   
   /**
@@ -957,7 +797,7 @@ export class tndarray {
    * @return {Iterable<any>}
    * @private
    */
-  private static _slice_iterator(lower_or_upper: Uint32Array, upper_bounds?: Uint32Array, steps?: Uint32Array): Iterable<Uint32Array> {
+  static _slice_iterator(lower_or_upper: Uint32Array, upper_bounds?: Uint32Array, steps?: Uint32Array): Iterable<Uint32Array> {
     
     if (steps === undefined) {
       steps = new Uint32Array(lower_or_upper.length);
@@ -970,7 +810,7 @@ export class tndarray {
     }
     
     let iter = {};
-    const size = tndarray._compute_slice_size(lower_or_upper, upper_bounds, steps);
+    const size = indexing.compute_slice_size(lower_or_upper, upper_bounds, steps);
     const end_dimension = upper_bounds.length - 1;
     iter[Symbol.iterator] = function* () {
       
@@ -1069,7 +909,7 @@ export class tndarray {
    * @private
    */
   private static _true_index_iterator_over_axes(full_array: tndarray, axis: number): Iterable<number[]> {
-    const new_shape = tndarray._new_shape_from_axis(full_array.shape, axis);
+    const new_shape = indexing.new_shape_from_axis(full_array.shape, axis);
     let new_array = tndarray.zeros(new_shape, full_array.dtype);
     
     let [lower, upper, steps] = tndarray._slice_for_axis(full_array, axis);
@@ -1121,74 +961,6 @@ export class tndarray {
   }
   
   /**
-   * Compute the dimensions of a nested array.
-   * @param {any[]} nested_array  - Arrays nested arbitrarily deeply. Each array of the same depth must have the same length.
-   *                                This is *not* checked.
-   * @return {Uint32Array}        - The dimensions of each subarray.
-   * @private
-   */
-  private static _nested_array_shape(nested_array: any[]): Uint32Array {
-    let dims: number[] = [];
-    let current = nested_array;
-    let at_bottom = false;
-    while (!at_bottom) {
-      dims.push(current.length);
-      if (Array.isArray(current[0])) {
-        current = current[0];
-      } else {
-        at_bottom = true;
-      }
-    }
-    
-    return new Uint32Array(dims);
-  }
-  
-  /**
-   *
-   * @param {any[]} nested_array
-   * @param {Uint32Array} indices
-   * @return {any[]}
-   * @private
-   */
-  private static _nested_array_value_from_index(nested_array: any[], indices: Uint32Array) {
-    let current_subarray = nested_array;
-    for (let index of indices) {
-      current_subarray = current_subarray[index];
-    }
-    return current_subarray;
-  }
-  
-  /**
-   * Create a tndarray from a nested array of values.
-   * @param {any[]} array - An array of arrays (nested to arbitrary depth). Each level must have the same dimension.
-   * The final level must contain valid data for a tndarray.
-   * @param {string} dtype  - The type to use for the underlying array.
-   *
-   * @return {tndarray}
-   */
-  static from_nested_array(array: any[], dtype?: string): tndarray {
-    if (array.length === 0) {
-      return tndarray.array([]);
-    }
-    
-    const dimensions = tndarray._nested_array_shape(array);
-    let slice_iter = tndarray._slice_iterator(dimensions);
-
-    const size = tndarray._compute_size(dimensions);
-    const array_type = tndarray._dtype_map(dtype);
-    const data = new array_type(size);
-    
-    let ndarray = tndarray.array(data, dimensions, {dtype: dtype, disable_checks: true});
-    
-    for (let indices of slice_iter) {
-      const real_index = ndarray._compute_real_index(indices);
-      ndarray.data[real_index] = tndarray._nested_array_value_from_index(array, indices);
-    }
-    
-    return ndarray;
-  }
-  
-  /**
    * Create an n-dimensional array from an iterable.
    * @param iterable
    * @param shape
@@ -1196,10 +968,10 @@ export class tndarray {
    * @return {tndarray}
    */
   static from_iterable(iterable: Iterable<number>, shape: Shape, dtype?: string) {
-    const final_shape = tndarray._compute_shape(shape);
+    const final_shape = indexing.compute_shape(shape);
     
-    const size = tndarray._compute_size(final_shape);
-    const array_type = tndarray._dtype_map(dtype);
+    const size = indexing.compute_size(final_shape);
+    const array_type = utils.dtype_map(dtype);
     const index_iterator = tndarray._slice_iterator(final_shape);
     const val_gen = iterable[Symbol.iterator]();
     let data = new array_type(size);
@@ -1207,7 +979,7 @@ export class tndarray {
     const initial_offset = 0;
     let i = 0;
     for (let index of index_iterator) {
-      const real_index = tndarray._index_in_data(index, stride, initial_offset);
+      const real_index = indexing.index_in_data(index, stride, initial_offset);
       let val = val_gen.next();
       data[real_index] = val.value;
     }
@@ -1227,97 +999,13 @@ export class tndarray {
    * @return {tndarray}
    */
   static filled(value: number, shape, dtype?: string): tndarray {
-    const final_shape = tndarray._compute_shape(shape);
+    const final_shape = indexing.compute_shape(shape);
     
-    const size = tndarray._compute_size(final_shape);
-    const array_type = tndarray._dtype_map(dtype);
+    const size = indexing.compute_size(final_shape);
+    const array_type = utils.dtype_map(dtype);
     const data = new array_type(size).fill(value);
     
     return tndarray.array(data, final_shape, {disable_checks: true, dtype: dtype});
-  }
-  
-  /**
-   * Return an array of the specified size filled with zeroes.
-   * @param {number} shape
-   * @param {string} dtype
-   * @return {tndarray}
-   */
-  static zeros(shape, dtype?: string) {
-    const final_shape = tndarray._compute_shape(shape);
-    const size = tndarray._compute_size(final_shape);
-    const array_type = tndarray._dtype_map(dtype);
-    const data = new array_type(size);
-    
-    return tndarray.array(data, final_shape, {disable_checks: true, dtype: dtype});
-  }
-  
-  /**
-   * Return an array of the specified size filled with ones.
-   * @param {number} shape
-   * @param {string} dtype
-   * @return {tndarray}
-   */
-  static ones(shape: number[] | Uint32Array, dtype?: string): tndarray {
-    return tndarray.filled(1, shape, dtype);
-  }
-  
-  /**
-   * Create an array containing the element-wise max of the inputs.
-   * Inputs must be the same shape.
-   * @param {tndarray} a  - First array.
-   * @param {tndarray} b  - Second array.
-   * @return {tndarray}   - An array with the same shape as a and b. Its entries are the max of the corresponding entries of a and b.
-   */
-  static take_max(a: tndarray, b: tndarray) {
-    return a.map((e, i) => Math.max(e, b[i]));
-  }
-  
-  /**
-   * Create an array containing the element-wise min of the inputs.
-   * Inputs must be the same shape.
-   * @param {tndarray} a  - First array.
-   * @param {tndarray} b  - Second array.
-   * @return {tndarray}   - An array with the same shape as a and b. Its entries are the min of the corresponding entries of a and b.
-   */
-  static take_min(a: tndarray, b: tndarray) {
-    return a.map((e, i) => Math.min(e, b[i]));
-  }
-  
-  /**
-   * Create a tndarray containing a range of integers.
-   * @param {number} start_or_stop  - If no other arguments are passed, the upper bound of the range (with lower bound zero). Otherwise this is the lower bound.
-   * @param {number} stop           - The upper bound of the range.
-   * @param {number} step           - The step size between elements in the range.
-   * @return {tndarray}             - A one-dimensional array containing the range.
-   */
-  static arange(start_or_stop: number, stop?: number, step?: number): tndarray {
-    if (step === undefined) {
-      step = 1;
-    }
-    
-    let start;
-    if (stop === undefined) {
-      stop = start_or_stop;
-      start = 0;
-    } else {
-      start = start_or_stop;
-    }
-    
-    let size = Math.abs(Math.floor((stop - start) / step));
-    const shape = new Uint32Array([size]);
-    let iter = {
-      [Symbol.iterator]: function*() {
-        let i = start;
-        while (i < real_stop) {
-          yield i;
-          i += step;
-        }
-      }
-    };
-    
-    let real_stop = stop < start ? -stop : stop;
-    
-    return tndarray.from_iterable(iter, shape, "int32");
   }
   
   /**
@@ -1331,6 +1019,10 @@ export class tndarray {
     let final_shape;
     let size;
     let dtype;
+
+    if (shape === undefined) {
+      shape = new Uint32Array([data.length]);
+    }
     
     if (options && options.dtype) {
       dtype = options.dtype
@@ -1338,16 +1030,16 @@ export class tndarray {
     
     if (options && options.disable_checks === true) {
       final_shape = shape;
-      size = tndarray._compute_size(shape);
+      size = indexing.compute_size(shape);
     } else {
-      if (!tndarray._is_numeric_array(data)) {
+      if (!utils.is_numeric_array(data)) {
         throw new errors.BadData();
       }
       
       final_shape = tndarray._compute_final_shape(shape, data.length);
       
       // Compute length
-      size = tndarray._compute_size(final_shape);
+      size = indexing.compute_size(final_shape);
       
       if (size !== data.length) {
         throw new errors.MismatchedShapeSize()
@@ -1360,28 +1052,20 @@ export class tndarray {
     
     return new tndarray(data, final_shape, offset, stride, dstride, size, dtype);
   }
-  
+
   /**
-   * Calculate a shape from a slice.
-   * @param {Uint32Array} start
-   * @param {Uint32Array} stop
-   * @param {Uint32Array} steps
-   * @private
+   * Return an array of the specified size filled with zeroes.
+   * @param {number} shape
+   * @param {string} dtype
+   * @return {tndarray}
    */
-  private static _new_shape_from_slice(start: Uint32Array, stop: Uint32Array, steps: Uint32Array) {
-    const diff = stop.map((e, i) => e - start[i]);
-    const required_steps = diff.map((e, i) => Math.floor(e / steps[i]));
-    return new Uint32Array(required_steps);
-  }
-  
-  private static _new_shape_from_axis(old_shape: Uint32Array, axis: number): Uint32Array {
-    let new_shape;
-    if (old_shape.length === 1) {
-      new_shape = new Uint32Array(1);
-    } else {
-      new_shape = old_shape.filter((e, i) => i !== axis);
-    }
-    return new_shape
+  static zeros(shape, dtype?: string) {
+    const final_shape = indexing.compute_shape(shape);
+    const size = indexing.compute_size(final_shape);
+    const array_type = utils.dtype_map(dtype);
+    const data = new array_type(size);
+
+    return tndarray.array(data, final_shape, {disable_checks: true, dtype: dtype});
   }
   
   /**
@@ -1410,8 +1094,31 @@ export class tndarray {
     
     return new_array
   }
-  
-  // TODO: Allow non-tndarray arrays
+
+  // TODO: Broadcasting
+  /**
+   * Create an array containing the element-wise max of the inputs.
+   * Inputs must be the same shape.
+   * @param {tndarray} a  - First array.
+   * @param {tndarray} b  - Second array.
+   * @return {tndarray}   - An array with the same shape as a and b. Its entries are the max of the corresponding entries of a and b.
+   */
+  static take_max(a: tndarray, b: tndarray) {
+    return a.map((e, i) => Math.max(e, b[i]));
+  }
+
+  // TODO: Broadcasting
+  /**
+   * Create an array containing the element-wise min of the inputs.
+   * Inputs must be the same shape.
+   * @param {tndarray} a  - First array.
+   * @param {tndarray} b  - Second array.
+   * @return {tndarray}   - An array with the same shape as a and b. Its entries are the min of the corresponding entries of a and b.
+   */
+  static take_min(a: tndarray, b: tndarray) {
+    return a.map((e, i) => Math.min(e, b[i]));
+  }
+
   // TODO: Type upcasting.
   /**
    * Compute the sum of two arrays.
@@ -1420,7 +1127,7 @@ export class tndarray {
    * @param b
    * @return {number | tndarray}
    */
-  static _add(a, b) {
+  static _add(a: Broadcastable, b: Broadcastable) {
     return tndarray._binary_broadcast(a, b, (x, y) => x + y);
   }
   
@@ -1498,22 +1205,6 @@ export class tndarray {
     return tndarray._binary_broadcast(a, b, (x, y) => x % y);
   }
   
-  // TODO: Generalize to an inner product.
-  // TODO: This is numerically unstable.
-  /**
-   * Compute the dot product of two arrays.
-   * @param {tndarray} a
-   * @param {tndarray} b
-   * @return {number}
-   */
-  static dot(a: tndarray, b: tndarray): number {
-    let acc = 0;
-    for (let i = 0; i < a.length; i++) {
-      acc += a.data[i] * b.data[i];
-    }
-    return acc;
-  }
-  
   /**
    * Compute element-wise less than.
    * @param {tndarray} a
@@ -1560,12 +1251,28 @@ export class tndarray {
   }
   
   /**
-   * Compute element-wise equal to.
+   * Compute element-wise equality.
    * @param {tndarray} a
    * @param {tndarray} b
    */
   static _eq(a: tndarray, b: tndarray) {
     return tndarray._binary_broadcast(a, b, (x, y) => +(x === y), "uint8");
+  }
+
+  // TODO: Generalize to an inner product.
+  // TODO: This is numerically unstable.
+  /**
+   * Compute the dot product of two arrays.
+   * @param {tndarray} a
+   * @param {tndarray} b
+   * @return {number}
+   */
+  static dot(a: tndarray, b: tndarray): number {
+    let acc = 0;
+    for (let i = 0; i < a.length; i++) {
+      acc += a.data[i] * b.data[i];
+    }
+    return acc;
   }
   
   /**

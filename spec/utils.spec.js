@@ -1,4 +1,4 @@
-let utils = require("../tndarray").utils;
+let utils = require("../numts/utils").utils;
 let _ = require("lodash");
 
 describe("utils.", function () {
