@@ -514,91 +514,6 @@ export class tndarray {
   }
   
   /**
-   * Convert a dtype string to the corresponding TypedArray.
-   * @param dtype
-   * @return {any}
-   * @private
-   */
-  static _dtype_map(dtype: string) {
-    let array_type;
-    switch (dtype) {
-      case "int8":
-        array_type = Int8Array;
-        break;
-      case "int16":
-        array_type = Int16Array;
-        break;
-      case "int32":
-        array_type = Int32Array;
-        break;
-      case "uint8":
-        array_type = Uint8Array;
-        break;
-      case "uint8c":
-        array_type = Uint8ClampedArray;
-        break;
-      case "uint16":
-        array_type = Uint16Array;
-        break;
-      case "uint32":
-        array_type = Uint32Array;
-        break;
-      case "float32":
-        array_type = Float32Array;
-        break;
-      case "float64":
-        array_type = Float64Array;
-        break;
-      default:
-        array_type = Float64Array;
-    }
-    
-    return array_type;
-  }
-  
-  /**
-   * Check that the value is valid tndarray data.
-   * @param data
-   */
-  private static _check_data(data) {
-    if (!Array.isArray(data)) {
-      throw new errors.DataNotArrayError();
-    }
-    
-    if (!data.reduce((a, b) => (!isNaN(b) && b !== null) && a, true)) {
-      throw new errors.DataNullOrNotNumeric();
-    }
-  }
-
-  /**
-   * Compute a shape array from a shape parameter.
-   * @param shape
-   * @return {Uint32Array}
-   * @private
-   */
-  static _compute_shape(shape): Uint32Array {
-    let final_shape;
-    // Compute shapes.
-    if (Number.isInteger(shape)) {
-      final_shape = new Uint32Array([shape]);
-    } else if (Array.isArray(shape)) {
-      // TODO: Error is not a numerical array.
-      if (shape.length === 0) {
-        final_shape = new Uint32Array([0]);
-      } else if (utils.is_numeric_array(shape)) {
-        final_shape = new Uint32Array(shape);
-      } else {
-        throw new errors.BadShape();
-      }
-    } else if (ArrayBuffer.isView(shape)) {
-      final_shape = shape;
-    } else {
-      throw new errors.BadShape("Shape must be an int, an array of numbers, or a TypedArray.");
-    }
-    return final_shape;
-  }
-  
-  /**
    *
    * @param {string} a  - The first dtype.
    * @param {string} b  - The second dtype.
@@ -618,24 +533,6 @@ export class tndarray {
       return b;
     } else {
       return a;
-    }
-  }
-  
-  /**
-   * Returns a tndarray if a or b are tndarrays, returns the raw data otherwise.
-   * @param a - The first value used to produce `new_data`. Has priority.
-   * @param b - The second value used to produce `new_data`.
-   * @param new_data  - The actual data.
-   * @return {any}
-   * @private
-   */
-  private static _upcast_data(a, b, new_data) {
-    if (a instanceof tndarray) {
-      return tndarray.array(new_data, a.shape, {disable_checks: true, dtype: a.dtype});
-    } else if (b instanceof tndarray) {
-      return tndarray.array(new_data, b.shape, {disable_checks: true, dtype: b.dtype});
-    } else {
-      return new_data;
     }
   }
   
