@@ -205,17 +205,26 @@ class tndarray {
      * @param {Uint32Array} new_shape - The shape to make the new array.
      * @return {tndarray}             - The reshaped array.
      */
-    reshape(new_shape) {
-        if (Array.isArray(new_shape)) {
-            new_shape = new Uint32Array(new_shape);
+    reshape(...new_shape) {
+        let shape;
+        if (utils_1.utils.is_numeric_array(new_shape[0])) {
+            // @ts-ignore
+            shape = new_shape[0];
         }
-        const new_size = indexing_1.indexing.compute_size(new_shape);
+        else {
+            // @ts-ignore
+            shape = new_shape;
+        }
+        if (Array.isArray(shape)) {
+            shape = new Uint32Array(shape);
+        }
+        const new_size = indexing_1.indexing.compute_size(shape);
         const size = indexing_1.indexing.compute_size(this.shape);
         if (size !== new_size) {
-            throw new errors.BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${new_shape}`);
+            throw new errors.BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${shape}`);
         }
         let value_iter = this._value_iterator();
-        return tndarray.from_iterable(value_iter, new_shape, this.dtype);
+        return tndarray.from_iterable(value_iter, shape, this.dtype);
     }
     round() { }
     sort() { }

@@ -287,19 +287,32 @@ describe("Slicing.", function () {
   //   });
   // });
 
-  it("reshape.", function () {
-    let start = numts.from_nested_array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-    let reshaped = start.reshape(new Uint32Array([2, 2, 3]));
-    let expected = numts.from_nested_array([
-      [
-        [0, 1, 2], [3, 4, 5],
-      ], [
-        [6, 7, 8], [9, 10, 11],
-      ],
-    ]);
+  describe("reshape.", function () {
+    it("array passed", function () {
+      let start = numts.from_nested_array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+      let reshaped = start.reshape(new Uint32Array([2, 2, 3]));
+      let expected = numts.from_nested_array([
+        [
+          [0, 1, 2], [3, 4, 5],
+        ], [
+          [6, 7, 8], [9, 10, 11],
+        ],
+      ]);
 
-    expect(reshaped.equals(expected)).toBe(true);
+      expect(reshaped.equals(expected)).toBe(true);
+    });
+
+    it("spread.", function () {
+      const array = numts.arange(10).reshape(2, 5);
+      expect(array.shape).toEqual(new Uint32Array([2, 5]));
+      expect(array).toEqual(numts.from_nested_array([
+        [0, 1, 2, 3, 4],
+        [5, 6, 7, 8, 9]
+      ], "int32"));
+    });
   });
+
+
 
   describe("drop_unit_dimensions." ,function () {
     it("Simple test.", function () {
