@@ -54,6 +54,15 @@ describe("Basic calculations.", function () {
     expect(indexing.stride_from_shape([2, 5])).toEqual(new Uint32Array([1, 2]));
   });
 
+  describe("convert_negative_indices.", function () {
+    it("basic test.", function () {
+      const indices = [-2, [2, 3], [2, -1], [,-3, 4]];
+      const shape = [4, 4, 5, 12];
+      const expected = [2, [2, 3], [2, 4], [, 9, 4]];
+      expect(expected).toEqual(indexing.convert_negative_indices(indices, shape));
+    });
+  });
+
 });
 
 describe("Iterators.", function () {

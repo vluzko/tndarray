@@ -119,6 +119,22 @@ var indexing;
         return stride;
     }
     indexing.stride_from_shape = stride_from_shape;
+    function convert_negative_indices(indices, shape) {
+        let new_indices = indices.slice();
+        let i = 0;
+        for (let index of new_indices) {
+            if (utils_1.utils.is_numeric(index)) {
+                new_indices[i] = index < 0 ? shape[i] + index : index;
+            }
+            else if (Array.isArray(index) || ArrayBuffer.isView(index)) {
+                const second_index = index[1] < 0 ? shape[i] + index[1] : index[1];
+                index[1] = second_index;
+            }
+            i += 1;
+        }
+        return new_indices;
+    }
+    indexing.convert_negative_indices = convert_negative_indices;
     /**
      * Return an iterator over the indices of a slice.
      * Coordinates are updated last dimension first.

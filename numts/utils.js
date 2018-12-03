@@ -56,6 +56,9 @@ var utils;
         if (!Array.isArray(array) && !ArrayBuffer.isView(array)) {
             return false;
         }
+        else if (ArrayBuffer.isView(array)) {
+            return true;
+        }
         else {
             return array.reduce((a, b) => is_numeric(b) && a, true);
         }

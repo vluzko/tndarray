@@ -93,25 +93,27 @@ describe("Indices.", function () {
     expect(numts.zeros([2, 3, 4, 5]));
   });
 
-  it("g.", function () {
-    const array1 = (new Uint32Array(27)).map((e, i) => i);
-    let tndarray1 = tndarray.array(array1, [3, 3, 3]);
-    expect(tndarray1.g([1, 1, 1])).toBe(13);
-    expect(tndarray1.g([1, 0, 1])).toBe(10);
-    expect(tndarray1.g([2, 1, 0])).toBe(5);
+  describe("g.", function () {
+    it("2-dims.", function () {
+      const array = numts.arange(27).reshape([3, 3, 3]);
+      expect(array.g([1, 1, 1])).toBe(13);
+      expect(array.g([1, 0, 1])).toBe(10);
+      expect(array.g([2, 1, 0])).toBe(21);
+    });
 
-    let array2 = (new Uint32Array(120)).map((e, i) => i);
-    const tndarray2 = tndarray.array(array2, [2, 3, 4, 5]);
-    expect(tndarray2.g([1, 2, 3, 4])).toBe(119);
-    expect(tndarray2.g([0, 2, 3, 4])).toBe(118);
-    expect(tndarray2.g([0, 0, 0, 0])).toBe(0);
+    it("4-dims.", function () {
+      const array = numts.arange(120).reshape([2, 3, 4, 5]);
+      expect(array.g([1, 2, 3, 4])).toBe(119);
+      expect(array.g([0, 2, 3, 4])).toBe(59);
+      expect(array.g([0, 0, 0, 0])).toBe(0);
+    });
 
-    const array3 = (new Uint32Array(36)).map((e, i) => i);
-    let tndarray3 = tndarray.array(array3, [2, 3, 2, 3]);
-    expect(tndarray3.g([1, 2, 1, 2])).toBe(35);
-    expect(tndarray3.g([1, 2, 0, 0])).toBe(5);
-    expect(tndarray3.g([1, 0, 0, 1])).toBe(13);
+    it("negatives indices.", function () {
+      const array = numts.arange(40).reshape([5, 4, 2]);
+      expect(array.g([-1, -2, -1])).toBe(37);
+    });
   });
+
 });
 
 describe("Iterators.", function () {

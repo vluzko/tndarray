@@ -352,6 +352,8 @@ export class tndarray {
    * @param indices
    */
   slice(...indices: Array<number | number[]>): tndarray {
+
+    const positive_indices = indexing.convert_negative_indices(indices, this.shape);
     let start = new Uint32Array(this.shape.length);
     let end = this.shape.slice();
     let steps = new Uint32Array(this.shape.length);
@@ -360,7 +362,7 @@ export class tndarray {
     steps.fill(1);
 
     let i = 0;
-    for (let index of indices) {
+    for (let index of positive_indices) {
       if (index === null) {
 
       } else if (utils.is_numeric(index)) {
@@ -375,7 +377,7 @@ export class tndarray {
         end[i] = index[1];
         steps[i] = index[2];
       } else {
-        throw new Error(`Arguments to slice were wrong: ${indices}. Broke on ${index}.`);
+        throw new Error(`Arguments to slice were wrong: ${positive_indices}. Broke on ${index}.`);
       }
       i += 1;
     }
@@ -405,7 +407,8 @@ export class tndarray {
    * @return {any}
    */
   g(indices) {
-    const real_index = this._compute_real_index(indices);
+    const positive_indices = indexing.convert_negative_indices(indices, this.shape);
+    const real_index = this._compute_real_index(positive_indices);
     return this.data[real_index];
   }
   
@@ -415,7 +418,8 @@ export class tndarray {
    * @param indices
    */
   s(value: number, indices) {
-    const real_index = this._compute_real_index(indices);
+    const positive_indices = indexing.convert_negative_indices(indices, this.shape);
+    const real_index = this._compute_real_index(positive_indices);
     this.data[real_index] = value;
   }
   
