@@ -1,5 +1,6 @@
 import {utils} from "./utils";
 import {Broadcastable, Shape} from "./types";
+import {errors, tndarray} from "./tndarray";
 
 
 export namespace indexing {
@@ -85,7 +86,7 @@ export namespace indexing {
    * @param steps
    * @private
    */
-  export function compute_slice_size(lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array): number {
+  export function compute_slice_size(lower_bounds: Shape, upper_bounds: Shape, steps: Shape): number {
     const ranges = utils._typed_array_sub(upper_bounds, lower_bounds);
     const values = ranges.map((e, i) => Math.ceil(e / steps[i]));
     return values.reduce((a, e) => a * e, 1);
@@ -118,6 +119,12 @@ export namespace indexing {
     return stride;
   }
 
+  /**
+   * Convert negative to positive indices.
+   * @param {Array<number | number[]>} indices
+   * @param {Shape} shape
+   * @return {(number | number[])[]}
+   */
   export function convert_negative_indices(indices: Array<number | number[]>, shape: Shape) {
     let new_indices = indices.slice();
     let i = 0;
@@ -135,6 +142,42 @@ export namespace indexing {
   }
 
   /**
+   * Calculate the shape from broadcasting two arrays together.
+   * @param {tndarray} a    - First array.
+   * @param {tndarray} b    - Second array.
+   * @return {Uint32Array}  - Shape of the broadcast array.
+   * @private
+   */
+  export function calculate_broadcast_dimensions(a: Shape, b: Shape): Uint32Array {
+    let a_number_of_dims = a.length;
+    let b_number_of_dims = b.length;
+
+    const number_of_dimensions = Math.max(a_number_of_dims, b_number_of_dims);
+    const new_dimensions = new Uint32Array(number_of_dimensions);
+
+    for (let j = 1; j <= number_of_dimensions; j++) {
+      let a_axis_size = a_number_of_dims - j >= 0 ? a[a_number_of_dims - j] : 1;
+      let b_axis_size = b_number_of_dims - j >= 0 ? b[b_number_of_dims - j] : 1;
+
+      let dimension;
+
+      // If the axes match in size, that is the broadcasted dimension.
+      if (a_axis_size === b_axis_size) {
+        dimension = a_axis_size;
+      } else if (a_axis_size === 1) { // If either dimension is 1, use the other.
+        dimension = b_axis_size;
+      } else if (b_axis_size === 1) {
+        dimension = a_axis_size;
+      } else {
+        throw new errors.BadShape(`Unbroadcastable shapes. a: ${a}. b: ${b}. Failed on axis: ${j}. Computed axes are: ${a_axis_size}, ${b_axis_size}`);
+      }
+      new_dimensions[number_of_dimensions - j] = dimension;
+    }
+
+    return new_dimensions;
+  }
+
+  /**
    * Return an iterator over the indices of a slice.
    * Coordinates are updated last dimension first.
    * @param {Uint32Array} lower_or_upper  - If no additional arguments are passed, this is treated as the upper bounds of each dimension.
@@ -146,7 +189,7 @@ export namespace indexing {
    * @return {Iterable<any>}
    * @private
    */
-  export function slice_iterator(lower_or_upper: Uint32Array, upper_bounds?: Uint32Array, steps?: Uint32Array): Iterable<Uint32Array> {
+  export function slice_iterator(lower_or_upper: Shape, upper_bounds?: Shape, steps?: Shape): Iterable<Uint32Array> {
     if (steps === undefined) {
       steps = new Uint32Array(lower_or_upper.length);
       steps.fill(1);

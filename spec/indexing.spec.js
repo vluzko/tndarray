@@ -1,4 +1,6 @@
 const indexing = require("../numts/indexing").indexing;
+const numts = require("../numts/numts");
+const _ = require("lodash");
 
 
 describe("Basic calculations.", function () {
@@ -60,6 +62,52 @@ describe("Basic calculations.", function () {
       const shape = [4, 4, 5, 12];
       const expected = [2, [2, 3], [2, 4], [, 9, 4]];
       expect(expected).toEqual(indexing.convert_negative_indices(indices, shape));
+    });
+  });
+
+  describe("calculate_broadcast_dimensions.", function () {
+    it("same dims.", function () {
+      for (let i = 0; i < 100; i++) {
+        let number_of_dims = _.random(1, 8);
+        let dims = _.range(number_of_dims).map(() => _.random(1, 10));
+        let a = numts.zeros(dims);
+        let b = numts.zeros(dims);
+        let result = indexing.calculate_broadcast_dimensions(a.shape, b.shape);
+        expect(result).toEqual(new Uint32Array(dims), `Input dims: ${dims}. Result: ${result}`);
+      }
+
+    });
+
+    it("One shorter.", function () {
+      for (let i = 0; i < 10; i++) {
+        let number_of_dims = _.random(1, 8);
+        let dims = _.range(number_of_dims).map(() => _.random(1, 10));
+        let a = numts.zeros(dims);
+        let b = numts.zeros(dims.slice(number_of_dims - 3));
+        let result = indexing.calculate_broadcast_dimensions(a.shape, b.shape);
+        expect(result).toEqual(new Uint32Array(dims), `Input dims: ${dims}. Result: ${result}`);
+      }
+    });
+
+    it("Random ones.", function () {
+      for (let i = 0; i < 100; i++) {
+        let number_of_dims = _.random(1, 8);
+        let a_dims = _.range(number_of_dims).map(() => _.random(1, 10));
+        let b_dims = a_dims.slice(0);
+
+        _.range(a_dims.length).map((j, i) => {
+          let sw = Math.random() < 1 / a_dims.length;
+          if (sw) {
+            a_dims[i] = 1;
+          }
+        });
+
+        let a = numts.zeros(a_dims);
+        let b = numts.zeros(b_dims);
+
+        let result = indexing.calculate_broadcast_dimensions(a.shape, b.shape);
+        expect(result).toEqual(new Uint32Array(b_dims), `Input dims: ${b_dims}. Result: ${result}`);
+      }
     });
   });
 

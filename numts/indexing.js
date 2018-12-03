@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("./utils");
+const tndarray_1 = require("./tndarray");
 var indexing;
 (function (indexing) {
     /**
@@ -119,6 +120,12 @@ var indexing;
         return stride;
     }
     indexing.stride_from_shape = stride_from_shape;
+    /**
+     * Convert negative to positive indices.
+     * @param {Array<number | number[]>} indices
+     * @param {Shape} shape
+     * @return {(number | number[])[]}
+     */
     function convert_negative_indices(indices, shape) {
         let new_indices = indices.slice();
         let i = 0;
@@ -135,6 +142,40 @@ var indexing;
         return new_indices;
     }
     indexing.convert_negative_indices = convert_negative_indices;
+    /**
+     * Calculate the shape from broadcasting two arrays together.
+     * @param {tndarray} a    - First array.
+     * @param {tndarray} b    - Second array.
+     * @return {Uint32Array}  - Shape of the broadcast array.
+     * @private
+     */
+    function calculate_broadcast_dimensions(a, b) {
+        let a_number_of_dims = a.length;
+        let b_number_of_dims = b.length;
+        const number_of_dimensions = Math.max(a_number_of_dims, b_number_of_dims);
+        const new_dimensions = new Uint32Array(number_of_dimensions);
+        for (let j = 1; j <= number_of_dimensions; j++) {
+            let a_axis_size = a_number_of_dims - j >= 0 ? a[a_number_of_dims - j] : 1;
+            let b_axis_size = b_number_of_dims - j >= 0 ? b[b_number_of_dims - j] : 1;
+            let dimension;
+            // If the axes match in size, that is the broadcasted dimension.
+            if (a_axis_size === b_axis_size) {
+                dimension = a_axis_size;
+            }
+            else if (a_axis_size === 1) { // If either dimension is 1, use the other.
+                dimension = b_axis_size;
+            }
+            else if (b_axis_size === 1) {
+                dimension = a_axis_size;
+            }
+            else {
+                throw new tndarray_1.errors.BadShape(`Unbroadcastable shapes. a: ${a}. b: ${b}. Failed on axis: ${j}. Computed axes are: ${a_axis_size}, ${b_axis_size}`);
+            }
+            new_dimensions[number_of_dimensions - j] = dimension;
+        }
+        return new_dimensions;
+    }
+    indexing.calculate_broadcast_dimensions = calculate_broadcast_dimensions;
     /**
      * Return an iterator over the indices of a slice.
      * Coordinates are updated last dimension first.

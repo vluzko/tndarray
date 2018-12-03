@@ -639,42 +639,6 @@ export class tndarray {
   }
 
   /**
-   * Calculate the shape from broadcasting two arrays together.
-   * @param {tndarray} a    - First array.
-   * @param {tndarray} b    - Second array.
-   * @return {Uint32Array}  - Shape of the broadcast array.
-   * @private
-   */
-  private static _broadcast_dims(a: tndarray, b: tndarray) {
-    let a_number_of_dims = a.shape.length;
-    let b_number_of_dims = b.shape.length;
-
-    const number_of_dimensions = Math.max(a_number_of_dims, b_number_of_dims);
-    const new_dimensions = new Uint32Array(number_of_dimensions);
-
-    for (let j = 1; j <= number_of_dimensions; j++) {
-      let a_axis_size = a_number_of_dims - j >= 0 ? a.shape[a_number_of_dims - j] : 1;
-      let b_axis_size = b_number_of_dims - j >= 0 ? b.shape[b_number_of_dims - j] : 1;
-
-      let dimension;
-
-      // If the axes match in size, that is the broadcasted dimension.
-      if (a_axis_size === b_axis_size) {
-        dimension = a_axis_size;
-      } else if (a_axis_size === 1) { // If either dimension is 1, use the other.
-        dimension = b_axis_size;
-      } else if (b_axis_size === 1) {
-        dimension = a_axis_size;
-      } else {
-        throw new errors.BadShape(`Unbroadcastable shapes. a: ${a.shape}. b: ${b.shape}. Failed on axis: ${j}. Computed axes are: ${a_axis_size}, ${b_axis_size}`);
-      }
-      new_dimensions[number_of_dimensions - j] = dimension;
-    }
-
-    return new_dimensions;
-  }
-
-  /**
    * Broadcast two values together.
    * Works like numpy broadcasting.
    * @param {Broadcastable} a - The first broadcastable value.
@@ -687,7 +651,7 @@ export class tndarray {
     let a_array = tndarray._upcast_to_tndarray(a);
     let b_array = tndarray._upcast_to_tndarray(b);
 
-    const new_dimensions = tndarray._broadcast_dims(a_array, b_array);
+    const new_dimensions = indexing.calculate_broadcast_dimensions(a_array.shape, b_array.shape);
     const new_dtype = tndarray._dtype_join(a_array.dtype, b_array.dtype);
     let index_iter = indexing.slice_iterator(new_dimensions);
 

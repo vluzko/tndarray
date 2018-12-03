@@ -106,7 +106,7 @@ export namespace utils {
    * @return {TypedArray}
    * @private
    */
-  export function _typed_array_sub(a: TypedArray, b: TypedArray) {
+  export function _typed_array_sub(a: Numeric, b: Numeric) {
     // @ts-ignore
     return a.map((e, i) => e - b[i]);
   }
