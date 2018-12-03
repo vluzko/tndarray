@@ -635,20 +635,6 @@ export class tndarray {
   }
   
   /**
-   * Create a function that converts indices to the broadcast array to indices to the input array.
-   * @param {Uint32Array} new_shape                 - The shape of the broadcast array.
-   * @param {Uint32Array} array_shape               - The shape of the input array.
-   * @return {(index: Uint32Array) => Uint32Array}  - The index converter.
-   * @private
-   */
-  private static _broadcast_indexer(new_shape: Uint32Array, array_shape: Uint32Array) {
-    const first_elem = new_shape.length - array_shape.length;
-    return function(index: Uint32Array) {
-      return index.slice(first_elem).map((e, i) => Math.min(e, array_shape[i] - 1));
-    }
-  }
-
-  /**
    * Broadcast two values together.
    * Works like numpy broadcasting.
    * @param {Broadcastable} a - The first broadcastable value.
@@ -665,14 +651,13 @@ export class tndarray {
     const new_dtype = tndarray._dtype_join(a_array.dtype, b_array.dtype);
     let index_iter = indexing.slice_iterator(new_dimensions);
 
-    const a_indexer = tndarray._broadcast_indexer(new_dimensions, a_array.shape);
-    const b_indexer = tndarray._broadcast_indexer(new_dimensions, b_array.shape);
+    const iterator = utils.zip_longest(a_array._real_index_iterator(), b_array._real_index_iterator(), index_iter);
 
     let iter = {};
     iter[Symbol.iterator] = function* () {
-      for (let index of index_iter) {
-        let a_val = a_array.g(a_indexer(index));
-        let b_val = b_array.g(b_indexer(index));
+      for (let [a_index, b_index, index] of iterator) {
+        const a_val = a_array.data[a_index];
+        const b_val = b_array.data[b_index];
         yield [a_val, b_val, index];
       }
     };

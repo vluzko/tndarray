@@ -64,7 +64,7 @@ export namespace utils {
     }
   }
 
-  export function zip_iterable(...iters: Iterator<number>[]): Iterable<number[]> {
+  export function zip_iterable(...iters: Iterator<any>[]): Iterable<any[]> {
     let iterators = iters.map(e => e[Symbol.iterator]());
 
     let iter = {};
@@ -89,8 +89,9 @@ export namespace utils {
     return <Iterable<number[]>> iter;
   }
 
-  export function zip_longest(...iters: Iterable<number>[]): Iterable<number[]> {
+  export function zip_longest(...iters: Iterable<any>[]): Iterable<any[]> {
     let iterators: Generator[] = iters.map(e => e[Symbol.iterator]());
+
     let iter = {
       [Symbol.iterator]: function*() {
         let individual_done = iters.map(e => false);

@@ -27,18 +27,17 @@ describe("utils.", function () {
     });
   });
 
-  fit("zip_longest.", function () {
-    const a = numts.arange(10);
-    const b = numts.arange(5);
+  it("zip_longest.", function () {
+    const a = numts.arange(4);
+    const b = numts.arange(2);
 
-    let iter = b._real_index_iterator();
-    let y = iter[Symbol.iterator]().next();
-    let z = iter[Symbol.iterator]().next();
-    console.log(y);
-    console.log(z)
     let zipped = utils.zip_longest(a._real_index_iterator(), b._real_index_iterator());
-    for (let x of zipped) {
-      console.log(x)
-    }
+    let result = [...zipped];
+    expect(result).toEqual([
+      [0, 0],
+      [1, 1],
+      [2, 0],
+      [3, 1]
+    ]);
   });
 });
