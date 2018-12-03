@@ -534,12 +534,6 @@ describe("Broadcasting", function () {
       });
     });
 
-    describe("broadcasted arithmetic.", function () {
-      it("number.", function () {
-        // const a = numts.arange(24).reshape([]);
-        throw new Error();
-      });
-    });
   });
 });
 

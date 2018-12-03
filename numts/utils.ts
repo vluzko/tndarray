@@ -89,6 +89,35 @@ export namespace utils {
     return <Iterable<number[]>> iter;
   }
 
+  export function zip_longest(...iters: Iterable<number>[]): Iterable<number[]> {
+    let iterators: Generator[] = iters.map(e => e[Symbol.iterator]());
+    let iter = {
+      [Symbol.iterator]: function*() {
+        let individual_done = iters.map(e => false);
+        let all_done = false;
+        while (!all_done) {
+          let results = [];
+          iterators.forEach((e, i) => {
+            let {value, done} = e.next();
+            if (done) {
+              individual_done[i] = true;
+              iterators[i] = iters[i][Symbol.iterator]();
+              value = iterators[i].next()["value"];
+            }
+            results.push(value);
+          });
+
+          all_done = individual_done.reduce((a, b) => a && b);
+          if (!all_done) {
+            yield results;
+          }
+        }
+      }
+    };
+
+    return <Iterable<number[]>> iter;
+  }
+
 // TODO: Test
   /**
    * Check if value is an ArrayBuffer

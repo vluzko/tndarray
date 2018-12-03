@@ -346,9 +346,9 @@ class tndarray {
         return view;
     }
     /**
-     *
+     * Get the value at the given index.
      * @param indices
-     * @return {any}
+     * @return {number}
      */
     g(indices) {
         const positive_indices = indexing_1.indexing.convert_negative_indices(indices, this.shape);

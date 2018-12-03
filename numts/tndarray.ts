@@ -412,11 +412,11 @@ export class tndarray {
 
 
   /**
-   *
+   * Get the value at the given index.
    * @param indices
-   * @return {any}
+   * @return {number}
    */
-  g(indices) {
+  g(indices): number {
     const positive_indices = indexing.convert_negative_indices(indices, this.shape);
     const real_index = this._compute_real_index(positive_indices);
     return this.data[real_index];
