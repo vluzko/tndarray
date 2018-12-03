@@ -220,14 +220,12 @@ class tndarray {
     round() { }
     sort() { }
     squeeze() { }
-    // TODO: Axes
     /**
      * Return the standard deviation along the specified axis.
      * @param {number} axis
      * @return {number}
      */
     stdev(axis) {
-        debugger;
         const mean = this.mean(axis);
         const squared_values = this.power(2);
         const mean_of_squares = squared_values.mean(axis);
@@ -241,7 +239,21 @@ class tndarray {
             return result;
         }
     }
-    // TODO: Axes
+    /**
+     * Return the variance along the specified axis.
+     * @param {number} axis
+     * @return {tndarray | number}
+     */
+    variance(axis) {
+        const std = this.stdev(axis);
+        const result = tndarray._power(std, 0.5);
+        if (axis === undefined) {
+            return result.data[0];
+        }
+        else {
+            return result;
+        }
+    }
     /**
      * Sum the entries of the array along the specified axis.
      * @param {number} axis

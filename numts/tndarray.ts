@@ -268,14 +268,12 @@ export class tndarray {
   
   squeeze() {}
   
-  // TODO: Axes
   /**
    * Return the standard deviation along the specified axis.
    * @param {number} axis
    * @return {number}
    */
   stdev(axis?: number): tndarray | number {
-    debugger;
     const mean = this.mean(axis);
     const squared_values = this.power(2);
     const mean_of_squares = squared_values.mean(axis);
@@ -288,8 +286,22 @@ export class tndarray {
       return result;
     }
   }
+
+  /**
+   * Return the variance along the specified axis.
+   * @param {number} axis
+   * @return {tndarray | number}
+   */
+  variance(axis?: number): tndarray | number {
+    const std = this.stdev(axis);
+    const result = tndarray._power(std, 0.5);
+    if (axis === undefined) {
+      return result.data[0];
+    } else {
+      return result;
+    }
+  }
   
-  // TODO: Axes
   /**
    * Sum the entries of the array along the specified axis.
    * @param {number} axis
