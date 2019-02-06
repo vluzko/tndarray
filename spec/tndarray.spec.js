@@ -333,6 +333,13 @@ describe("Slicing.", function () {
 
 describe("Methods.", function () {
 
+  describe('set', function() {
+    it('single value', function() {
+      let x = numts.arange(10).reshape(2, 5);
+      x.s(-20, [0, 0]);
+      expect(x.g(0, 0))
+    });
+  });
 
 });
 

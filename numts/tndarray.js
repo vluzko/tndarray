@@ -338,7 +338,7 @@ class tndarray {
     }
     /**
      * Set an element of the array.
-     * @param {number} value
+     * @param value
      * @param indices
      */
     s(value, indices) {
@@ -780,7 +780,32 @@ class tndarray {
         const data = new array_type(size);
         return tndarray.array(data, final_shape, { disable_checks: true, dtype: dtype });
     }
+    /**
+     *
+     * @param {Broadcastable} a -
+     * @param {Broadcastable} b -
+     * @returns {tndarray}      -
+     */
     static broadcast_matmul(a, b) {
+        let a_array = tndarray._upcast_to_tndarray(a);
+        let b_array = tndarray._upcast_to_tndarray(b);
+        const new_dimensions = indexing_1.indexing.calculate_broadcast_dimensions(a_array.shape, b_array.shape);
+        new_dimensions[new_dimensions.length - 2] = a_array.shape[a_array.shape.length - 2];
+        new_dimensions[new_dimensions.length - 1] = b_array.shape[b_array.shape.length - 1];
+        const new_dtype = tndarray._dtype_join(a_array.dtype, b_array.dtype);
+        let index_iter = indexing_1.indexing.slice_iterator(new_dimensions);
+        const iterator = utils_1.utils.zip_longest(a_array._real_index_iterator(), b_array._real_index_iterator(), index_iter);
+        // let iter = {};
+        // iter[Symbol.iterator] = function* () {
+        //   for (let [a_index, b_index, index] of iterator) {
+        //     const a_val = a_array.data[a_index];
+        //     const b_val = b_array.data[b_index];
+        //     yield [a_val, b_val, index];
+        //   }
+        // };
+        // return [<IterableIterator<[number, number, Uint32Array]>>iter, new_dimensions, new_dtype];
+        // tndarray._broadcast_by_index
+        throw new Error();
     }
     /**
      * Multiply two 2D matrices.
