@@ -534,6 +534,13 @@ describe("Broadcasting", function () {
       });
     });
 
+    it("take_max", function () {
+      throw new Error();
+    });
+
+    it("take_min", function () {
+      throw new Error();
+    });
   });
 });
 

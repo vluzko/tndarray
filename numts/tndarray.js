@@ -132,25 +132,6 @@ class tndarray {
     }
     flatten() { }
     /**
-     * Multiply two 2D matrices.
-     * @param {tndarray} a
-     * @param {tndarray} b
-     */
-    static matmul_2d(a, b) {
-        const new_shape = new Uint32Array([a.shape[0], b.shape[1]]);
-        let iter = {
-            [Symbol.iterator]: function* () {
-                for (let i = 0; i < new_shape[0]; i++) {
-                    for (let j = 0; j < new_shape[1]; j++) {
-                        let x = tndarray.dot(a.slice(i), b.slice(null, j));
-                        yield x;
-                    }
-                }
-            }
-        };
-        return tndarray.from_iterable(iter, new_shape);
-    }
-    /**
      * Returns the maximum element of the array.
      * @param {number} axis
      * @return {number}
@@ -799,6 +780,42 @@ class tndarray {
         const data = new array_type(size);
         return tndarray.array(data, final_shape, { disable_checks: true, dtype: dtype });
     }
+    static broadcast_matmul(a, b) {
+    }
+    /**
+     * Multiply two 2D matrices.
+     * @param {tndarray} a
+     * @param {tndarray} b
+     */
+    static matmul_2d(a, b) {
+        const new_shape = new Uint32Array([a.shape[0], b.shape[1]]);
+        let iter = {
+            [Symbol.iterator]: function* () {
+                for (let i = 0; i < new_shape[0]; i++) {
+                    for (let j = 0; j < new_shape[1]; j++) {
+                        let x = tndarray.dot(a.slice(i), b.slice(null, j));
+                        yield x;
+                    }
+                }
+            }
+        };
+        return tndarray.from_iterable(iter, new_shape);
+    }
+    // TODO: Generalize to an inner product.
+    // TODO: This is numerically unstable.
+    /**
+     * Compute the dot product of two arrays.
+     * @param {tndarray} a
+     * @param {tndarray} b
+     * @return {number}
+     */
+    static dot(a, b) {
+        let acc = 0;
+        for (let i = 0; i < a.length; i++) {
+            acc += a.data[i] * b.data[i];
+        }
+        return acc;
+    }
     // TODO: Broadcasting
     /**
      * Create an array containing the element-wise max of the inputs.
@@ -808,7 +825,7 @@ class tndarray {
      * @return {tndarray}   - An array with the same shape as a and b. Its entries are the max of the corresponding entries of a and b.
      */
     static take_max(a, b) {
-        return a.map((e, i) => Math.max(e, b[i]));
+        return tndarray._binary_broadcast(a, b, (x, y) => Math.max(x, y));
     }
     // TODO: Broadcasting
     /**
@@ -819,7 +836,7 @@ class tndarray {
      * @return {tndarray}   - An array with the same shape as a and b. Its entries are the min of the corresponding entries of a and b.
      */
     static take_min(a, b) {
-        return a.map((e, i) => Math.min(e, b[i]));
+        return tndarray._binary_broadcast(a, b, (x, y) => Math.min(x, y));
     }
     // TODO: Type upcasting.
     /**
@@ -946,21 +963,6 @@ class tndarray {
      */
     static _eq(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => +(x === y), "uint8");
-    }
-    // TODO: Generalize to an inner product.
-    // TODO: This is numerically unstable.
-    /**
-     * Compute the dot product of two arrays.
-     * @param {tndarray} a
-     * @param {tndarray} b
-     * @return {number}
-     */
-    static dot(a, b) {
-        let acc = 0;
-        for (let i = 0; i < a.length; i++) {
-            acc += a.data[i] * b.data[i];
-        }
-        return acc;
     }
     /**
      * Check if two n-dimensional arrays are equal.
