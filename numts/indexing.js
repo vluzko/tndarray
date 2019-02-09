@@ -63,6 +63,10 @@ var indexing;
         return new Uint32Array(required_steps);
     }
     indexing.new_shape_from_slice = new_shape_from_slice;
+    function checks_indices_are_single_index(...indices) {
+        return indices.reduce((a, b) => a && utils_1.utils.is_numeric(b), true);
+    }
+    indexing.checks_indices_are_single_index = checks_indices_are_single_index;
     /**
      * Get the new shape after performing a reduction along an axis.
      * @param {Uint32Array} old_shape

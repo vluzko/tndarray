@@ -331,20 +331,42 @@ class tndarray {
      * @param indices
      * @return {number}
      */
-    g(indices) {
+    g(...indices) {
         const positive_indices = indexing_1.indexing.convert_negative_indices(indices, this.shape);
         const real_index = this._compute_real_index(positive_indices);
         return this.data[real_index];
     }
     /**
      * Set an element of the array.
-     * @param value
+     * @param values
      * @param indices
      */
-    s(value, indices) {
-        const positive_indices = indexing_1.indexing.convert_negative_indices(indices, this.shape);
-        const real_index = this._compute_real_index(positive_indices);
-        this.data[real_index] = value;
+    s(values, ...indices) {
+        if (indexing_1.indexing.checks_indices_are_single_index(...indices)) {
+            if (!utils_1.utils.is_numeric(values)) {
+                throw new Error(`Bad dimensions for broadcasting.`);
+            }
+            const positive_indices = indexing_1.indexing.convert_negative_indices(indices, this.shape);
+            const real_index = this._compute_real_index(positive_indices);
+            this.data[real_index] = values;
+            return;
+        }
+        const view = this.slice(...indices);
+        let b_array = tndarray._upcast_to_tndarray(values);
+        // Check that shapes are compatible.
+        const difference = view.shape.length - b_array.shape.length;
+        if (difference < 0) {
+            throw new Error(`Bad dimensions for broadcasting. a: ${view.shape}, b: ${b_array.shape}`);
+        }
+        for (let i = 0; i < b_array.shape.length; i++) {
+            if (b_array.shape[i] !== view.shape[i + difference] && b_array.shape[i] !== 1) {
+                throw new Error(`Bad dimensions for broadcasting. a: ${view.shape}, b: ${b_array.shape}`);
+            }
+        }
+        const iterator = utils_1.utils.zip_longest(view._real_index_iterator(), b_array._real_index_iterator());
+        for (let [a_index, b_index] of iterator) {
+            view.data[a_index] = b_array.data[b_index];
+        }
     }
     /**
      * Returns the negation of this array.
@@ -576,7 +598,7 @@ class tndarray {
         let new_array = tndarray.filled(0, shape, dtype);
         for (let [a_val, b_val, index] of iter) {
             const new_val = f(a_val, b_val);
-            new_array.s(new_val, index);
+            new_array.s(new_val, ...index);
         }
         return new_array;
     }
@@ -678,7 +700,7 @@ class tndarray {
         const self = this;
         iter[Symbol.iterator] = function* () {
             for (let index of index_iterator) {
-                yield self.g(index);
+                yield self.g(...index);
             }
         };
         return iter;

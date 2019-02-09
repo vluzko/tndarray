@@ -164,9 +164,7 @@ export class tndarray {
   }
   
   flatten() {}
-  
 
-  
   /**
    * Returns the maximum element of the array.
    * @param {number} axis
@@ -341,7 +339,6 @@ export class tndarray {
    * @param indices
    */
   slice(...indices: Array<number | number[]>): tndarray {
-
     const positive_indices = indexing.convert_negative_indices(indices, this.shape);
     let start = new Uint32Array(this.shape.length);
     let end = this.shape.slice();
@@ -374,7 +371,6 @@ export class tndarray {
     const new_shape = indexing.new_shape_from_slice(start, end, steps);
     const size = indexing.compute_size(new_shape);
 
-
     const offset = start.map((e, j) => e + this.offset[j]);
     const stride = steps.map((e, j) => e * this.stride[j]);
 
@@ -386,6 +382,7 @@ export class tndarray {
       new_shape.filter(filt),
       offset.filter(filt),
       new_stride, new_dstride, size, this.dtype, true);
+    
     return view;
   }
 
@@ -395,7 +392,7 @@ export class tndarray {
    * @param indices
    * @return {number}
    */
-  g(indices): number {
+  g(...indices): number {
     const positive_indices = indexing.convert_negative_indices(indices, this.shape);
     const real_index = this._compute_real_index(positive_indices);
     return this.data[real_index];
@@ -403,13 +400,40 @@ export class tndarray {
   
   /**
    * Set an element of the array.
-   * @param value
+   * @param values
    * @param indices
    */
-  s(value, indices) {
-    const positive_indices = indexing.convert_negative_indices(indices, this.shape);
-    const real_index = this._compute_real_index(positive_indices);
-    this.data[real_index] = value;
+  s(values: Broadcastable, ...indices) {
+    if (indexing.checks_indices_are_single_index(...indices)) {
+      if (! utils.is_numeric(values)) {
+        throw new Error(`Bad dimensions for broadcasting.`);
+      }
+      const positive_indices = indexing.convert_negative_indices(indices, this.shape);
+      const real_index = this._compute_real_index(positive_indices);
+      this.data[real_index] = values;
+      return;
+    }
+
+    const view = this.slice(...indices);
+    let b_array = tndarray._upcast_to_tndarray(values);
+
+    // Check that shapes are compatible.
+    const difference = view.shape.length - b_array.shape.length;
+    if (difference < 0) {
+      throw new Error(`Bad dimensions for broadcasting. a: ${view.shape}, b: ${b_array.shape}`);
+    }
+
+    for (let i = 0 ; i < b_array.shape.length; i++) {
+      if (b_array.shape[i] !== view.shape[i + difference] && b_array.shape[i] !== 1) {
+        throw new Error(`Bad dimensions for broadcasting. a: ${view.shape}, b: ${b_array.shape}`);
+      }
+    }
+
+    const iterator = utils.zip_longest(view._real_index_iterator(), b_array._real_index_iterator());
+
+    for (let [a_index, b_index] of iterator) {
+      view.data[a_index] = b_array.data[b_index];
+    }
   }
   
   /**
@@ -654,7 +678,6 @@ export class tndarray {
    * @private
    */
   static _binary_broadcast(a: Broadcastable, b: Broadcastable, f: (a: number, b: number) => number, dtype?: string): tndarray {
-
     let [iter, shape, new_dtype] = tndarray._broadcast_by_index(a, b);
 
     if (dtype === undefined) {
@@ -665,7 +688,7 @@ export class tndarray {
 
     for (let [a_val, b_val, index] of iter) {
       const new_val = f(a_val, b_val);
-      new_array.s(new_val, index);
+      new_array.s(new_val, ...index);
     }
 
     return new_array
@@ -785,7 +808,7 @@ export class tndarray {
     const self = this;
     iter[Symbol.iterator] = function* () {
       for (let index of index_iterator) {
-        yield self.g(index);
+        yield self.g(...index);
       }
     };
     return <Iterable<number>> iter;
@@ -1143,8 +1166,6 @@ export class tndarray {
     return tndarray._binary_broadcast(a, b, (x, y) => +(x === y), "uint8");
   }
 
-
-  
   /**
    * Check if two n-dimensional arrays are equal.
    * @param {tndarray} array1

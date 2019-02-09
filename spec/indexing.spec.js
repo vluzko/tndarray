@@ -49,6 +49,16 @@ describe("Basic calculations.", function () {
 
       expect(shape).toEqual(expected);
     });
+
+    it("Singleton.", function() {
+      const starts = new Uint32Array([0, 0]);
+      const ends = new Uint32Array([1, 1]);
+      const steps = new Uint32Array([1, 1]);
+
+      const shape = indexing.new_shape_from_slice(starts, ends, steps);
+      const expected = new Uint32Array([1, 1]);
+      expect(shape).toEqual(expected);
+    });
   });
 
   it("_stride_from_shape.", function () {
@@ -108,6 +118,13 @@ describe("Basic calculations.", function () {
         let result = indexing.calculate_broadcast_dimensions(a.shape, b.shape);
         expect(result).toEqual(new Uint32Array(b_dims), `Input dims: ${b_dims}. Result: ${result}`);
       }
+    });
+  });
+
+  describe("check_indices_are_single_index.", function() {
+    it("Simple test.", function() {
+      let result = indexing.checks_indices_are_single_index(0, 1, 2);
+      expect(result).toBe(true);
     });
   });
 

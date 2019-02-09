@@ -63,6 +63,10 @@ export namespace indexing {
     return new Uint32Array(required_steps);
   }
 
+  export function checks_indices_are_single_index(...indices) {
+    return indices.reduce((a, b) => a && utils.is_numeric(b), true);
+  }
+
   /**
    * Get the new shape after performing a reduction along an axis.
    * @param {Uint32Array} old_shape

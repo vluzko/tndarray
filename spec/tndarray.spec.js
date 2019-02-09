@@ -78,9 +78,6 @@ describe("Constructors and factories.", function () {
   });
 
   describe("Helper methods.", function () {
-
-
-
     it("_dtype_join.", function () {
       throw new Error();
     });
@@ -96,21 +93,21 @@ describe("Indices.", function () {
   describe("g.", function () {
     it("2-dims.", function () {
       const array = numts.arange(27).reshape([3, 3, 3]);
-      expect(array.g([1, 1, 1])).toBe(13);
-      expect(array.g([1, 0, 1])).toBe(10);
-      expect(array.g([2, 1, 0])).toBe(21);
+      expect(array.g(1, 1, 1)).toBe(13);
+      expect(array.g(1, 0, 1)).toBe(10);
+      expect(array.g(2, 1, 0)).toBe(21);
     });
 
     it("4-dims.", function () {
       const array = numts.arange(120).reshape([2, 3, 4, 5]);
-      expect(array.g([1, 2, 3, 4])).toBe(119);
-      expect(array.g([0, 2, 3, 4])).toBe(59);
-      expect(array.g([0, 0, 0, 0])).toBe(0);
+      expect(array.g(1, 2, 3, 4)).toBe(119);
+      expect(array.g(0, 2, 3, 4)).toBe(59);
+      expect(array.g(0, 0, 0, 0)).toBe(0);
     });
 
     it("negatives indices.", function () {
       const array = numts.arange(40).reshape([5, 4, 2]);
-      expect(array.g([-1, -2, -1])).toBe(37);
+      expect(array.g(-1, -2, -1)).toBe(37);
     });
   });
 
@@ -262,31 +259,6 @@ describe("Slicing.", function () {
     });
   });
 
-  // describe("broadcast.", function () {
-  //   it("Same dims.", function () {
-  //     let a = numts.from_nested_array([[1, 2, 3], [3, 4, 5]]);
-  //     let b = numts.from_nested_array([[1, 2, 3], [3, 4, 5]]);
-  //     let iter = tndarray._broadcast(a, b)[0];
-  //     for (let [first, second] of iter) {
-  //       expect(first).toBe(second);
-  //     }
-  //   });
-  //
-  //   it("One smaller.", function () {
-  //     let a = numts.from_nested_array([[1, 2, 3], [3, 4, 5]]);
-  //     let b = numts.from_nested_array([[3, 4, 5]]);
-  //     let iter = tndarray._broadcast(a, b)[0];
-  //     const expected = [[1, 3], [2, 4], [3, 5], [3, 3], [4, 4], [5, 5]];
-  //     let i = 0;
-  //     for (let [first, second] of iter) {
-  //       let [e1, e2] = expected[i];
-  //       expect(first).toBe(e1);
-  //       expect(second).toBe(e2);
-  //       i++;
-  //     }
-  //   });
-  // });
-
   describe("reshape.", function () {
     it("array passed", function () {
       let start = numts.from_nested_array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
@@ -312,8 +284,6 @@ describe("Slicing.", function () {
     });
   });
 
-
-
   describe("drop_unit_dimensions." ,function () {
     it("Simple test.", function () {
       const array = numts.arange(5).reshape([1, 5]);
@@ -336,8 +306,16 @@ describe("Methods.", function () {
   describe('set', function() {
     it('single value', function() {
       let x = numts.arange(10).reshape(2, 5);
-      x.s(-20, [0, 0]);
-      expect(x.g(0, 0))
+      x.s(-20, 0, 0);
+      expect(x.g(0, 0)).toBe(-20);
+    });
+
+    it('slice.', function(){
+      let x = numts.arange(10).reshape(2, 5);
+      const replacement = numts.arange(10, 14).reshape(2, 2);
+      x.s(replacement, [0, 2], [0, 2]);
+      const values = [...x.slice([0,2], [0, 2])._value_iterator()];
+      expect(values).toEqual([10, 11, 12, 13]);
     });
   });
 
@@ -440,9 +418,9 @@ describe("Unary methods.", function () {
 
 });
 
-describe("Broadcasting", function () {
+describe("Broadcasting.", function () {
 
-  it("Broadcast on axis", function () {
+  it("Broadcast on axis.", function () {
     let x = numts.arange(30).reshape([3, 2, 5]);
     let y = x.sum(1);
     const expected_data = [
@@ -474,7 +452,7 @@ describe("Broadcasting", function () {
       expect(broadcasted.equals(b)).toBe(true);
     });
 
-    describe("arithmetic", function () {
+    describe("arithmetic.", function () {
       it("add.", function () {
         let a = numts.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], "int32");
         let b = numts.arange(5);
