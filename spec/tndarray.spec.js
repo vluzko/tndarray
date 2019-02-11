@@ -547,13 +547,25 @@ describe("Broadcasting.", function () {
 });
 
 describe("Math.", function () {
-  describe("matmul.", function () {
+  describe("matmul_2d.", function () {
     it("scalar.", function () {
       let a = numts.arange(1, 2).reshape([1, 1]);
       let b = numts.arange(10, 11).reshape([1, 1]);
       let x = tndarray.matmul_2d(a, b);
       const expected = numts.from_nested_array([[10]]);
       expect(expected.equals(x)).toBe(true);
+    });
+
+    fit("2d test", function () {
+      const a = numts.arange(4).reshape(2, 2);
+      const b = numts.arange(4, 8).reshape(2, 2);
+      const expected = numts.from_nested_array([
+
+      ]);
+
+      const actual = tndarray.matmul_2d(a, b);
+      console.log(actual);
+
     });
   });
 
@@ -578,7 +590,7 @@ describe("Math.", function () {
       expect(expected.equals(x));
     });
 
-    fit("broadcast test.", function () {
+    it("broadcast test.", function () {
       let a = numts.arange(24).reshape([2, 3, 4]);
       let b = numts.arange(16).reshape(4, 4);
 

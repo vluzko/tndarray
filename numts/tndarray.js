@@ -824,6 +824,7 @@ class tndarray {
                 const b1 = b_array.slice(...b_index);
                 const a1 = a_array.slice(...a_index);
                 const subarray = tndarray.matmul_2d(a1, b1);
+                debugger;
                 array.s(subarray, ...slice);
             }
             return array;
