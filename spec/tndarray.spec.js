@@ -560,10 +560,12 @@ describe("Math.", function () {
       const a = numts.arange(4).reshape(2, 2);
       const b = numts.arange(4, 8).reshape(2, 2);
       const expected = numts.from_nested_array([
-
+        [6, 7],
+        [26, 31]
       ]);
 
       const actual = tndarray.matmul_2d(a, b);
+      expect(actual.equals(expected)).toBe(true);
       console.log(actual);
 
     });

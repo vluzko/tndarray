@@ -841,7 +841,13 @@ class tndarray {
             [Symbol.iterator]: function* () {
                 for (let i = 0; i < new_shape[0]; i++) {
                     for (let j = 0; j < new_shape[1]; j++) {
-                        let x = tndarray.dot(a.slice(i), b.slice(null, j));
+                        const a_vec = a.slice(i);
+                        const b_vec = b.slice(null, j);
+                        console.log(...a_vec._value_iterator());
+                        console.log(...b_vec._value_iterator());
+                        let x = tndarray.dot(a_vec, b_vec);
+                        console.log(x);
+                        debugger;
                         yield x;
                     }
                 }
@@ -859,8 +865,10 @@ class tndarray {
      */
     static dot(a, b) {
         let acc = 0;
-        for (let i = 0; i < a.length; i++) {
-            acc += a.data[i] * b.data[i];
+        let a_iter = a._value_iterator();
+        let b_iter = b._value_iterator();
+        for (let [a_val, b_val] of utils_1.utils.zip_iterable(a_iter[Symbol.iterator](), b_iter[Symbol.iterator]())) {
+            acc += a_val * b_val;
         }
         return acc;
     }
