@@ -128,6 +128,21 @@ describe("Basic calculations.", function () {
     });
   });
 
+  describe('index_to_slice.', function () {
+    it("Empty.", function () {
+      expect(indexing.index_to_slice([])).toEqual([]);
+    });
+
+    it('Single.', function () {
+      expect(indexing.index_to_slice(new Uint32Array(1))).toEqual([[0, 1]]);
+    });
+
+    it("Simple.", function () {
+      expect(indexing.index_to_slice([0, 1])).toEqual([[0, 1], [1, 2]]);
+    });
+
+  });
+
 });
 
 describe("Iterators.", function () {

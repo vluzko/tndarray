@@ -156,6 +156,12 @@ var indexing;
     function calculate_broadcast_dimensions(a, b) {
         let a_number_of_dims = a.length;
         let b_number_of_dims = b.length;
+        if (a_number_of_dims === 0) {
+            return new Uint32Array(b);
+        }
+        else if (b_number_of_dims === 0) {
+            return new Uint32Array(a);
+        }
         const number_of_dimensions = Math.max(a_number_of_dims, b_number_of_dims);
         const new_dimensions = new Uint32Array(number_of_dimensions);
         for (let j = 1; j <= number_of_dimensions; j++) {
@@ -225,5 +231,19 @@ var indexing;
         return iter;
     }
     indexing.slice_iterator = slice_iterator;
+    /**
+     * Convert an index to a slice.
+     * @param {Shape} index
+     * @return {any}
+     */
+    function index_to_slice(index) {
+        let slice = [];
+        // @ts-ignore
+        index.forEach(e => {
+            slice.push([e, e + 1]);
+        });
+        return slice;
+    }
+    indexing.index_to_slice = index_to_slice;
 })(indexing = exports.indexing || (exports.indexing = {}));
 //# sourceMappingURL=indexing.js.map

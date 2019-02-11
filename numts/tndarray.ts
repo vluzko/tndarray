@@ -51,7 +51,7 @@ export class tndarray {
   readonly offset: Uint32Array;
   readonly stride: Uint32Array;
   readonly dstride: Uint32Array;
-  readonly initial_offset: number;
+  public initial_offset: number;
   public shape: Uint32Array;
   public length: number;
   public dtype: string;
@@ -60,13 +60,14 @@ export class tndarray {
   /**
    *
    * @param data
-   * @param {Uint32Array} shape   - The shape of the array.
-   * @param {Uint32Array} offset  - The offset of the array from the start of the underlying data.
-   * @param {Uint32Array} stride  - The stride of the array.
-   * @param {Uint32Array} dstride - The stride of the underlying data.
-   * @param {number} size         - The number of elements in the array.
-   * @param {string} dtype
-   * @param {boolean} is_view
+   * @param {Uint32Array} shape     - The shape of the array.
+   * @param {Uint32Array} offset    - The offset of the array from the start of the underlying data.
+   * @param {Uint32Array} stride    - The stride of the array.
+   * @param {Uint32Array} dstride   - The stride of the underlying data.
+   * @param {number} size           - The number of elements in the array.
+   * @param {string} dtype          -
+   * @param {boolean} is_view       -
+   * @param {number} initial_offset -
    * @constructor
    */
   private constructor(data,
@@ -76,7 +77,8 @@ export class tndarray {
                       dstride: Uint32Array,
                       size: number,
                       dtype?: string,
-                      is_view?: boolean) {
+                      is_view?: boolean,
+                      initial_offset?: number) {
     this.shape = shape;
     this.offset = offset;
     this.stride = stride;
@@ -94,7 +96,7 @@ export class tndarray {
       this.data = data;
       this.dtype = "float64";
     }
-    this.initial_offset = utils.dot(this.dstride, this.offset);
+    this.initial_offset = initial_offset === undefined ? 0 : initial_offset;
     this.is_view = is_view === undefined ? false : is_view;
   }
   
@@ -339,6 +341,12 @@ export class tndarray {
    * @param indices
    */
   slice(...indices: Array<number | number[]>): tndarray {
+
+    // Handle empty inputs.
+    // @ts-ignore
+    if (indices.length === 1 && !utils.is_numeric(indices[0]) && indices[0].length === 0) {
+      return this;
+    }
     const positive_indices = indexing.convert_negative_indices(indices, this.shape);
     let start = new Uint32Array(this.shape.length);
     let end = this.shape.slice();
@@ -346,7 +354,7 @@ export class tndarray {
     let dims_to_drop = new Set();
 
     steps.fill(1);
-
+    let initial_offset = this.initial_offset;
     let i = 0;
     for (let index of positive_indices) {
       if (index === null) {
@@ -355,6 +363,7 @@ export class tndarray {
         start[i] = index;
         end[i] = index + 1;
         dims_to_drop.add(i);
+        // initial_offset += index * this.dstride[i];
       } else if (index.length === 2) {
         start[i] = index[0];
         end[i] = index[1];
@@ -373,6 +382,7 @@ export class tndarray {
 
     const offset = start.map((e, j) => e + this.offset[j]);
     const stride = steps.map((e, j) => e * this.stride[j]);
+    initial_offset += start.reduce((acc, e, j) => acc + e * this.stride[j]);
 
     const filt = (e, j) => !dims_to_drop.has(j);
 
@@ -381,8 +391,7 @@ export class tndarray {
     const view = new tndarray(this.data,
       new_shape.filter(filt),
       offset.filter(filt),
-      new_stride, new_dstride, size, this.dtype, true);
-    
+      new_stride, new_dstride, size, this.dtype, true, initial_offset);
     return view;
   }
 
@@ -407,7 +416,7 @@ export class tndarray {
    * @param indices
    */
   s(values: Broadcastable, ...indices) {
-    if (indexing.checks_indices_are_single_index(...indices)) {
+    if (indexing.checks_indices_are_single_index(...indices) && indices.length === this.shape.length) {
       if (! utils.is_numeric(values)) {
         throw new Error(`Bad dimensions for broadcasting.`);
       }
@@ -917,30 +926,42 @@ export class tndarray {
     let a_array = tndarray._upcast_to_tndarray(a);
     let b_array = tndarray._upcast_to_tndarray(b);
 
-    const new_dimensions = indexing.calculate_broadcast_dimensions(a_array.shape, b_array.shape);
-    new_dimensions[new_dimensions.length - 2] = a_array.shape[a_array.shape.length - 2];
-    new_dimensions[new_dimensions.length - 1] = b_array.shape[b_array.shape.length - 1];
+    const a_shape: Uint32Array = a_array.shape;
+    const b_shape: Uint32Array = b_array.shape;
 
+    // Check they can actually be multiplied.
+    if (a_shape[a_shape.length - 1] !== b_shape[b_shape.length - 2]) {
+      throw new Error(`Shapes ${a_shape} and ${b_shape} are not aligned for matrix multiplication.`);
+    }
 
-    const new_dtype = utils._dtype_join(a_array.dtype, b_array.dtype);
-    let index_iter = indexing.slice_iterator(new_dimensions);
+    const broadcast = indexing.calculate_broadcast_dimensions(a_array.shape.slice(0, -2), b_array.shape.slice(0, -2));
+    const new_dimensions = new Uint32Array([...broadcast,
+      a_shape[a_shape.length - 2],
+      b_shape[b_shape.length - 1]
+    ]);
 
+    if (new_dimensions.length === 2) {
+      return tndarray.matmul_2d(a_array, b_array);
+    } else {
+      const new_dtype = utils._dtype_join(a_array.dtype, b_array.dtype);
+      let array = tndarray.zeros(new_dimensions, new_dtype);
 
+      const index_iter = indexing.slice_iterator(new_dimensions.slice(0, -2));
+      const a_iter = indexing.slice_iterator(a_shape.slice(0, -2));
+      const b_iter = indexing.slice_iterator(b_shape.slice(0, -2));
 
-    const iterator = utils.zip_longest(a_array._real_index_iterator(), b_array._real_index_iterator(), index_iter);
+      const iter = utils.zip_longest(a_iter, b_iter, index_iter);
+      for (let [a_index, b_index, index] of iter) {
 
-    // let iter = {};
-    // iter[Symbol.iterator] = function* () {
-    //   for (let [a_index, b_index, index] of iterator) {
-    //     const a_val = a_array.data[a_index];
-    //     const b_val = b_array.data[b_index];
-    //     yield [a_val, b_val, index];
-    //   }
-    // };
+        const slice = indexing.index_to_slice(index);
 
-    // return [<IterableIterator<[number, number, Uint32Array]>>iter, new_dimensions, new_dtype];
-      // tndarray._broadcast_by_index
-    throw new Error();
+        const b1 = b_array.slice(...b_index);
+        const a1 = a_array.slice(...a_index);
+        const subarray = tndarray.matmul_2d(a1, b1);
+        array.s(subarray, ...slice);
+      }
+      return array;
+    }
   }
 
   /**

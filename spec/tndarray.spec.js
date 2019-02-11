@@ -76,10 +76,6 @@ describe("Constructors and factories.", function () {
       });
     });
   });
-
-  describe("Helper methods.", function () {
-
-  });
 });
 
 describe("Indices.", function () {
@@ -175,6 +171,12 @@ describe("Iterators.", function () {
 describe("Slicing.", function () {
 
   describe("slice.", function () {
+    it("empty slice.", function () {
+      let a = numts.arange(15).reshape(3, 5);
+      let b = a.slice();
+      expect(a.equals(b));
+    });
+
     it("basic test.", function () {
       const base_array = numts.arange(16).reshape([4, 4]);
       const slice = base_array.slice([0, 2], [1, 3]);
@@ -254,6 +256,23 @@ describe("Slicing.", function () {
 
       const actual = tndarray.from_iterable(second._value_iterator(), second.shape, "int32");
       expect(expected.equals(actual)).toBe(true);
+    });
+
+    it("slice with last dropped", function () {
+      const a = numts.arange(24).reshape(2, 3, 4);
+      const slice = a.slice(...[null, null, 1]);
+      expect([...slice._value_iterator()]).toEqual([1, 5, 9, 13, 17, 21]);
+    });
+
+    describe('previous breaks.', function () {
+      it("broadcast_matmul break.", function () {
+        const a = numts.arange(24).reshape(2, 3, 4);
+        const slice = a.slice(...[1]);
+        expect([...slice._value_iterator()]).toEqual([
+          12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
+        ]);
+      });
+
     });
   });
 
@@ -534,6 +553,46 @@ describe("Math.", function () {
       let b = numts.arange(10, 11).reshape([1, 1]);
       let x = tndarray.matmul_2d(a, b);
       const expected = numts.from_nested_array([[10]]);
+      expect(expected.equals(x)).toBe(true);
+    });
+  });
+
+  describe("matmul.", function () {
+
+    it("scalar.", function () {
+      let a = numts.arange(1, 2).reshape([1, 1]);
+      let b = numts.arange(10, 11).reshape([1, 1]);
+      let x = tndarray.broadcast_matmul(a, b);
+      const expected = numts.from_nested_array([[10]]);
+      expect(expected.equals(x)).toBe(true);
+    });
+
+    it("m x n by n by k", function () {
+      let a = numts.arange(15).reshape([5, 3]);
+      let b = numts.arange(12).reshape(3, 4);
+
+      let x = tndarray.broadcast_matmul(a, b);
+      const expected = numts.from_nested_array([
+
+      ]);
+      expect(expected.equals(x));
+    });
+
+    fit("broadcast test.", function () {
+      let a = numts.arange(24).reshape([2, 3, 4]);
+      let b = numts.arange(16).reshape(4, 4);
+
+      let x = tndarray.broadcast_matmul(a, b);
+      const expected = numts.from_nested_array([
+        [[56, 62, 68, 74],
+        [152, 174, 196, 218],
+        [248, 286, 324, 362]],
+
+        [[344, 398, 452, 506],
+        [440, 510, 580, 650],
+        [536, 622, 708, 794]]
+      ]);
+      console.log(x);
       expect(expected.equals(x)).toBe(true);
     });
   });

@@ -156,6 +156,12 @@ export namespace indexing {
     let a_number_of_dims = a.length;
     let b_number_of_dims = b.length;
 
+    if (a_number_of_dims === 0) {
+      return new Uint32Array(b);
+    } else if (b_number_of_dims === 0) {
+      return new Uint32Array(a);
+    }
+
     const number_of_dimensions = Math.max(a_number_of_dims, b_number_of_dims);
     const new_dimensions = new Uint32Array(number_of_dimensions);
 
@@ -231,6 +237,20 @@ export namespace indexing {
       }
     };
     return <Iterable<Uint32Array>> iter
+  }
+
+  /**
+   * Convert an index to a slice.
+   * @param {Shape} index
+   * @return {any}
+   */
+  export function index_to_slice(index: Shape) {
+    let slice = [];
+    // @ts-ignore
+    index.forEach(e => {
+      slice.push([e, e + 1]);
+    });
+    return slice;
   }
 
 }

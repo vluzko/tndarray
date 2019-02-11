@@ -34,7 +34,7 @@ var utils;
      * @return {boolean}
      */
     function is_numeric(value) {
-        return !isNaN(value) && value !== null;
+        return !isNaN(value) && value !== null && !ArrayBuffer.isView(value);
     }
     utils.is_numeric = is_numeric;
     /**

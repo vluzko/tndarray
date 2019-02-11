@@ -36,7 +36,7 @@ export namespace utils {
    * @return {boolean}
    */
   export function is_numeric(value: any): value is number {
-    return !isNaN(value) && value !== null;
+    return !isNaN(value) && value !== null && !ArrayBuffer.isView(value);
   }
 
   /**

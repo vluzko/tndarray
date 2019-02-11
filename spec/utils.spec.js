@@ -41,6 +41,10 @@ describe("utils.", function () {
     ]);
   });
 
+  it("is_numeric.", function () {
+    expect(utils.is_numeric(new Uint32Array(0))).toBe(false);
+  });
+
   describe("_dtype_join.", function () {
     const types = ["int8", "uint8", "uint8c", "int16", "uint16", "int32", "uint32", "float32", "float64"];
     it("Equal types.", function () {

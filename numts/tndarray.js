@@ -46,16 +46,17 @@ class tndarray {
     /**
      *
      * @param data
-     * @param {Uint32Array} shape   - The shape of the array.
-     * @param {Uint32Array} offset  - The offset of the array from the start of the underlying data.
-     * @param {Uint32Array} stride  - The stride of the array.
-     * @param {Uint32Array} dstride - The stride of the underlying data.
-     * @param {number} size         - The number of elements in the array.
-     * @param {string} dtype
-     * @param {boolean} is_view
+     * @param {Uint32Array} shape     - The shape of the array.
+     * @param {Uint32Array} offset    - The offset of the array from the start of the underlying data.
+     * @param {Uint32Array} stride    - The stride of the array.
+     * @param {Uint32Array} dstride   - The stride of the underlying data.
+     * @param {number} size           - The number of elements in the array.
+     * @param {string} dtype          -
+     * @param {boolean} is_view       -
+     * @param {number} initial_offset -
      * @constructor
      */
-    constructor(data, shape, offset, stride, dstride, size, dtype, is_view) {
+    constructor(data, shape, offset, stride, dstride, size, dtype, is_view, initial_offset) {
         this.shape = shape;
         this.offset = offset;
         this.stride = stride;
@@ -75,7 +76,7 @@ class tndarray {
             this.data = data;
             this.dtype = "float64";
         }
-        this.initial_offset = utils_1.utils.dot(this.dstride, this.offset);
+        this.initial_offset = initial_offset === undefined ? 0 : initial_offset;
         this.is_view = is_view === undefined ? false : is_view;
     }
     add() {
@@ -287,12 +288,18 @@ class tndarray {
      * @param indices
      */
     slice(...indices) {
+        // Handle empty inputs.
+        // @ts-ignore
+        if (indices.length === 1 && !utils_1.utils.is_numeric(indices[0]) && indices[0].length === 0) {
+            return this;
+        }
         const positive_indices = indexing_1.indexing.convert_negative_indices(indices, this.shape);
         let start = new Uint32Array(this.shape.length);
         let end = this.shape.slice();
         let steps = new Uint32Array(this.shape.length);
         let dims_to_drop = new Set();
         steps.fill(1);
+        let initial_offset = this.initial_offset;
         let i = 0;
         for (let index of positive_indices) {
             if (index === null) {
@@ -301,6 +308,7 @@ class tndarray {
                 start[i] = index;
                 end[i] = index + 1;
                 dims_to_drop.add(i);
+                // initial_offset += index * this.dstride[i];
             }
             else if (index.length === 2) {
                 start[i] = index[0];
@@ -320,10 +328,11 @@ class tndarray {
         const size = indexing_1.indexing.compute_size(new_shape);
         const offset = start.map((e, j) => e + this.offset[j]);
         const stride = steps.map((e, j) => e * this.stride[j]);
+        initial_offset += start.reduce((acc, e, j) => acc + e * this.stride[j]);
         const filt = (e, j) => !dims_to_drop.has(j);
         const new_stride = stride.filter(filt);
         const new_dstride = this.dstride.filter(filt);
-        const view = new tndarray(this.data, new_shape.filter(filt), offset.filter(filt), new_stride, new_dstride, size, this.dtype, true);
+        const view = new tndarray(this.data, new_shape.filter(filt), offset.filter(filt), new_stride, new_dstride, size, this.dtype, true, initial_offset);
         return view;
     }
     /**
@@ -345,7 +354,7 @@ class tndarray {
      * @param indices
      */
     s(values, ...indices) {
-        if (indexing_1.indexing.checks_indices_are_single_index(...indices)) {
+        if (indexing_1.indexing.checks_indices_are_single_index(...indices) && indices.length === this.shape.length) {
             if (!utils_1.utils.is_numeric(values)) {
                 throw new Error(`Bad dimensions for broadcasting.`);
             }
@@ -789,23 +798,36 @@ class tndarray {
     static broadcast_matmul(a, b) {
         let a_array = tndarray._upcast_to_tndarray(a);
         let b_array = tndarray._upcast_to_tndarray(b);
-        const new_dimensions = indexing_1.indexing.calculate_broadcast_dimensions(a_array.shape, b_array.shape);
-        new_dimensions[new_dimensions.length - 2] = a_array.shape[a_array.shape.length - 2];
-        new_dimensions[new_dimensions.length - 1] = b_array.shape[b_array.shape.length - 1];
-        const new_dtype = utils_1.utils._dtype_join(a_array.dtype, b_array.dtype);
-        let index_iter = indexing_1.indexing.slice_iterator(new_dimensions);
-        const iterator = utils_1.utils.zip_longest(a_array._real_index_iterator(), b_array._real_index_iterator(), index_iter);
-        // let iter = {};
-        // iter[Symbol.iterator] = function* () {
-        //   for (let [a_index, b_index, index] of iterator) {
-        //     const a_val = a_array.data[a_index];
-        //     const b_val = b_array.data[b_index];
-        //     yield [a_val, b_val, index];
-        //   }
-        // };
-        // return [<IterableIterator<[number, number, Uint32Array]>>iter, new_dimensions, new_dtype];
-        // tndarray._broadcast_by_index
-        throw new Error();
+        const a_shape = a_array.shape;
+        const b_shape = b_array.shape;
+        // Check they can actually be multiplied.
+        if (a_shape[a_shape.length - 1] !== b_shape[b_shape.length - 2]) {
+            throw new Error(`Shapes ${a_shape} and ${b_shape} are not aligned for matrix multiplication.`);
+        }
+        const broadcast = indexing_1.indexing.calculate_broadcast_dimensions(a_array.shape.slice(0, -2), b_array.shape.slice(0, -2));
+        const new_dimensions = new Uint32Array([...broadcast,
+            a_shape[a_shape.length - 2],
+            b_shape[b_shape.length - 1]
+        ]);
+        if (new_dimensions.length === 2) {
+            return tndarray.matmul_2d(a_array, b_array);
+        }
+        else {
+            const new_dtype = utils_1.utils._dtype_join(a_array.dtype, b_array.dtype);
+            let array = tndarray.zeros(new_dimensions, new_dtype);
+            const index_iter = indexing_1.indexing.slice_iterator(new_dimensions.slice(0, -2));
+            const a_iter = indexing_1.indexing.slice_iterator(a_shape.slice(0, -2));
+            const b_iter = indexing_1.indexing.slice_iterator(b_shape.slice(0, -2));
+            const iter = utils_1.utils.zip_longest(a_iter, b_iter, index_iter);
+            for (let [a_index, b_index, index] of iter) {
+                const slice = indexing_1.indexing.index_to_slice(index);
+                const b1 = b_array.slice(...b_index);
+                const a1 = a_array.slice(...a_index);
+                const subarray = tndarray.matmul_2d(a1, b1);
+                array.s(subarray, ...slice);
+            }
+            return array;
+        }
     }
     /**
      * Multiply two 2D matrices.
