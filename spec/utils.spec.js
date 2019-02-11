@@ -40,4 +40,18 @@ describe("utils.", function () {
       [3, 1]
     ]);
   });
+
+  describe("_dtype_join.", function () {
+    const types = ["int8", "uint8", "uint8c", "int16", "uint16", "int32", "uint32", "float32", "float64"];
+    it("Equal types.", function () {
+      for (let type of types) {
+        expect(utils._dtype_join(type, type)).toBe(type);
+      }
+    });
+
+    it("Common types.", function () {
+      expect(utils._dtype_join("int32", "float32")).toBe("float64");
+      expect(utils._dtype_join("int32", "uint32")).toBe("float64");
+    });
+  });
 });

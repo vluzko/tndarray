@@ -78,9 +78,7 @@ describe("Constructors and factories.", function () {
   });
 
   describe("Helper methods.", function () {
-    it("_dtype_join.", function () {
-      throw new Error();
-    });
+
   });
 });
 

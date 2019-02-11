@@ -177,5 +177,31 @@ var utils;
         return array_type;
     }
     utils.dtype_map = dtype_map;
+    /**
+     *
+     * @param {string} a  - The first dtype.
+     * @param {string} b  - The second dtype.
+     * @return {string} - The smallest dtype that can contain a and b without losing data.
+     * @private
+     */
+    function _dtype_join(a, b) {
+        // type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array| Int32Array | Uint32Array | Float32Array | Float64Array;
+        const ordering = [["int8", "uint8", "uint8c"], ["int16", "uint16"], ["int32", "uint32", "float32"], ["float64"]];
+        const a_index = ordering.reduce((acc, e, i) => e.indexOf(a) === -1 ? acc : i, -1);
+        const b_index = ordering.reduce((acc, e, i) => e.indexOf(b) === -1 ? acc : i, -1);
+        if (a === b) {
+            return a;
+        }
+        else if (a_index === b_index) {
+            return ordering[a_index + 1][0];
+        }
+        else if (a_index < b_index) {
+            return b;
+        }
+        else {
+            return a;
+        }
+    }
+    utils._dtype_join = _dtype_join;
 })(utils = exports.utils || (exports.utils = {}));
 //# sourceMappingURL=utils.js.map

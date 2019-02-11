@@ -332,6 +332,9 @@ class tndarray {
      * @return {number}
      */
     g(...indices) {
+        if (indices.length !== this.shape.length) {
+            throw new Error(`Need more dimensions.`);
+        }
         const positive_indices = indexing_1.indexing.convert_negative_indices(indices, this.shape);
         const real_index = this._compute_real_index(positive_indices);
         return this.data[real_index];
@@ -513,31 +516,6 @@ class tndarray {
         return indexing_1.indexing.index_in_data(indices, this.stride, this.initial_offset);
     }
     /**
-     *
-     * @param {string} a  - The first dtype.
-     * @param {string} b  - The second dtype.
-     * @return {string} - The smallest dtype that can contain a and b without losing data.
-     * @private
-     */
-    static _dtype_join(a, b) {
-        // type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array| Int32Array | Uint32Array | Float32Array | Float64Array;
-        const ordering = [["int8", "uint8", "uint8c"], ["int16", "uint16"], ["int32", "uint32", "float32"], ["float64"]];
-        const a_index = ordering.reduce((acc, e, i) => e.indexOf(a) === -1 ? acc : i, -1);
-        const b_index = ordering.reduce((acc, e, i) => e.indexOf(b) === -1 ? acc : i, -1);
-        if (a === b) {
-            return a;
-        }
-        else if (a_index === b_index) {
-            return ordering[a_index + 1][0];
-        }
-        else if (a_index < b_index) {
-            return b;
-        }
-        else {
-            return a;
-        }
-    }
-    /**
      * Convert a broadcastable value to a tndarray.
      * @param {Broadcastable} value - The value to convert. Numbers will be converted to 1x1 tndarrays, TypedArrays will be 1xn, and tndarrays will be left alone.
      * @return {tndarray}           - The resulting tndarray.
@@ -568,7 +546,7 @@ class tndarray {
         let a_array = tndarray._upcast_to_tndarray(a);
         let b_array = tndarray._upcast_to_tndarray(b);
         const new_dimensions = indexing_1.indexing.calculate_broadcast_dimensions(a_array.shape, b_array.shape);
-        const new_dtype = tndarray._dtype_join(a_array.dtype, b_array.dtype);
+        const new_dtype = utils_1.utils._dtype_join(a_array.dtype, b_array.dtype);
         let index_iter = indexing_1.indexing.slice_iterator(new_dimensions);
         const iterator = utils_1.utils.zip_longest(a_array._real_index_iterator(), b_array._real_index_iterator(), index_iter);
         let iter = {};
@@ -814,7 +792,7 @@ class tndarray {
         const new_dimensions = indexing_1.indexing.calculate_broadcast_dimensions(a_array.shape, b_array.shape);
         new_dimensions[new_dimensions.length - 2] = a_array.shape[a_array.shape.length - 2];
         new_dimensions[new_dimensions.length - 1] = b_array.shape[b_array.shape.length - 1];
-        const new_dtype = tndarray._dtype_join(a_array.dtype, b_array.dtype);
+        const new_dtype = utils_1.utils._dtype_join(a_array.dtype, b_array.dtype);
         let index_iter = indexing_1.indexing.slice_iterator(new_dimensions);
         const iterator = utils_1.utils.zip_longest(a_array._real_index_iterator(), b_array._real_index_iterator(), index_iter);
         // let iter = {};
