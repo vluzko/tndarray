@@ -382,7 +382,7 @@ export class tndarray {
 
     const offset = start.map((e, j) => e + this.offset[j]);
     const stride = steps.map((e, j) => e * this.stride[j]);
-    initial_offset += start.reduce((acc, e, j) => acc + e * this.stride[j]);
+    initial_offset += start.reduce((acc, e, j) => acc + e * this.stride[j], 0);
 
     const filt = (e, j) => !dims_to_drop.has(j);
 
@@ -958,7 +958,6 @@ export class tndarray {
         const b1 = b_array.slice(...b_index);
         const a1 = a_array.slice(...a_index);
         const subarray = tndarray.matmul_2d(a1, b1);
-        debugger;
         array.s(subarray, ...slice);
       }
       return array;
@@ -967,10 +966,12 @@ export class tndarray {
 
   /**
    * Multiply two 2D matrices.
-   * @param {tndarray} a
-   * @param {tndarray} b
+   * Computes a x b.
+   * @param {tndarray} a  - The first array. Must be m x n.
+   * @param {tndarray} b  - The second array. Must be n x p.
+   * @returns {tndarray}  - The matrix product.
    */
-  static matmul_2d(a: tndarray, b: tndarray) {
+  static matmul_2d(a: tndarray, b: tndarray): tndarray {
     const new_shape = new Uint32Array([a.shape[0], b.shape[1]]);
 
     let iter = {
@@ -979,10 +980,7 @@ export class tndarray {
           for (let j = 0; j < new_shape[1]; j++) {
             const a_vec = a.slice(i);
             const b_vec = b.slice(null, j);
-            console.log(...a_vec._value_iterator());
-            console.log(...b_vec._value_iterator());
             let x = tndarray.dot(a_vec, b_vec);
-            console.log(x);
             debugger;
             yield x;
           }

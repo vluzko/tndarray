@@ -273,6 +273,13 @@ describe("Slicing.", function () {
         ]);
       });
 
+      it("successive slice break.", function(){
+        const a = numts.arange(24).reshape(2, 3, 4);
+        const first_slice = a.slice(0);
+        const second_slice = first_slice.slice(1);
+        expect([...second_slice._value_iterator()]).toEqual([4, 5, 6, 7]);
+      });
+
     });
   });
 
@@ -556,7 +563,7 @@ describe("Math.", function () {
       expect(expected.equals(x)).toBe(true);
     });
 
-    fit("2d test", function () {
+    it("2d test", function () {
       const a = numts.arange(4).reshape(2, 2);
       const b = numts.arange(4, 8).reshape(2, 2);
       const expected = numts.from_nested_array([
@@ -568,6 +575,22 @@ describe("Math.", function () {
       expect(actual.equals(expected)).toBe(true);
       console.log(actual);
 
+    });
+
+    describe("from breaks.", function() {
+      it("broken broadcast test.", function() {
+        const a = numts.arange(24).reshape(2, 3, 4).slice(0);
+        const b = numts.arange(16).reshape(4, 4);
+        const expected = numts.from_nested_array([
+          [56, 62, 68, 74],
+          [152, 174, 196, 218],
+          [248, 286, 324, 362]
+        ]);
+  
+        const actual = tndarray.matmul_2d(a, b);
+        expect(expected.equals(actual)).toBe(true);
+      });
+      
     });
   });
 
@@ -605,8 +628,9 @@ describe("Math.", function () {
         [[344, 398, 452, 506],
         [440, 510, 580, 650],
         [536, 622, 708, 794]]
-      ]);
+      ], "int32");
       console.log(x);
+      console.log(expected)
       expect(expected.equals(x)).toBe(true);
     });
   });
