@@ -1,0 +1,3254 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for tndarray.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="prettify.css" />
+    <link rel="stylesheet" href="base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="index.html">All files</a> tndarray.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">88.18% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>373/423</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">80.15% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>105/131</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">62.39% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>73/117</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">89.62% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>354/395</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408
+409
+410
+411
+412
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423
+424
+425
+426
+427
+428
+429
+430
+431
+432
+433
+434
+435
+436
+437
+438
+439
+440
+441
+442
+443
+444
+445
+446
+447
+448
+449
+450
+451
+452
+453
+454
+455
+456
+457
+458
+459
+460
+461
+462
+463
+464
+465
+466
+467
+468
+469
+470
+471
+472
+473
+474
+475
+476
+477
+478
+479
+480
+481
+482
+483
+484
+485
+486
+487
+488
+489
+490
+491
+492
+493
+494
+495
+496
+497
+498
+499
+500
+501
+502
+503
+504
+505
+506
+507
+508
+509
+510
+511
+512
+513
+514
+515
+516
+517
+518
+519
+520
+521
+522
+523
+524
+525
+526
+527
+528
+529
+530
+531
+532
+533
+534
+535
+536
+537
+538
+539
+540
+541
+542
+543
+544
+545
+546
+547
+548
+549
+550
+551
+552
+553
+554
+555
+556
+557
+558
+559
+560
+561
+562
+563
+564
+565
+566
+567
+568
+569
+570
+571
+572
+573
+574
+575
+576
+577
+578
+579
+580
+581
+582
+583
+584
+585
+586
+587
+588
+589
+590
+591
+592
+593
+594
+595
+596
+597
+598
+599
+600
+601
+602
+603
+604
+605
+606
+607
+608
+609
+610
+611
+612
+613
+614
+615
+616
+617
+618
+619
+620
+621
+622
+623
+624
+625
+626
+627
+628
+629
+630
+631
+632
+633
+634
+635
+636
+637
+638
+639
+640
+641
+642
+643
+644
+645
+646
+647
+648
+649
+650
+651
+652
+653
+654
+655
+656
+657
+658
+659
+660
+661
+662
+663
+664
+665
+666
+667
+668
+669
+670
+671
+672
+673
+674
+675
+676
+677
+678
+679
+680
+681
+682
+683
+684
+685
+686
+687
+688
+689
+690
+691
+692
+693
+694
+695
+696
+697
+698
+699
+700
+701
+702
+703
+704
+705
+706
+707
+708
+709
+710
+711
+712
+713
+714
+715
+716
+717
+718
+719
+720
+721
+722
+723
+724
+725
+726
+727
+728
+729
+730
+731
+732
+733
+734
+735
+736
+737
+738
+739
+740
+741
+742
+743
+744
+745
+746
+747
+748
+749
+750
+751
+752
+753
+754
+755
+756
+757
+758
+759
+760
+761
+762
+763
+764
+765
+766
+767
+768
+769
+770
+771
+772
+773
+774
+775
+776
+777
+778
+779
+780
+781
+782
+783
+784
+785
+786
+787
+788
+789
+790
+791
+792
+793
+794
+795
+796
+797
+798
+799
+800
+801
+802
+803
+804
+805
+806
+807
+808
+809
+810
+811
+812
+813
+814
+815
+816
+817
+818
+819
+820
+821
+822
+823
+824
+825
+826
+827
+828
+829
+830
+831
+832
+833
+834
+835
+836
+837
+838
+839
+840
+841
+842
+843
+844
+845
+846
+847
+848
+849
+850
+851
+852
+853
+854
+855
+856
+857
+858
+859
+860
+861
+862
+863
+864
+865
+866
+867
+868
+869
+870
+871
+872
+873
+874
+875
+876
+877
+878
+879
+880
+881
+882
+883
+884
+885
+886
+887
+888
+889
+890
+891
+892
+893
+894
+895
+896
+897
+898
+899
+900
+901
+902
+903
+904
+905
+906
+907
+908
+909
+910
+911
+912
+913
+914
+915
+916
+917
+918
+919
+920
+921
+922
+923
+924
+925
+926
+927
+928
+929
+930
+931
+932
+933
+934
+935
+936
+937
+938
+939
+940
+941
+942
+943
+944
+945
+946
+947
+948
+949
+950
+951
+952
+953
+954
+955
+956
+957
+958
+959
+960
+961
+962
+963
+964
+965
+966
+967
+968
+969
+970
+971
+972
+973
+974
+975
+976
+977
+978
+979
+980
+981
+982
+983
+984
+985
+986
+987
+988
+989
+990
+991
+992
+993
+994
+995
+996
+997
+998
+999
+1000
+1001
+1002
+1003
+1004
+1005
+1006
+1007
+1008
+1009
+1010
+1011
+1012
+1013
+1014
+1015
+1016
+1017
+1018
+1019
+1020
+1021
+1022
+1023
+1024
+1025
+1026
+1027
+1028
+1029
+1030
+1031
+1032
+1033
+1034
+1035
+1036
+1037
+1038
+1039
+1040
+1041
+1042
+1043
+1044
+1045
+1046
+1047
+1048
+1049
+1050
+1051
+1052
+1053
+1054
+1055
+1056
+1057
+1058
+1059
+1060
+1061
+1062
+1063
+1064</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">781x</span>
+<span class="cline-any cline-yes">781x</span>
+<span class="cline-any cline-yes">781x</span>
+<span class="cline-any cline-yes">781x</span>
+<span class="cline-any cline-yes">781x</span>
+<span class="cline-any cline-yes">781x</span>
+<span class="cline-any cline-yes">322x</span>
+<span class="cline-any cline-yes">322x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">322x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">322x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">459x</span>
+<span class="cline-any cline-yes">459x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">781x</span>
+<span class="cline-any cline-yes">781x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">22x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">22x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">31x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">102x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">216x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">150x</span>
+<span class="cline-any cline-yes">133x</span>
+<span class="cline-any cline-yes">133x</span>
+<span class="cline-any cline-yes">133x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">216x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">303x</span>
+<span class="cline-any cline-yes">303x</span>
+<span class="cline-any cline-yes">303x</span>
+<span class="cline-any cline-yes">1212x</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-yes">146x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1808x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1808x</span>
+<span class="cline-any cline-yes">1808x</span>
+<span class="cline-any cline-yes">1808x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">97x</span>
+<span class="cline-any cline-yes">94x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">94x</span>
+<span class="cline-any cline-yes">94x</span>
+<span class="cline-any cline-yes">94x</span>
+<span class="cline-any cline-yes">94x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">40x</span>
+<span class="cline-any cline-yes">40x</span>
+<span class="cline-any cline-yes">120x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">40x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2527x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">29x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">29x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">93x</span>
+<span class="cline-any cline-yes">93x</span>
+<span class="cline-any cline-yes">93x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">93x</span>
+<span class="cline-any cline-yes">93x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">51x</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">51x</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">51x</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">51x</span>
+<span class="cline-any cline-yes">92x</span>
+<span class="cline-any cline-yes">51x</span>
+<span class="cline-any cline-yes">51x</span>
+<span class="cline-any cline-yes">51x</span>
+<span class="cline-any cline-yes">51x</span>
+<span class="cline-any cline-yes">51x</span>
+<span class="cline-any cline-yes">51x</span>
+<span class="cline-any cline-yes">109x</span>
+<span class="cline-any cline-yes">161x</span>
+<span class="cline-any cline-yes">161x</span>
+<span class="cline-any cline-yes">488x</span>
+<span class="cline-any cline-yes">456x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">51x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">182x</span>
+<span class="cline-any cline-yes">182x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">182x</span>
+<span class="cline-any cline-yes">182x</span>
+<span class="cline-any cline-yes">182x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">182x</span>
+<span class="cline-any cline-yes">182x</span>
+<span class="cline-any cline-yes">182x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">182x</span>
+<span class="cline-any cline-yes">182x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">182x</span>
+<span class="cline-any cline-yes">182x</span>
+<span class="cline-any cline-yes">182x</span>
+<span class="cline-any cline-yes">1550x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">182x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">123x</span>
+<span class="cline-any cline-yes">123x</span>
+<span class="cline-any cline-yes">123x</span>
+<span class="cline-any cline-yes">123x</span>
+<span class="cline-any cline-yes">123x</span>
+<span class="cline-any cline-yes">123x</span>
+<span class="cline-any cline-yes">123x</span>
+<span class="cline-any cline-yes">123x</span>
+<span class="cline-any cline-yes">123x</span>
+<span class="cline-any cline-yes">123x</span>
+<span class="cline-any cline-yes">2292x</span>
+<span class="cline-any cline-yes">2292x</span>
+<span class="cline-any cline-yes">2292x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">123x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">123x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">639x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">639x</span>
+<span class="cline-any cline-yes">174x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">639x</span>
+<span class="cline-any cline-yes">624x</span>
+<span class="cline-any cline-yes">624x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">633x</span>
+<span class="cline-any cline-yes">633x</span>
+<span class="cline-any cline-yes">633x</span>
+<span class="cline-any cline-yes">633x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">442x</span>
+<span class="cline-any cline-yes">442x</span>
+<span class="cline-any cline-yes">442x</span>
+<span class="cline-any cline-yes">442x</span>
+<span class="cline-any cline-yes">442x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">62x</span>
+<span class="cline-any cline-yes">62x</span>
+<span class="cline-any cline-yes">62x</span>
+<span class="cline-any cline-yes">62x</span>
+<span class="cline-any cline-yes">62x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">224x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">34x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">165x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">165x</span>
+<span class="cline-any cline-yes">33x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">165x</span>
+<span class="cline-any cline-yes">573x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const utils_1 = require("./utils");
+const indexing_1 = require("./indexing");
+var errors;
+(function (errors) {
+    class MismatchedSizes extends Error {
+<span class="fstat-no" title="function not covered" >        co</span>nstructor() {
+<span class="cstat-no" title="statement not covered" >            super("Array sizes do not match.");</span>
+        }
+    }
+    errors.MismatchedSizes = MismatchedSizes;
+    class MismatchedShapes extends Error {
+<span class="fstat-no" title="function not covered" >        co</span>nstructor() {
+<span class="cstat-no" title="statement not covered" >            super("Array shapes do not match.");</span>
+        }
+    }
+    errors.MismatchedShapes = MismatchedShapes;
+    class BadData extends Error {
+        constructor() {
+            super("Bad data.");
+        }
+    }
+    errors.BadData = BadData;
+    class DataNotArrayError extends Error {
+    }
+    errors.DataNotArrayError = DataNotArrayError;
+    class DataNullOrNotNumeric extends Error {
+    }
+    errors.DataNullOrNotNumeric = DataNullOrNotNumeric;
+    class BadShape extends Error {
+    }
+    errors.BadShape = BadShape;
+    class MismatchedShapeSize extends Error {
+    }
+    errors.MismatchedShapeSize = MismatchedShapeSize;
+    class WrongIterableSize extends Error {
+    }
+    errors.WrongIterableSize = WrongIterableSize;
+    class NestedArrayHasInconsistentDimensions extends Error {
+    }
+    errors.NestedArrayHasInconsistentDimensions = NestedArrayHasInconsistentDimensions;
+})(errors || (errors = {}));
+exports.errors = errors;
+class tndarray {
+    /**
+     *
+     * @param data
+     * @param {Uint32Array} shape     - The shape of the array.
+     * @param {Uint32Array} offset    - The offset of the array from the start of the underlying data.
+     * @param {Uint32Array} stride    - The stride of the array.
+     * @param {Uint32Array} dstride   - The stride of the underlying data.
+     * @param {number} size           - The number of elements in the array.
+     * @param {string} dtype          -
+     * @param {boolean} is_view       -
+     * @param {number} initial_offset -
+     * @constructor
+     */
+    constructor(data, shape, offset, stride, dstride, size, dtype, is_view, initial_offset) {
+        this.shape = shape;
+        this.offset = offset;
+        this.stride = stride;
+        this.length = size;
+        this.dstride = dstride;
+        if (dtype !== undefined) {
+            const array_type = utils_1.utils.dtype_map(dtype);
+            <span class="missing-if-branch" title="if path not taken" >I</span>if (!(data instanceof array_type)) {
+<span class="cstat-no" title="statement not covered" >                this.data = new array_type(data);</span>
+            }
+            else {
+                this.data = data;
+            }
+            this.dtype = dtype;
+        }
+        else {
+            this.data = data;
+            this.dtype = "float64";
+        }
+        this.initial_offset = initial_offset === undefined ? 0 : initial_offset;
+        this.is_view = is_view === undefined ? false : is_view;
+    }
+<span class="fstat-no" title="function not covered" >    ad</span>d() {
+    }
+<span class="fstat-no" title="function not covered" >    al</span>l() { }
+<span class="fstat-no" title="function not covered" >    an</span>y() { }
+<span class="fstat-no" title="function not covered" >    ar</span>gmax() { }
+<span class="fstat-no" title="function not covered" >    ar</span>gmin() { }
+<span class="fstat-no" title="function not covered" >    ar</span>gpartition() { }
+<span class="fstat-no" title="function not covered" >    ar</span>gsort() { }
+<span class="fstat-no" title="function not covered" >    as</span>_type(dtype) { }
+<span class="fstat-no" title="function not covered" >    cl</span>ip(lower, upper) {
+<span class="cstat-no" title="statement not covered" >        return this.map(<span class="fstat-no" title="function not covered" >e </span>=&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            if (e &lt; lower) {</span>
+<span class="cstat-no" title="statement not covered" >                return lower;</span>
+            }
+            else <span class="cstat-no" title="statement not covered" >if (e &gt; upper) {</span>
+<span class="cstat-no" title="statement not covered" >                return upper;</span>
+            }
+            else {
+<span class="cstat-no" title="statement not covered" >                return e;</span>
+            }
+        });
+    }
+    /**
+     * The cumulative product along the given axis.
+     * @param {number} axis
+     * @param {string} dtype
+     * @return {number | tndarray}
+     */
+    cumprod(axis, dtype) {
+        return this.accum_map((acc, b) =&gt; acc * b, axis, 1, dtype);
+    }
+    /**
+     * The cumulative sum of the array along the given axis.
+     * @param {number} axis
+     * @param {string} dtype
+     */
+    cumsum(axis, dtype) {
+        return this.accum_map((acc, b) =&gt; acc + b, axis, undefined, dtype);
+    }
+<span class="fstat-no" title="function not covered" >    di</span>agonal() { }
+<span class="fstat-no" title="function not covered" >    do</span>t() { }
+    /**
+     * Fill the array with value, in-place.
+     * @param {number} value  - The value to fill the array with
+     * @return {tndarray}     - The filled array.
+     */
+<span class="fstat-no" title="function not covered" >    fi</span>ll(value) {
+<span class="cstat-no" title="statement not covered" >        for (let i = 0; i &lt; this.data.length; i++) {</span>
+<span class="cstat-no" title="statement not covered" >            this.data[i] = value;</span>
+        }
+<span class="cstat-no" title="statement not covered" >        return this;</span>
+    }
+<span class="fstat-no" title="function not covered" >    fl</span>atten() { }
+    /**
+     * Returns the maximum element of the array.
+     * @param {number} axis
+     * @return {number}
+     */
+    max(axis) {
+        return this.apply_to_axis(e =&gt; Math.max(...e), axis);
+    }
+    /**
+     * Calculate the mean of the array.
+     * @param {number} axis
+     */
+    mean(axis) {
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (axis === undefined) {
+            return this.sum() / this.length;
+        }
+        else {
+<span class="cstat-no" title="statement not covered" >            return tndarray._div(this.sum(axis), this.shape[axis]);</span>
+        }
+    }
+    /**
+     * Returns the minimum element of the array along the specified axis.
+     * @param {number} axis
+     * @return {number}
+     */
+    min(axis) {
+        return this.apply_to_axis(e =&gt; Math.min(...e), axis);
+    }
+    /**
+     * Returns the indices of the nonzero elements of the array.
+     */
+    nonzero() {
+        let indices = [];
+        for (let index of this._index_iterator()) {
+            const real_value = this._compute_real_index(index);
+            if (this.data[real_value] !== 0) {
+                indices.push(index);
+            }
+        }
+        return indices;
+    }
+<span class="fstat-no" title="function not covered" >    pa</span>rtition() { }
+    /**
+     * Compute an element-wise power.
+     * @param {number} exp
+     */
+    power(exp) {
+        return this.map(e =&gt; Math.pow(e, exp));
+    }
+<span class="fstat-no" title="function not covered" >    pr</span>od() { }
+    /**
+     * Create a copy of this with a different shape.
+     * @param {Uint32Array} new_shape - The shape to make the new array.
+     * @return {tndarray}             - The reshaped array.
+     */
+    reshape(...new_shape) {
+        let shape;
+        if (utils_1.utils.is_numeric_array(new_shape[0])) {
+            // @ts-ignore
+            shape = new_shape[0];
+        }
+        else {
+            // @ts-ignore
+            shape = new_shape;
+        }
+        if (Array.isArray(shape)) {
+            shape = new Uint32Array(shape);
+        }
+        const new_size = indexing_1.indexing.compute_size(shape);
+        const size = indexing_1.indexing.compute_size(this.shape);
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (size !== new_size) {
+<span class="cstat-no" title="statement not covered" >            throw new errors.BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${shape}`);</span>
+        }
+        let value_iter = this._value_iterator();
+        return tndarray.from_iterable(value_iter, shape, this.dtype);
+    }
+<span class="fstat-no" title="function not covered" >    ro</span>und() { }
+<span class="fstat-no" title="function not covered" >    so</span>rt() { }
+<span class="fstat-no" title="function not covered" >    sq</span>ueeze() { }
+    /**
+     * Return the standard deviation along the specified axis.
+     * @param {number} axis
+     * @return {number}
+     */
+    stdev(axis) {
+        const mean = this.mean(axis);
+        const squared_values = this.power(2);
+        const mean_of_squares = squared_values.mean(axis);
+        const squared_mean = tndarray._power(mean, 2);
+        const difference = tndarray._sub(mean_of_squares, squared_mean);
+        const result = tndarray._power(difference, 0.5);
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (axis === undefined) {
+            return result.data[0];
+        }
+        else {
+<span class="cstat-no" title="statement not covered" >            return result;</span>
+        }
+    }
+    /**
+     * Return the variance along the specified axis.
+     * @param {number} axis
+     * @return {tndarray | number}
+     */
+<span class="fstat-no" title="function not covered" >    va</span>riance(axis) {
+        const std = <span class="cstat-no" title="statement not covered" >this.stdev(axis);</span>
+        const result = <span class="cstat-no" title="statement not covered" >tndarray._power(std, 0.5);</span>
+<span class="cstat-no" title="statement not covered" >        if (axis === undefined) {</span>
+<span class="cstat-no" title="statement not covered" >            return result.data[0];</span>
+        }
+        else {
+<span class="cstat-no" title="statement not covered" >            return result;</span>
+        }
+    }
+    /**
+     * Sum the entries of the array along the specified axis.
+     * @param {number} axis
+     * @return {number}
+     */
+    sum(axis) {
+        return this.reduce((a, e) =&gt; a + e, axis);
+    }
+<span class="fstat-no" title="function not covered" >    tr</span>ace() { }
+    /**
+     * Drop any dimensions that equal 1.
+     * @return {tndarray}
+     */
+    drop_unit_dimensions() {
+        // Drop extra dimensions.
+        let flattened_shape = [];
+        let flattened_stride = [];
+        let flattened_offset = [];
+        this.shape.forEach((e, i) =&gt; {
+            if (e &gt; 1) {
+                flattened_shape.push(e);
+                flattened_stride.push(this.stride[i]);
+                flattened_offset.push(this.offset[i]);
+            }
+        });
+        const size = indexing_1.indexing.compute_size(flattened_shape);
+        const new_shape = new Uint32Array(flattened_shape);
+        const new_offset = new Uint32Array(flattened_offset);
+        const new_stride = new Uint32Array(flattened_stride);
+        const view = new tndarray(this.data, new_shape, new_offset, new_stride, new_stride, size, this.dtype, true);
+        return view;
+    }
+    /**
+     * Return a slice of an array. Copies the underlying data.
+     * @param indices
+     */
+<span class="fstat-no" title="function not covered" >    c_</span>slice(...indices) {
+    }
+    /**
+     * Return a slice of an array. Does not copy the underlying data. Does not drop dimensions.
+     * @param indices
+     */
+    slice(...indices) {
+        // Handle empty inputs.
+        // @ts-ignore
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (indices.length === 1 &amp;&amp; !utils_1.utils.is_numeric(indices[0]) &amp;&amp; indices[0].length === 0) {
+<span class="cstat-no" title="statement not covered" >            return this;</span>
+        }
+        const positive_indices = indexing_1.indexing.convert_negative_indices(indices, this.shape);
+        let start = new Uint32Array(this.shape.length);
+        let end = this.shape.slice();
+        let steps = new Uint32Array(this.shape.length);
+        let dims_to_drop = new Set();
+        steps.fill(1);
+        let initial_offset = this.initial_offset;
+        let i = 0;
+        for (let index of positive_indices) {
+            if (index === null) {
+            }
+            else if (utils_1.utils.is_numeric(index)) {
+                start[i] = index;
+                end[i] = index + 1;
+                dims_to_drop.add(i);
+                // initial_offset += index * this.dstride[i];
+            }
+            else if (index.length === 2) {
+                start[i] = index[0];
+                end[i] = index[1];
+            }
+            else <span class="missing-if-branch" title="else path not taken" >E</span>if (index.length === 3) {
+                start[i] = index[0];
+                end[i] = index[1];
+                steps[i] = index[2];
+            }
+            else {
+<span class="cstat-no" title="statement not covered" >                throw new Error(`Arguments to slice were wrong: ${positive_indices}. Broke on ${index}.`);</span>
+            }
+            i += 1;
+        }
+        const new_shape = indexing_1.indexing.new_shape_from_slice(start, end, steps);
+        const size = indexing_1.indexing.compute_size(new_shape);
+        const offset = start.map((e, j) =&gt; e + this.offset[j]);
+        const stride = steps.map((e, j) =&gt; e * this.stride[j]);
+        initial_offset += start.reduce((acc, e, j) =&gt; acc + e * this.stride[j], 0);
+        const filt = (e, j) =&gt; !dims_to_drop.has(j);
+        const new_stride = stride.filter(filt);
+        const new_dstride = this.dstride.filter(filt);
+        const view = new tndarray(this.data, new_shape.filter(filt), offset.filter(filt), new_stride, new_dstride, size, this.dtype, true, initial_offset);
+        return view;
+    }
+    /**
+     * Get the value at the given index.
+     * @param indices
+     * @return {number}
+     */
+    g(...indices) {
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (indices.length !== this.shape.length) {
+<span class="cstat-no" title="statement not covered" >            throw new Error(`Need more dimensions.`);</span>
+        }
+        const positive_indices = indexing_1.indexing.convert_negative_indices(indices, this.shape);
+        const real_index = this._compute_real_index(positive_indices);
+        return this.data[real_index];
+    }
+    /**
+     * Set an element of the array.
+     * @param values
+     * @param indices
+     */
+    s(values, ...indices) {
+        if (indexing_1.indexing.checks_indices_are_single_index(...indices) &amp;&amp; indices.length === this.shape.length) {
+            <span class="missing-if-branch" title="if path not taken" >I</span>if (!utils_1.utils.is_numeric(values)) {
+<span class="cstat-no" title="statement not covered" >                throw new Error(`Bad dimensions for broadcasting.`);</span>
+            }
+            const positive_indices = indexing_1.indexing.convert_negative_indices(indices, this.shape);
+            const real_index = this._compute_real_index(positive_indices);
+            this.data[real_index] = values;
+            return;
+        }
+        const view = this.slice(...indices);
+        let b_array = tndarray._upcast_to_tndarray(values);
+        // Check that shapes are compatible.
+        const difference = view.shape.length - b_array.shape.length;
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (difference &lt; 0) {
+<span class="cstat-no" title="statement not covered" >            throw new Error(`Bad dimensions for broadcasting. a: ${view.shape}, b: ${b_array.shape}`);</span>
+        }
+        for (let i = 0; i &lt; b_array.shape.length; i++) {
+            <span class="missing-if-branch" title="if path not taken" >I</span>if (b_array.shape[i] !== view.shape[i + difference] &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >b_array.shape[i] !== 1)</span> {
+<span class="cstat-no" title="statement not covered" >                throw new Error(`Bad dimensions for broadcasting. a: ${view.shape}, b: ${b_array.shape}`);</span>
+            }
+        }
+        const iterator = utils_1.utils.zip_longest(view._real_index_iterator(), b_array._real_index_iterator());
+        for (let [a_index, b_index] of iterator) {
+            view.data[a_index] = b_array.data[b_index];
+        }
+    }
+    /**
+     * Returns the negation of this array.
+     */
+<span class="fstat-no" title="function not covered" >    ne</span>g() {
+        const new_data = <span class="cstat-no" title="statement not covered" >this.data.map(<span class="fstat-no" title="function not covered" >x </span>=&gt; <span class="cstat-no" title="statement not covered" >-x)</span>;</span>
+<span class="cstat-no" title="statement not covered" >        return tndarray.array(new_data, this.shape, { disable_checks: true, dtype: this.dtype });</span>
+    }
+    /**
+     * Map the array.
+     * @param f
+     * @param {number} axis
+     * @return {tndarray}
+     */
+    map(f, axis) {
+        const new_data = this.data.map(f);
+        return tndarray.array(new_data, this.shape, { disable_checks: true, dtype: this.dtype });
+    }
+    /**
+     * Subtract a broadcastable value from this.
+     * @param {Broadcastable} b - Value to subtract.
+     * @return {number | tndarray}
+     */
+<span class="fstat-no" title="function not covered" >    su</span>b(b) {
+<span class="cstat-no" title="statement not covered" >        return tndarray._sub(this, b);</span>
+    }
+    /**
+     * Accumulating map over the entire array or along a particular axis.
+     * If no axis is provided a flat array is returned.
+     * Otherwise the shape of the result is the same as the shape of the original array.
+     * @param f - Function to use.
+     * @param {number} axis - Axis to map over.
+     * @param {number} start  - Initial value.
+     * @param {string} dtype  - Dtype of the result array.
+     * @return {tndarray | number}
+     */
+    accum_map(f, axis, start, dtype) {
+        dtype = dtype === undefined ? this.dtype : <span class="branch-1 cbranch-no" title="branch not covered" >dtype;</span>
+        let new_array;
+        if (axis === undefined) {
+            // TODO: Views: Use size of view.
+            new_array = tndarray.zeros(this.length, dtype);
+            let first_value;
+            if (start !== undefined) {
+                new_array.data[0] = start;
+            }
+            let previous_index = 0;
+            let index_in_new = 0;
+            for (let index of this._real_index_iterator()) {
+                new_array.data[index_in_new] = f(new_array.data[previous_index], this.data[index]);
+                previous_index = index_in_new;
+                index_in_new += 1;
+            }
+        }
+        else {
+            const [lower, upper, steps] = this._slice_for_axis(axis);
+            new_array = tndarray.zeros(this.shape, dtype);
+            const step_along_axis = this.stride[axis];
+            for (let index of this._real_index_iterator(lower, upper, steps)) {
+                let first_value;
+                if (start !== undefined) {
+                    first_value = f(start, this.data[index]);
+                }
+                else {
+                    first_value = this.data[index];
+                }
+                new_array.data[index] = first_value;
+                let previous_index = index;
+                for (let i = 1; i &lt; this.shape[axis]; i++) {
+                    const new_index = index + i * step_along_axis;
+                    new_array.data[new_index] = f(new_array.data[previous_index], this.data[new_index]);
+                    previous_index = new_index;
+                }
+            }
+        }
+        return new_array;
+    }
+    /**
+     * Apply the given function along the given axis.
+     * @param {(a: (TypedArray | number[])) =&gt; any} f
+     * @param {number} axis
+     * @param {string} dtype
+     * @return {tndarray | number}
+     */
+    apply_to_axis(f, axis, dtype) {
+        dtype = dtype === undefined ? this.dtype : <span class="branch-1 cbranch-no" title="branch not covered" >dtype;</span>
+        if (axis === undefined) {
+            return f(this.data);
+        }
+        else {
+            const new_shape = indexing_1.indexing.new_shape_from_axis(this.shape, axis);
+            let new_array = tndarray.zeros(new_shape, dtype);
+            const step_along_axis = this.stride[axis];
+            for (let [old_index, new_index] of this._true_index_iterator_over_axes(axis)) {
+                let axis_values = [];
+                for (let i = 0; i &lt; this.shape[axis]; i++) {
+                    axis_values.push(this.data[old_index + i * step_along_axis]);
+                }
+                new_array.data[new_index] = f(axis_values);
+            }
+            return new_array;
+        }
+    }
+    /**
+     * Reduce the array over the specified axes with the specified function.
+     * @param {(number, number, number?, array?) =&gt; number} f
+     * @param {number} axis
+     * @param {string} dtype
+     */
+    reduce(f, axis, dtype) {
+        dtype = dtype === undefined ? this.dtype : <span class="branch-1 cbranch-no" title="branch not covered" >dtype;</span>
+        if (axis === undefined) {
+            return this.data.reduce(f);
+        }
+        else {
+            const new_shape = indexing_1.indexing.new_shape_from_axis(this.shape, axis);
+            let new_array = tndarray.zeros(new_shape, dtype);
+            const step_along_axis = this.stride[axis];
+            for (let [old_index, new_index] of this._true_index_iterator_over_axes(axis)) {
+                let accum = this.data[old_index];
+                for (let i = 1; i &lt; this.shape[axis]; i++) {
+                    accum = f(accum, this.data[old_index + i * step_along_axis]);
+                }
+                new_array.data[new_index] = accum;
+            }
+            return new_array;
+        }
+    }
+    /**
+     * Return true if this array equals the passed array, false otherwise.
+     * @param {tndarray} a  - The array to compare against.
+     * @return {boolean}
+     */
+    equals(a) {
+        return tndarray.equals(this, a);
+    }
+    /**
+     * Computes the index of a value in the underlying data array based on a passed index.
+     * @param indices
+     * @return {number} - The index
+     * @private
+     */
+    _compute_real_index(indices) {
+        return indexing_1.indexing.index_in_data(indices, this.stride, this.initial_offset);
+    }
+    /**
+     * Convert a broadcastable value to a tndarray.
+     * @param {Broadcastable} value - The value to convert. Numbers will be converted to 1x1 tndarrays, TypedArrays will be 1xn, and tndarrays will be left alone.
+     * @return {tndarray}           - The resulting tndarray.
+     * @private
+     */
+    static _upcast_to_tndarray(value) {
+        let a_array;
+        if (utils_1.utils.is_numeric(value)) {
+            a_array = tndarray.array(new Float64Array([value]), new Uint32Array([1]), { disable_checks: true });
+        }
+        else <span class="missing-if-branch" title="if path not taken" >I</span>if (utils_1.utils.is_typed_array(value)) {
+<span class="cstat-no" title="statement not covered" >            a_array = tndarray.array(value, new Uint32Array([value.length]), { disable_checks: true });</span>
+        }
+        else {
+            a_array = value;
+        }
+        return a_array;
+    }
+    /**
+     * Broadcast two values together.
+     * Works like numpy broadcasting.
+     * @param {Broadcastable} a - The first broadcastable value.
+     * @param {Broadcastable} b - The second broadcastable value.
+     * @return {[IterableIterator&lt;number[]&gt;, Uint32Array, string]}  - An iterator over that returns a tuple (a_i, b_i) of broadcasted values, the new shape, and the new dtype.
+     * @private
+     */
+    static _broadcast_by_index(a, b) {
+        let a_array = tndarray._upcast_to_tndarray(a);
+        let b_array = tndarray._upcast_to_tndarray(b);
+        const new_dimensions = indexing_1.indexing.calculate_broadcast_dimensions(a_array.shape, b_array.shape);
+        const new_dtype = utils_1.utils._dtype_join(a_array.dtype, b_array.dtype);
+        let index_iter = indexing_1.indexing.slice_iterator(new_dimensions);
+        const iterator = utils_1.utils.zip_longest(a_array._real_index_iterator(), b_array._real_index_iterator(), index_iter);
+        let iter = {};
+        iter[Symbol.iterator] = function* () {
+            for (let [a_index, b_index, index] of iterator) {
+                const a_val = a_array.data[a_index];
+                const b_val = b_array.data[b_index];
+                yield [a_val, b_val, index];
+            }
+        };
+        return [iter, new_dimensions, new_dtype];
+    }
+    /**
+     * Apply a binary function to two broadcastables.
+     * @param {Broadcastable} a - The first argument to f.
+     * @param {Broadcastable} b - The second argument to f.
+     * @param {(a: number, b: number) =&gt; number} f  - The function to apply.
+     * @param {string} dtype  - Optional forced data type.
+     * @return {tndarray}  - The result of applying f to a and b.
+     * @private
+     */
+    static _binary_broadcast(a, b, f, dtype) {
+        let [iter, shape, new_dtype] = tndarray._broadcast_by_index(a, b);
+        if (dtype === undefined) {
+            dtype = new_dtype;
+        }
+        let new_array = tndarray.filled(0, shape, dtype);
+        for (let [a_val, b_val, index] of iter) {
+            const new_val = f(a_val, b_val);
+            new_array.s(new_val, ...index);
+        }
+        return new_array;
+    }
+    /**
+     * Compute lower, upper, and steps for a slice of `full_array` along `axis`.
+     * @param {number} axis
+     * @return {[Uint32Array, Uint32Array, Uint32Array]}  - [lower, upper, steps]
+     * @private
+     */
+    _slice_for_axis(axis) {
+        let lower = new Uint32Array(this.shape.length);
+        let upper = this.shape.slice(0);
+        let steps = new Uint32Array(this.shape.length);
+        steps.fill(1);
+        upper[axis] = 1;
+        return [lower, upper, steps];
+    }
+    /**
+     * Return an iterator over real indices of the old array and real indices of the new array.
+     * @param {number} axis
+     * @return {Iterable&lt;number[]&gt;}
+     * @private
+     */
+    _true_index_iterator_over_axes(axis) {
+        const new_shape = indexing_1.indexing.new_shape_from_axis(this.shape, axis);
+        let new_array = tndarray.zeros(new_shape, this.dtype);
+        let [lower, upper, steps] = this._slice_for_axis(axis);
+        let old_iter = this._real_index_iterator(lower, upper, steps)[Symbol.iterator]();
+        let new_iter = new_array._real_index_iterator()[Symbol.iterator]();
+        return utils_1.utils.zip_iterable(old_iter, new_iter);
+    }
+    // TODO: Make recursive
+    /**
+     * Create an iterator over the real indices of the array.
+     * Equivalent to calling _compute_real_index on result of _slice_iterator, but faster.
+     * @param {Uint32Array} lower_or_upper
+     * @param {Uint32Array} upper_bounds
+     * @param {Uint32Array} steps
+     * @return {Iterable&lt;number&gt;}
+     * @private
+     */
+    _real_index_iterator(lower_or_upper, upper_bounds, steps) {
+        if (lower_or_upper === undefined) {
+            lower_or_upper = this.shape;
+        }
+        if (steps === undefined) {
+            steps = new Uint32Array(lower_or_upper.length);
+            steps.fill(1);
+        }
+        if (upper_bounds === undefined) {
+            upper_bounds = lower_or_upper;
+            lower_or_upper = new Uint32Array(upper_bounds.length);
+        }
+        let iter = {};
+        const upper_inclusive = upper_bounds.map(e =&gt; e - 1);
+        const start = this._compute_real_index(lower_or_upper);
+        const step = this.stride[this.stride.length - 1];
+        const end = this._compute_real_index(upper_inclusive);
+        const index_stride = this.stride.slice(0, -1);
+        let starting_indices = indexing_1.indexing.slice_iterator(lower_or_upper.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
+        iter[Symbol.iterator] = function* () {
+            for (let starting_index of starting_indices) {
+                let current_index = utils_1.utils.dot(starting_index, index_stride) + start;
+                while (current_index &lt;= end) {
+                    yield current_index;
+                    current_index += step;
+                }
+            }
+        };
+        return iter;
+    }
+    /**
+     * Returns an iterator over the indices of the array.
+     * @private
+     */
+    _index_iterator() {
+        return indexing_1.indexing.slice_iterator(this.offset, this.shape);
+    }
+    /**
+     * TODO: Test
+     * Returns a generator of the values of the array, in index order.
+     * @private
+     */
+    _value_iterator(lower_or_upper, upper_bounds, steps) {
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (lower_or_upper === undefined) {
+            lower_or_upper = this.shape;
+        }
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (steps === undefined) {
+            steps = new Uint32Array(lower_or_upper.length);
+            steps.fill(1);
+        }
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (upper_bounds === undefined) {
+            upper_bounds = lower_or_upper;
+            lower_or_upper = new Uint32Array(upper_bounds.length);
+        }
+        const index_iterator = indexing_1.indexing.slice_iterator(lower_or_upper, upper_bounds, steps);
+        let iter = {};
+        // Alas, generators are dynamically scoped.
+        const self = this;
+        iter[Symbol.iterator] = function* () {
+            for (let index of index_iterator) {
+                yield self.g(...index);
+            }
+        };
+        return iter;
+    }
+    /**
+     * Create an n-dimensional array from an iterable.
+     * @param iterable
+     * @param shape
+     * @param {string} dtype
+     * @return {tndarray}
+     */
+    static from_iterable(iterable, shape, dtype) {
+        const final_shape = indexing_1.indexing.compute_shape(shape);
+        const size = indexing_1.indexing.compute_size(final_shape);
+        const array_type = utils_1.utils.dtype_map(dtype);
+        const index_iterator = indexing_1.indexing.slice_iterator(final_shape);
+        const val_gen = iterable[Symbol.iterator]();
+        let data = new array_type(size);
+        const stride = indexing_1.indexing.stride_from_shape(final_shape);
+        const initial_offset = 0;
+        let i = 0;
+        for (let index of index_iterator) {
+            const real_index = indexing_1.indexing.index_in_data(index, stride, initial_offset);
+            let val = val_gen.next();
+            data[real_index] = val.value;
+        }
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (data.length !== size) {
+<span class="cstat-no" title="statement not covered" >            throw new errors.MismatchedShapeSize(`Iterable passed has size ${data.length}. Size expected from shape was: ${size}`);</span>
+        }
+        return tndarray.array(data, final_shape, { disable_checks: true, dtype: dtype });
+    }
+    /**
+     * Produces an array of the desired shape filled with a single value.
+     * @param {number} value                - The value to fill in.
+     * @param shape - A numerical array or a number. If this is a number a one-dimensional array of that length is produced.
+     * @param {string} dtype                - The data type to use for the array. float64 by default.
+     * @return {tndarray}
+     */
+    static filled(value, shape, dtype) {
+        const final_shape = indexing_1.indexing.compute_shape(shape);
+        const size = indexing_1.indexing.compute_size(final_shape);
+        const array_type = utils_1.utils.dtype_map(dtype);
+        const data = new array_type(size).fill(value);
+        return tndarray.array(data, final_shape, { disable_checks: true, dtype: dtype });
+    }
+    /**
+     * Create a tndarray containing the specified data
+     * @param data
+     * @param shape
+     * @param options
+     * @return {tndarray}
+     */
+    static array(data, shape, options) {
+        let final_shape;
+        let size;
+        let dtype;
+        if (shape === undefined) {
+            shape = new Uint32Array([data.length]);
+        }
+        if (options &amp;&amp; options.dtype) {
+            dtype = options.dtype;
+        }
+        if (options &amp;&amp; options.disable_checks === true) {
+            final_shape = shape;
+            size = indexing_1.indexing.compute_size(shape);
+        }
+        else {
+            if (!utils_1.utils.is_numeric_array(data)) {
+                throw new errors.BadData();
+            }
+            if (shape === undefined || shape === null) {
+                final_shape = new Uint32Array([data.length]);
+            }
+            else {
+                final_shape = indexing_1.indexing.compute_shape(shape);
+            }
+            // Compute length
+            size = indexing_1.indexing.compute_size(final_shape);
+            if (size !== data.length) {
+                throw new errors.MismatchedShapeSize();
+            }
+        }
+        const stride = indexing_1.indexing.stride_from_shape(final_shape);
+        const offset = new Uint32Array(final_shape.length);
+        const dstride = stride.slice();
+        return new tndarray(data, final_shape, offset, stride, dstride, size, dtype);
+    }
+    /**
+     * Return an array of the specified size filled with zeroes.
+     * Equivalent to `tndarray.filled`, but slightly faster.
+     * @param {number} shape
+     * @param {string} dtype
+     * @return {tndarray}
+     */
+    static zeros(shape, dtype) {
+        const final_shape = indexing_1.indexing.compute_shape(shape);
+        const size = indexing_1.indexing.compute_size(final_shape);
+        const array_type = utils_1.utils.dtype_map(dtype);
+        const data = new array_type(size);
+        return tndarray.array(data, final_shape, { disable_checks: true, dtype: dtype });
+    }
+    /**
+     *
+     * @param {Broadcastable} a -
+     * @param {Broadcastable} b -
+     * @returns {tndarray}      -
+     */
+    static broadcast_matmul(a, b) {
+        let a_array = tndarray._upcast_to_tndarray(a);
+        let b_array = tndarray._upcast_to_tndarray(b);
+        const a_shape = a_array.shape;
+        const b_shape = b_array.shape;
+        // Check they can actually be multiplied.
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (a_shape[a_shape.length - 1] !== b_shape[b_shape.length - 2]) {
+<span class="cstat-no" title="statement not covered" >            throw new Error(`Shapes ${a_shape} and ${b_shape} are not aligned for matrix multiplication.`);</span>
+        }
+        const broadcast = indexing_1.indexing.calculate_broadcast_dimensions(a_array.shape.slice(0, -2), b_array.shape.slice(0, -2));
+        const new_dimensions = new Uint32Array([...broadcast,
+            a_shape[a_shape.length - 2],
+            b_shape[b_shape.length - 1]
+        ]);
+        if (new_dimensions.length === 2) {
+            return tndarray.matmul_2d(a_array, b_array);
+        }
+        else {
+            const new_dtype = utils_1.utils._dtype_join(a_array.dtype, b_array.dtype);
+            let array = tndarray.zeros(new_dimensions, new_dtype);
+            const index_iter = indexing_1.indexing.slice_iterator(new_dimensions.slice(0, -2));
+            const a_iter = indexing_1.indexing.slice_iterator(a_shape.slice(0, -2));
+            const b_iter = indexing_1.indexing.slice_iterator(b_shape.slice(0, -2));
+            const iter = utils_1.utils.zip_longest(a_iter, b_iter, index_iter);
+            for (let [a_index, b_index, index] of iter) {
+                const slice = indexing_1.indexing.index_to_slice(index);
+                const b1 = b_array.slice(...b_index);
+                const a1 = a_array.slice(...a_index);
+                const subarray = tndarray.matmul_2d(a1, b1);
+                array.s(subarray, ...slice);
+            }
+            return array;
+        }
+    }
+    /**
+     * Multiply two 2D matrices.
+     * Computes a x b.
+     * @param {tndarray} a  - The first array. Must be m x n.
+     * @param {tndarray} b  - The second array. Must be n x p.
+     * @returns {tndarray}  - The matrix product.
+     */
+    static matmul_2d(a, b) {
+        const new_shape = new Uint32Array([a.shape[0], b.shape[1]]);
+        let iter = {
+            [Symbol.iterator]: function* () {
+                for (let i = 0; i &lt; new_shape[0]; i++) {
+                    for (let j = 0; j &lt; new_shape[1]; j++) {
+                        const a_vec = a.slice(i);
+                        const b_vec = b.slice(null, j);
+                        let x = tndarray.dot(a_vec, b_vec);
+                        debugger;
+                        yield x;
+                    }
+                }
+            }
+        };
+        return tndarray.from_iterable(iter, new_shape);
+    }
+    // TODO: Generalize to an inner product.
+    // TODO: This is numerically unstable.
+    /**
+     * Compute the dot product of two arrays.
+     * @param {tndarray} a
+     * @param {tndarray} b
+     * @return {number}
+     */
+    static dot(a, b) {
+        let acc = 0;
+        let a_iter = a._value_iterator();
+        let b_iter = b._value_iterator();
+        for (let [a_val, b_val] of utils_1.utils.zip_iterable(a_iter[Symbol.iterator](), b_iter[Symbol.iterator]())) {
+            acc += a_val * b_val;
+        }
+        return acc;
+    }
+    // TODO: Broadcasting
+    /**
+     * Create an array containing the element-wise max of the inputs.
+     * Inputs must be the same shape.
+     * @param {tndarray} a  - First array.
+     * @param {tndarray} b  - Second array.
+     * @return {tndarray}   - An array with the same shape as a and b. Its entries are the max of the corresponding entries of a and b.
+     */
+<span class="fstat-no" title="function not covered" >    st</span>atic take_max(a, b) {
+<span class="cstat-no" title="statement not covered" >        return tndarray._binary_broadcast(a, b, <span class="fstat-no" title="function not covered" >(x</span>, y) =&gt; <span class="cstat-no" title="statement not covered" >Math.max(x, y))</span>;</span>
+    }
+    // TODO: Broadcasting
+    /**
+     * Create an array containing the element-wise min of the inputs.
+     * Inputs must be the same shape.
+     * @param {tndarray} a  - First array.
+     * @param {tndarray} b  - Second array.
+     * @return {tndarray}   - An array with the same shape as a and b. Its entries are the min of the corresponding entries of a and b.
+     */
+<span class="fstat-no" title="function not covered" >    st</span>atic take_min(a, b) {
+<span class="cstat-no" title="statement not covered" >        return tndarray._binary_broadcast(a, b, <span class="fstat-no" title="function not covered" >(x</span>, y) =&gt; <span class="cstat-no" title="statement not covered" >Math.min(x, y))</span>;</span>
+    }
+    // TODO: Type upcasting.
+    /**
+     * Compute the sum of two arrays.
+     * output[i] = a[i] + [i].
+     * @param a
+     * @param b
+     * @return {number | tndarray}
+     */
+    static _add(a, b) {
+        return tndarray._binary_broadcast(a, b, (x, y) =&gt; x + y);
+    }
+    /**
+     * Subtract an array from another.
+     * output[i] = a[i] - b[i].
+     * @param {Broadcastable} a - The minuend.
+     * @param {Broadcastable} b - The subtrahend.
+     * @return {Broadcastable} - The element-wise difference.
+     */
+    static _sub(a, b) {
+        return tndarray._binary_broadcast(a, b, (x, y) =&gt; x - y);
+    }
+    /**
+     * Compute the Hadamard product of two arrays, i.e. the element-wise product of the two arrays.
+     * output[i] = a[i] * b[i].
+     * @param {Broadcastable} a - First factor.
+     * @param {Broadcastable} b - Second factor.
+     * @return {Broadcastable} - The element-wise product of the two inputs.
+     */
+    static _mult(a, b) {
+        return tndarray._binary_broadcast(a, b, (x, y) =&gt; x * y);
+    }
+    /**
+     * Compute the element-wise quotient of the two inputs.
+     * output[i] = a[i] / b[i].
+     * @param {Broadcastable} a - Dividend array.
+     * @param {Broadcastable} b - Divisor array.
+     * @return {Broadcastable}  - Quotient array.
+     */
+    static _div(a, b) {
+        return tndarray._binary_broadcast(a, b, (x, y) =&gt; x / y, "float64");
+    }
+    /**
+     * Compute the element-wise power of two inputs
+     * @param {Broadcastable} a - Base array.
+     * @param {Broadcastable} b - Exponent array.
+     * @return {tndarray}       - Result array.
+     * @private
+     */
+    static _power(a, b) {
+        return tndarray._binary_broadcast(a, b, (x, y) =&gt; Math.pow(x, y), "float64");
+    }
+    /**
+     * Compute the element-wise quotient of two arrays, rounding values up to the nearest integer.
+     * @param {Broadcastable} a - Dividend array.
+     * @param {Broadcastable} b - Divisor array.
+     * @return {Broadcastable}  - Quotient array.
+     */
+    static _cdiv(a, b) {
+        return tndarray._binary_broadcast(a, b, (x, y) =&gt; Math.ceil(x / y));
+    }
+    /**
+     * Compute the element-wise quotient of two arrays, rounding values down to the nearest integer.
+     * @param {Broadcastable} a - Dividend array.
+     * @param {Broadcastable} b - Divisor array.
+     * @return {tndarray}       - Quotient array.
+     */
+    static _fdiv(a, b) {
+        return tndarray._binary_broadcast(a, b, (x, y) =&gt; Math.floor(x / y));
+    }
+    /**
+     * Compute element-wise modulus of two arrays.
+     * @param {Broadcastable} a - First array.
+     * @param {Broadcastable} b - Second array.
+     * @return {tndarray}       - Modulus array.
+     */
+    static _mod(a, b) {
+        return tndarray._binary_broadcast(a, b, (x, y) =&gt; x % y);
+    }
+    /**
+     * Compute element-wise less than.
+     * @param {tndarray} a
+     * @param {tndarray} b
+     */
+<span class="fstat-no" title="function not covered" >    st</span>atic _lt(a, b) {
+<span class="cstat-no" title="statement not covered" >        return tndarray._binary_broadcast(a, b, <span class="fstat-no" title="function not covered" >(x</span>, y) =&gt; <span class="cstat-no" title="statement not covered" >+(x &lt; y),</span> "uint8");</span>
+    }
+    /**
+     * Compute element-wise greater than.
+     * @param {tndarray} a
+     * @param {tndarray} b
+     */
+<span class="fstat-no" title="function not covered" >    st</span>atic _gt(a, b) {
+<span class="cstat-no" title="statement not covered" >        return tndarray._binary_broadcast(a, b, <span class="fstat-no" title="function not covered" >(x</span>, y) =&gt; <span class="cstat-no" title="statement not covered" >+(x &gt; y),</span> "uint8");</span>
+    }
+    /**
+     * Compute element-wise less than or equal to.
+     * @param {Broadcastable} a
+     * @param {Broadcastable} b
+     */
+<span class="fstat-no" title="function not covered" >    st</span>atic _le(a, b) {
+<span class="cstat-no" title="statement not covered" >        return tndarray._binary_broadcast(a, b, <span class="fstat-no" title="function not covered" >(x</span>, y) =&gt; <span class="cstat-no" title="statement not covered" >+(x &lt;= y),</span> "uint8");</span>
+    }
+    /**
+     * Compute element-wise greater than or equal to.
+     * @param {Broadcastable} a
+     * @param {Broadcastable} b
+     */
+<span class="fstat-no" title="function not covered" >    st</span>atic _ge(a, b) {
+<span class="cstat-no" title="statement not covered" >        return tndarray._binary_broadcast(a, b, <span class="fstat-no" title="function not covered" >(x</span>, y) =&gt; <span class="cstat-no" title="statement not covered" >+(x &gt;= y),</span> "uint8");</span>
+    }
+    /**
+     * Compute element-wise not equal to.
+     * @param {Broadcastable} a
+     * @param {Broadcastable} b
+     */
+<span class="fstat-no" title="function not covered" >    st</span>atic _ne(a, b) {
+<span class="cstat-no" title="statement not covered" >        return tndarray._binary_broadcast(a, b, <span class="fstat-no" title="function not covered" >(x</span>, y) =&gt; <span class="cstat-no" title="statement not covered" >+(x !== y),</span> "uint8");</span>
+    }
+    /**
+     * Compute element-wise equality.
+     * @param {Broadcastable} a
+     * @param {Broadcastable} b
+     */
+<span class="fstat-no" title="function not covered" >    st</span>atic _eq(a, b) {
+<span class="cstat-no" title="statement not covered" >        return tndarray._binary_broadcast(a, b, <span class="fstat-no" title="function not covered" >(x</span>, y) =&gt; <span class="cstat-no" title="statement not covered" >+(x === y),</span> "uint8");</span>
+    }
+    /**
+     * Check if two n-dimensional arrays are equal.
+     * @param {tndarray} array1
+     * @param {tndarray} array2
+     * @return {boolean}
+     */
+    static equals(array1, array2) {
+        return ((array1.length === array2.length) &amp;&amp;
+            (tndarray._equal_data(array1.shape, array2.shape)) &amp;&amp;
+            (tndarray._equal_data(array1.offset, array2.offset)) &amp;&amp;
+            (tndarray._equal_data(array1.stride, array2.stride)) &amp;&amp;
+            (tndarray._equal_data(array1.dstride, array2.dstride)) &amp;&amp;
+            (array1.initial_offset === array2.initial_offset) &amp;&amp;
+            (array1.dtype === array2.dtype) &amp;&amp;
+            (tndarray._equal_data(array1, array2)));
+    }
+    /**
+     * Check if two arraylikes have the same length and the same elements.
+     * @param array1
+     * @param array2
+     * @return {boolean}  - true if the length and elements match, false otherwise.
+     * @private
+     */
+    static _equal_data(array1, array2) {
+        if (array1 instanceof tndarray) {
+            array1 = array1.data;
+        }
+        if (array2 instanceof tndarray) {
+            array2 = array2.data;
+        }
+        return ((array1.length === array2.length) &amp;&amp;
+            (array1.reduce((a, e, i) =&gt; a &amp;&amp; e === array2[i], true)));
+    }
+    /**
+     * Return a copy of a.
+     * @param {tndarray} a  - tndarray to copy.
+     * @return {tndarray}   - The copy.
+     */
+<span class="fstat-no" title="function not covered" >    st</span>atic copy(a) {
+<span class="cstat-no" title="statement not covered" >        return new tndarray(a.data.slice(0), a.shape.slice(0), a.offset.slice(0), a.stride.slice(0), a.dstride.slice(0), a.length, a.dtype);</span>
+    }
+}
+exports.tndarray = tndarray;
+//# sourceMappingURL=tndarray.js.map</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Mon Feb 11 2019 19:00:10 GMT-0500 (Eastern Standard Time)
+</div>
+</div>
+<script src="prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="sorter.js"></script>
+</body>
+</html>

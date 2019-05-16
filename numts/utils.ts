@@ -119,7 +119,7 @@ export namespace utils {
     return <Iterable<number[]>> iter;
   }
 
-// TODO: Test
+  // TODO: Test
   /**
    * Check if value is an ArrayBuffer
    * @param value

@@ -629,8 +629,6 @@ describe("Math.", function () {
         [440, 510, 580, 650],
         [536, 622, 708, 794]]
       ], "int32");
-      console.log(x);
-      console.log(expected)
       expect(expected.equals(x)).toBe(true);
     });
   });

@@ -15,7 +15,6 @@ export namespace indexing {
     return shape.reduce((a, b) => a * b);
   }
 
-
   /**
    * Compute a shape array from a shape parameter.
    * @param shape
@@ -63,6 +62,10 @@ export namespace indexing {
     return new Uint32Array(required_steps);
   }
 
+  /**
+   * 
+   * @param indices 
+   */
   export function checks_indices_are_single_index(...indices) {
     return indices.reduce((a, b) => a && utils.is_numeric(b), true);
   }

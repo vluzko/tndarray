@@ -63,6 +63,10 @@ var indexing;
         return new Uint32Array(required_steps);
     }
     indexing.new_shape_from_slice = new_shape_from_slice;
+    /**
+     *
+     * @param indices
+     */
     function checks_indices_are_single_index(...indices) {
         return indices.reduce((a, b) => a && utils_1.utils.is_numeric(b), true);
     }

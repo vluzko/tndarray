@@ -88,6 +88,11 @@ class tndarray {
     argpartition() { }
     argsort() { }
     as_type(dtype) { }
+    /**
+     * Clip all values in the array to be in the specified range.
+     * @param lower - The lower bound of the range.
+     * @param upper - The upper bound of the range.
+     */
     clip(lower, upper) {
         return this.map(e => {
             if (e < lower) {
@@ -121,7 +126,7 @@ class tndarray {
     diagonal() { }
     dot() { }
     /**
-     * Fill the array with value, in-place.
+     * Fill the array with the given value, in-place.
      * @param {number} value  - The value to fill the array with
      * @return {tndarray}     - The filled array.
      */
@@ -845,7 +850,6 @@ class tndarray {
                         const a_vec = a.slice(i);
                         const b_vec = b.slice(null, j);
                         let x = tndarray.dot(a_vec, b_vec);
-                        debugger;
                         yield x;
                     }
                 }

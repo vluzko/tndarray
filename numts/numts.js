@@ -11,8 +11,13 @@ const utils_1 = require("./utils");
  * @param b
  */
 function where(condition, a, b) {
+    throw new Error();
 }
 exports.where = where;
+function isclose(a, b, rel_tol, abs_tol) {
+    throw new Error();
+}
+exports.isclose = isclose;
 // TODO: Allow non-tndarray arrays
 // TODO: Type upcasting.
 /**

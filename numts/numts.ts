@@ -10,7 +10,11 @@ import {Shape} from "./types";
  * @param b
  */
 export function where(condition, a, b?) {
+  throw new Error();
+}
 
+export function isclose(a, b, rel_tol?, abs_tol?): tndarray {
+  throw new Error();
 }
 
 // TODO: Allow non-tndarray arrays

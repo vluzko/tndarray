@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for numts.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="prettify.css" />
+    <link rel="stylesheet" href="base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="index.html">All files</a> numts.js
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">90.91% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>60/66</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">64.29% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>9/14</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">66.67% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>8/12</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">90.91% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>60/66</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">425x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">1134x</span>
+<span class="cline-any cline-yes">1071x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">82x</span>
+<span class="cline-any cline-yes">82x</span>
+<span class="cline-any cline-yes">44x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">594x</span>
+<span class="cline-any cline-yes">594x</span>
+<span class="cline-any cline-yes">1716x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">594x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">474x</span>
+<span class="cline-any cline-yes">474x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const tndarray_1 = require("./tndarray");
+exports.tndarray = tndarray_1.tndarray;
+const indexing_1 = require("./indexing");
+const utils_1 = require("./utils");
+/**
+ * Return indices
+ * @param condition
+ * @param a
+ * @param b
+ */
+function <span class="fstat-no" title="function not covered" >where(</span>condition, a, b) {
+}
+exports.where = where;
+// TODO: Allow non-tndarray arrays
+// TODO: Type upcasting.
+/**
+ * Compute the sum of two arrays.
+ * output[i] = a[i] + [i].
+ * @param a
+ * @param b
+ * @return {number | tndarray}
+ */
+function add(a, b) {
+    return tndarray_1.tndarray._add(a, b);
+}
+exports.add = add;
+function <span class="fstat-no" title="function not covered" >div(</span>a, b) {
+<span class="cstat-no" title="statement not covered" >    return tndarray_1.tndarray._div(a, b);</span>
+}
+exports.div = div;
+function <span class="fstat-no" title="function not covered" >mult(</span>a, b) {
+<span class="cstat-no" title="statement not covered" >    return tndarray_1.tndarray._mult(a, b);</span>
+}
+exports.mult = mult;
+function <span class="fstat-no" title="function not covered" >sub(</span>a, b) {
+<span class="cstat-no" title="statement not covered" >    return tndarray_1.tndarray._sub(a, b);</span>
+}
+exports.sub = sub;
+/**
+ * Wrapper around tndarray.zeros
+ * @param {number[] | Uint32Array} shape
+ * @param {string} dtype
+ * @return {tndarray}
+ */
+function zeros(shape, dtype) {
+    return tndarray_1.tndarray.zeros(shape, dtype);
+}
+exports.zeros = zeros;
+/**
+ * Return an array of the specified size filled with ones.
+ * @param {number} shape
+ * @param {string} dtype
+ * @return {tndarray}
+ */
+function ones(shape, dtype) {
+    return tndarray_1.tndarray.filled(1, shape, dtype);
+}
+exports.ones = ones;
+/**
+ * Create a tndarray containing a range of integers.
+ * @param {number} start_or_stop  - If no other arguments are passed, the upper bound of the range (with lower bound zero). Otherwise this is the lower bound.
+ * @param {number} stop           - The upper bound of the range.
+ * @param {number} step           - The step size between elements in the range.
+ * @param {Shape} shape           - The shape to return.
+ * @return {tndarray}             - A one-dimensional array containing the range.
+ */
+function arange(start_or_stop, stop, step, shape) {
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (step === undefined) {
+        step = 1;
+    }
+    let start;
+    if (stop === undefined) {
+        stop = start_or_stop;
+        start = 0;
+    }
+    else {
+        start = start_or_stop;
+    }
+    let size = Math.abs(Math.floor((stop - start) / step));
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (shape === undefined) {
+        shape = new Uint32Array([size]);
+    }
+    else {
+        const shape_size = <span class="cstat-no" title="statement not covered" >indexing_1.indexing.compute_size(shape);</span>
+<span class="cstat-no" title="statement not covered" >        if (shape_size !== size) {</span>
+<span class="cstat-no" title="statement not covered" >            throw new Error(`Mismatch between size of range (${size}) and size of shape (${shape_size}`);</span>
+        }
+    }
+    let iter = {
+        [Symbol.iterator]: function* () {
+            let i = start;
+            while (i &lt; real_stop) {
+                yield i;
+                i += step;
+            }
+        }
+    };
+    let real_stop = stop &lt; start ? <span class="branch-0 cbranch-no" title="branch not covered" >-stop </span>: stop;
+    return tndarray_1.tndarray.from_iterable(iter, shape, "int32");
+}
+exports.arange = arange;
+/**
+ * Compute the dimensions of a nested array.
+ * @param {any[]} nested_array  - Arrays nested arbitrarily deeply. Each array of the same depth must have the same length.
+ *                                This is *not* checked.
+ * @return {Uint32Array}        - The dimensions of each subarray.
+ * @private
+ */
+function _nested_array_shape(nested_array) {
+    let dims = [];
+    let current = nested_array;
+    let at_bottom = false;
+    while (!at_bottom) {
+        dims.push(current.length);
+        if (Array.isArray(current[0])) {
+            current = current[0];
+        }
+        else {
+            at_bottom = true;
+        }
+    }
+    return new Uint32Array(dims);
+}
+exports._nested_array_shape = _nested_array_shape;
+/**
+ *
+ * @param {any[]} nested_array
+ * @param {Uint32Array} indices
+ * @return {any[]}
+ * @private
+ */
+function _nested_array_value_from_index(nested_array, indices) {
+    let current_subarray = nested_array;
+    for (let index of indices) {
+        current_subarray = current_subarray[index];
+    }
+    return current_subarray;
+}
+exports._nested_array_value_from_index = _nested_array_value_from_index;
+/**
+ * Create a tndarray from a nested array of values.
+ * @param {any[]} array - An array of arrays (nested to arbitrary depth). Each level must have the same dimension.
+ * The final level must contain valid data for a tndarray.
+ * @param {string} dtype  - The type to use for the underlying array.
+ *
+ * @return {tndarray}
+ */
+function from_nested_array(array, dtype) {
+    if (array.length === 0) {
+        return tndarray_1.tndarray.array([]);
+    }
+    const dimensions = _nested_array_shape(array);
+    let slice_iter = indexing_1.indexing.slice_iterator(dimensions);
+    const size = indexing_1.indexing.compute_size(dimensions);
+    const array_type = utils_1.utils.dtype_map(dtype);
+    const data = new array_type(size);
+    let ndarray = tndarray_1.tndarray.array(data, dimensions, { dtype: dtype, disable_checks: true });
+    for (let indices of slice_iter) {
+        const real_index = ndarray._compute_real_index(indices);
+        ndarray.data[real_index] = _nested_array_value_from_index(array, indices);
+    }
+    return ndarray;
+}
+exports.from_nested_array = from_nested_array;
+//# sourceMappingURL=numts.js.map</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Mon Feb 11 2019 19:00:10 GMT-0500 (Eastern Standard Time)
+</div>
+</div>
+<script src="prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="sorter.js"></script>
+</body>
+</html>
