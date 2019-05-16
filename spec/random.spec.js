@@ -33,16 +33,15 @@ describe("Uniform distribution.", function() {
 
 describe("Normal distribution.", function() {
   describe("Distribution tests.", function() {
-    it("Simple test", function() {
+
+    fit("Simple test", function() {
       const mean = random.uniform(-10, 10, [1]).g(0);
-      const stdev = random.uniform(-10, 10, [1]).g(0);
+      const stdev = random.uniform(0, 10, [1]).g(0);
       const array = random.normal(mean, stdev, [10000]);
       const mean_diff = Math.abs(mean - array.mean());
       const stdev_diff = Math.abs(stdev - array.stdev());
-      console.log(mean_diff);
-      console.log(stdev_diff);
-      console.log(array.stdev());
-      console.log(stdev);
+      expect(mean_diff / mean).toBeLessThan(0.01);
+      expect(stdev_diff / stdev).toBeLessThan(0.01);
     });
   });
 });

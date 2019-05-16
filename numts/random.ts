@@ -2,18 +2,7 @@ import {tndarray} from "./tndarray";
 import {indexing} from "./indexing";
 import {Shape} from "./types";
 
-export function randint(lower?: number, upper?: number, shape?: Shape): tndarray {
-  if (lower === undefined) {
-    lower = 0;
-  }
-
-  if (upper === undefined) {
-    upper = 1;
-  }
-
-  if (shape === undefined) {
-    shape = [1];
-  }
+export function randint(lower: number = 0.0, upper: number = 1.0, shape: Shape = [1]): tndarray {
 
   throw new Error();
 }

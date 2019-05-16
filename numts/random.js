@@ -2,16 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const tndarray_1 = require("./tndarray");
 const indexing_1 = require("./indexing");
-function randint(lower, upper, shape) {
-    if (lower === undefined) {
-        lower = 0;
-    }
-    if (upper === undefined) {
-        upper = 1;
-    }
-    if (shape === undefined) {
-        shape = [1];
-    }
+function randint(lower = 0.0, upper = 1.0, shape = [1]) {
     throw new Error();
 }
 exports.randint = randint;
