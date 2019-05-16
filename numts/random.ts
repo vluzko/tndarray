@@ -24,18 +24,18 @@ export function randint(lower?: number, upper?: number, shape?: Shape): tndarray
  * @param upper - The upper bound of the distribution. Defaults to 1.
  * @param shape - The shape of the array to generate. Defaults to [1].
  */
-export function uniform(lower?: number, upper?: number, shape?: Shape): tndarray {
-  if (lower === undefined) {
-    lower = 0;
-  }
+export function uniform(lower: number = 0.0, upper: number = 1.0, shape: Shape = [1]): tndarray {
+  // if (lower === undefined) {
+  //   lower = 0;
+  // }
 
-  if (upper === undefined) {
-    upper = 1;
-  }
+  // if (upper === undefined) {
+  //   upper = 1;
+  // }
 
-  if (shape === undefined) {
-    shape = [1];
-  }
+  // if (shape === undefined) {
+  //   shape = [1];
+  // }
 
   const scale_factor = upper - lower;
   const size = indexing.compute_size(shape);
@@ -58,18 +58,18 @@ export function uniform(lower?: number, upper?: number, shape?: Shape): tndarray
  * @param stdev - The standard deviation of the distribution. Defaults to 1.
  * @param shape - The shape of the array to generate. Defaults to [1].
  */
-export function normal(mean?: number, stdev?: number, shape?: Shape): tndarray {
-  if (mean === undefined) {
-    mean = 0;
-  }
+export function normal(mean: number = 0.0, stdev: number = 1.0, shape: Shape = [1]): tndarray {
+  // if (mean === undefined) {
+  //   mean = 0;
+  // }
 
-  if (stdev === undefined) {
-    stdev = 1;
-  }
+  // if (stdev === undefined) {
+  //   stdev = 1;
+  // }
 
-  if (shape === undefined) {
-    shape = [1];
-  }
+  // if (shape === undefined) {
+  //   shape = [1];
+  // }
   const layers = 128;
   const size = indexing.compute_size(shape);
   const flip = Math.random() < 0.5;

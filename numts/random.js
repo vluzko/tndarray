@@ -21,16 +21,16 @@ exports.randint = randint;
  * @param upper - The upper bound of the distribution. Defaults to 1.
  * @param shape - The shape of the array to generate. Defaults to [1].
  */
-function uniform(lower, upper, shape) {
-    if (lower === undefined) {
-        lower = 0;
-    }
-    if (upper === undefined) {
-        upper = 1;
-    }
-    if (shape === undefined) {
-        shape = [1];
-    }
+function uniform(lower = 0.0, upper = 1.0, shape = [1]) {
+    // if (lower === undefined) {
+    //   lower = 0;
+    // }
+    // if (upper === undefined) {
+    //   upper = 1;
+    // }
+    // if (shape === undefined) {
+    //   shape = [1];
+    // }
     const scale_factor = upper - lower;
     const size = indexing_1.indexing.compute_size(shape);
     let iter = {
@@ -50,16 +50,16 @@ exports.uniform = uniform;
  * @param stdev - The standard deviation of the distribution. Defaults to 1.
  * @param shape - The shape of the array to generate. Defaults to [1].
  */
-function normal(mean, stdev, shape) {
-    if (mean === undefined) {
-        mean = 0;
-    }
-    if (stdev === undefined) {
-        stdev = 1;
-    }
-    if (shape === undefined) {
-        shape = [1];
-    }
+function normal(mean = 0.0, stdev = 1.0, shape = [1]) {
+    // if (mean === undefined) {
+    //   mean = 0;
+    // }
+    // if (stdev === undefined) {
+    //   stdev = 1;
+    // }
+    // if (shape === undefined) {
+    //   shape = [1];
+    // }
     const layers = 128;
     const size = indexing_1.indexing.compute_size(shape);
     const flip = Math.random() < 0.5;
