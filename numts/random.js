@@ -2,8 +2,23 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const tndarray_1 = require("./tndarray");
 const indexing_1 = require("./indexing");
+/**
+ *
+ * @param lower - The lower bound of the distribution. Defaults to 0.
+ * @param upper - The upper bound of the distribution. Defaults to 1.
+ * @param shape - The shape of the array to generate. Defaults to [1].
+ */
 function randint(lower = 0.0, upper = 1.0, shape = [1]) {
-    throw new Error();
+    const scale_factor = upper - lower;
+    const size = indexing_1.indexing.compute_size(shape);
+    let iter = {
+        [Symbol.iterator]: function* () {
+            for (let i = 0; i < size; i++) {
+                yield Math.floor((Math.random() * scale_factor) + lower);
+            }
+        }
+    };
+    return tndarray_1.tndarray.from_iterable(iter, shape, "int32");
 }
 exports.randint = randint;
 /**
@@ -13,15 +28,6 @@ exports.randint = randint;
  * @param shape - The shape of the array to generate. Defaults to [1].
  */
 function uniform(lower = 0.0, upper = 1.0, shape = [1]) {
-    // if (lower === undefined) {
-    //   lower = 0;
-    // }
-    // if (upper === undefined) {
-    //   upper = 1;
-    // }
-    // if (shape === undefined) {
-    //   shape = [1];
-    // }
     const scale_factor = upper - lower;
     const size = indexing_1.indexing.compute_size(shape);
     let iter = {
@@ -42,18 +48,7 @@ exports.uniform = uniform;
  * @param shape - The shape of the array to generate. Defaults to [1].
  */
 function normal(mean = 0.0, stdev = 1.0, shape = [1]) {
-    // if (mean === undefined) {
-    //   mean = 0;
-    // }
-    // if (stdev === undefined) {
-    //   stdev = 1;
-    // }
-    // if (shape === undefined) {
-    //   shape = [1];
-    // }
-    const layers = 128;
     const size = indexing_1.indexing.compute_size(shape);
-    const flip = Math.random() < 0.5;
     let iter = {
         [Symbol.iterator]: function* () {
             for (let i = 0; i < size; i++) {

@@ -15,7 +15,6 @@ describe("Uniform distribution.", function() {
 
     it("n-dimensional", function() {
       let shape = helpers.random_shape(5);
-      console.log(shape);
       let array = random.uniform(0, 1, shape);
       expect(array.shape).toEqual(shape);
     })
@@ -26,6 +25,8 @@ describe("Uniform distribution.", function() {
       const lower = Number.MIN_VALUE;
       const upper = Number.MAX_VALUE;
       const array = random.uniform(lower, upper, [10000]);
+      expect(array.max()).toBeLessThan(upper);
+      expect(array.min()).toBeGreaterThan(lower - 1);
     });
 
   });
@@ -34,14 +35,26 @@ describe("Uniform distribution.", function() {
 describe("Normal distribution.", function() {
   describe("Distribution tests.", function() {
 
-    fit("Simple test", function() {
+    it("Simple test", function() {
       const mean = random.uniform(-10, 10, [1]).g(0);
       const stdev = random.uniform(0, 10, [1]).g(0);
       const array = random.normal(mean, stdev, [10000]);
       const mean_diff = Math.abs(mean - array.mean());
       const stdev_diff = Math.abs(stdev - array.stdev());
       expect(mean_diff / mean).toBeLessThan(0.01);
-      expect(stdev_diff / stdev).toBeLessThan(0.01);
+      expect(stdev_diff / stdev).toBeLessThan(0.1);
+    });
+  });
+});
+
+describe("Discrete uniform distribution.", function() {
+  describe("Distribution tests.", function() {
+    it("Simple test.", function() {
+      const lower = Math.floor(random.uniform(-100, 100).g(0));
+      const upper = lower + Math.floor(random.uniform(1, 100).g(0));
+      const array = random.randint(lower, upper, [10000]);
+      expect(array.max()).toBeLessThan(upper);
+      expect(array.min()).toBeGreaterThan(lower - 1);
     });
   });
 });

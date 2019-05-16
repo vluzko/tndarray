@@ -17,9 +17,11 @@ function pnorm(a) {
 }
 exports.pnorm = pnorm;
 function inv(a) {
+    throw new Error();
 }
 exports.inv = inv;
 function svd(a) {
+    throw new Error();
 }
 exports.svd = svd;
 function qr(a) {

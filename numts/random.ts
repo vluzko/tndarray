@@ -2,9 +2,25 @@ import {tndarray} from "./tndarray";
 import {indexing} from "./indexing";
 import {Shape} from "./types";
 
+/**
+ * 
+ * @param lower - The lower bound of the distribution. Defaults to 0.
+ * @param upper - The upper bound of the distribution. Defaults to 1.
+ * @param shape - The shape of the array to generate. Defaults to [1].
+ */
 export function randint(lower: number = 0.0, upper: number = 1.0, shape: Shape = [1]): tndarray {
+  const scale_factor = upper - lower;
+  const size = indexing.compute_size(shape);
 
-  throw new Error();
+  let iter = {
+    [Symbol.iterator]: function*() {
+      for (let i = 0; i < size; i++) {
+        yield Math.floor((Math.random() * scale_factor) + lower);
+      }
+    }
+  };
+
+  return tndarray.from_iterable(iter, shape, "int32");
 }
 
 /**
@@ -14,17 +30,6 @@ export function randint(lower: number = 0.0, upper: number = 1.0, shape: Shape =
  * @param shape - The shape of the array to generate. Defaults to [1].
  */
 export function uniform(lower: number = 0.0, upper: number = 1.0, shape: Shape = [1]): tndarray {
-  // if (lower === undefined) {
-  //   lower = 0;
-  // }
-
-  // if (upper === undefined) {
-  //   upper = 1;
-  // }
-
-  // if (shape === undefined) {
-  //   shape = [1];
-  // }
 
   const scale_factor = upper - lower;
   const size = indexing.compute_size(shape);
@@ -48,20 +53,7 @@ export function uniform(lower: number = 0.0, upper: number = 1.0, shape: Shape =
  * @param shape - The shape of the array to generate. Defaults to [1].
  */
 export function normal(mean: number = 0.0, stdev: number = 1.0, shape: Shape = [1]): tndarray {
-  // if (mean === undefined) {
-  //   mean = 0;
-  // }
-
-  // if (stdev === undefined) {
-  //   stdev = 1;
-  // }
-
-  // if (shape === undefined) {
-  //   shape = [1];
-  // }
-  const layers = 128;
   const size = indexing.compute_size(shape);
-  const flip = Math.random() < 0.5;
 
   let iter = {
     [Symbol.iterator]: function*() {

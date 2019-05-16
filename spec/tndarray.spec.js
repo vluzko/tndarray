@@ -573,7 +573,6 @@ describe("Math.", function () {
 
       const actual = tndarray.matmul_2d(a, b);
       expect(actual.equals(expected)).toBe(true);
-      console.log(actual);
 
     });
 
