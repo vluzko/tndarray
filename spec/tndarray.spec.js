@@ -438,6 +438,13 @@ describe("Unary methods.", function () {
         expect(result.equals(expected)).toBe(true);
       });
     });
+
+    describe('all.', function() {
+      it('No axis.', function() {
+        const a = numts.arange(5).add(1);
+        expect(a.all()).toBe(true);
+      });
+    });
   });
 
 });

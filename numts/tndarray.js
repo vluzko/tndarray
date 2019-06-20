@@ -79,9 +79,24 @@ class tndarray {
         this.initial_offset = initial_offset === undefined ? 0 : initial_offset;
         this.is_view = is_view === undefined ? false : is_view;
     }
-    add() {
+    /**
+     *
+     * @param b - The value to add to the array.
+     */
+    add(b) {
+        return tndarray._add(this, b);
     }
-    all() { }
+    /**
+     * Return true if all elements are true.
+     */
+    all(axis) {
+        for (let index of this._real_index_iterator()) {
+            if (!this.data[index]) {
+                return false;
+            }
+        }
+        return true;
+    }
     any() { }
     argmax() { }
     argmin() { }
@@ -290,7 +305,16 @@ class tndarray {
     }
     /**
      * Return a slice of an array. Does not copy the underlying data. Does not drop dimensions.
-     * @param indices
+     * @param indices - The indices to slice on. Can be either a single array / TypedArray, or a spread of integers.
+     *
+     *
+     * @example
+     *    let a = numts.arange(24).reshape(2, 3, 4).slice(0); // a is the [0, :, :] slice.
+     * @example
+     *    let b = numts.arange(24).reshape(2, 3, 4).slice([2, 3]); // b is the [2:3, :, :] slice.
+     * @example
+     *    let b = numts.arange(24).reshape(2, 3, 4).slice(2, 3); // b is the [2, 3, :] slice.
+     *
      */
     slice(...indices) {
         // Handle empty inputs.
@@ -361,7 +385,7 @@ class tndarray {
     s(values, ...indices) {
         if (indexing_1.indexing.checks_indices_are_single_index(...indices) && indices.length === this.shape.length) {
             if (!utils_1.utils.is_numeric(values)) {
-                throw new Error(`Bad dimensions for broadcasting.`);
+                throw new Error(`To set a single element of the array, the values must be a scalar. Got ${values}.`);
             }
             const positive_indices = indexing_1.indexing.convert_negative_indices(indices, this.shape);
             const real_index = this._compute_real_index(positive_indices);

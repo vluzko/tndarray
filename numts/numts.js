@@ -14,8 +14,18 @@ function where(condition, a, b) {
     throw new Error();
 }
 exports.where = where;
-function isclose(a, b, rel_tol, abs_tol) {
-    throw new Error();
+/**
+ *  Return an array of booleans. Each entry is whether the corresponding entries in a and b are numerically close. The arrays will be broadcasted.
+ * @param a - First array to compare.
+ * @param b - Second array to compare.
+ * @param rel_tol - The maximum relative error.
+ * @param abs_tol - The maximum absolute error.
+ */
+function isclose(a, b, rel_tol = 1e-5, abs_tol = 1e-8) {
+    const compare = (x, y) => {
+        return +(Math.abs(x - y) <= abs_tol + (rel_tol * Math.abs(y)));
+    };
+    return tndarray_1.tndarray._binary_broadcast(a, b, compare);
 }
 exports.isclose = isclose;
 // TODO: Allow non-tndarray arrays

@@ -1,5 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const tndarray_1 = require("./tndarray");
+const numts_1 = require("./numts");
 /**
  *
  * @param a - The array.
@@ -33,6 +35,10 @@ function is_matrix(a) {
     return a.shape.length === 2;
 }
 exports.is_matrix = is_matrix;
+function is_square(a) {
+    return a.shape.length === 2 && a.shape[0] === a.shape[1];
+}
+exports.is_square = is_square;
 function l1(a) {
     if (is_vector(a)) {
         return a.data.reduce((a, b) => a + Math.abs(b), 0);
@@ -71,16 +77,52 @@ function svd(a) {
     throw new Error();
 }
 exports.svd = svd;
+/**
+ * LU decomposition of a square matrix.
+ * Uses the Doolittle algorithm.
+ * @param a - The matrix to factor.
+ *
+ * @returns - A tuple containing the L and U matrices.
+ */
+function lu(a) {
+    if (!is_square(a)) {
+        throw new Error("LU decomposition is only valid for square matrices.");
+    }
+    const n = a.shape[0];
+    let lower = numts_1.zeros(a.shape);
+    let upper = numts_1.zeros(a.shape);
+    for (let i = 0; i < n; i++) {
+        console.log(upper);
+        for (let k = i; k < n; k++) {
+            const sum = tndarray_1.tndarray.dot(lower.slice(i), upper.slice(null, k));
+            const diff = a.g(i, k) - sum;
+            upper.s(diff, i, k);
+        }
+        for (let k = i; k < n; k++) {
+            if (i === k) {
+                lower.s(1, i, i);
+            }
+            else {
+                const sum = tndarray_1.tndarray.dot(lower.slice(k), upper.slice(null, i));
+                const diff = (a.g(k, i) - sum) / upper.g(i, i);
+                lower.s(diff, k, i);
+            }
+        }
+    }
+    return [lower, upper];
+}
+exports.lu = lu;
 function qr(a) {
 }
 exports.qr = qr;
 function chol(a) {
 }
 exports.chol = chol;
-function lu(a) {
-}
-exports.lu = lu;
 function rank(a) {
 }
 exports.rank = rank;
+function householder() {
+}
+function givens() {
+}
 //# sourceMappingURL=linalg.js.map
