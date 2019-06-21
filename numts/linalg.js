@@ -92,7 +92,6 @@ function lu(a) {
     let lower = numts_1.zeros(a.shape);
     let upper = numts_1.zeros(a.shape);
     for (let i = 0; i < n; i++) {
-        console.log(upper);
         for (let k = i; k < n; k++) {
             const sum = tndarray_1.tndarray.dot(lower.slice(i), upper.slice(null, k));
             const diff = a.g(i, k) - sum;
