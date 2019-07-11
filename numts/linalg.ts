@@ -88,3 +88,25 @@ export function lu(a: tndarray) {
 export function rank(a: tndarray) {
     
 }
+
+/**
+ * 
+ * @param a - The matrix to perform the rotation on.
+ * @param i - The row to rotate to.
+ * @param j - The row to rotate from, and the column.
+ */
+function givens_rotation_up(a: tndarray, i: number, j: number): [tndarray, tndarray] {
+  const bottom_val = a.g(j, j);
+  const top_val = a.g(i, j);
+  const r = Math.sqrt(Math.pow(bottom_val, 2) + Math.pow(top_val, 2));
+  const s = bottom_val / r;
+  const c = top_val /r;
+  const [m, n] = a.shape;
+  const G = numts.eye(m);
+  G.s(i, i) = c;
+  G.s(j, j) = c;
+  G.s(j, i) = s;
+  G.s(i, j) = -s;
+
+  throw new Error();
+}
