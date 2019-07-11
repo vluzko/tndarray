@@ -79,9 +79,9 @@ describe("Constructors and factories.", function () {
       it("larger array", function () {
         // Create nested array with dimensions 3 x 2 x 3 x 5
         let nested = [1, 2, 3].map(
-          x => _.range(x, x + 2).map(
-            y => _.range(y, y + 4).map(
-              z => _.range(y + 2, y + 7),
+          x => [x, x+1].map(
+            y => [y, y+1, y+2, y+3].map(
+              z => [y + 2, y+3, y+4, y+5, y+6]
             ),
           ),
         );

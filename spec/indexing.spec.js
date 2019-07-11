@@ -1,6 +1,6 @@
 const indexing = require("../numts/indexing").indexing;
 const numts = require("../numts/numts");
-const _ = require("lodash");
+const random = require('../numts/random');
 
 
 describe("Basic calculations.", function () {
@@ -78,8 +78,8 @@ describe("Basic calculations.", function () {
   describe("calculate_broadcast_dimensions.", function () {
     it("same dims.", function () {
       for (let i = 0; i < 100; i++) {
-        let number_of_dims = _.random(1, 8);
-        let dims = _.range(number_of_dims).map(() => _.random(1, 10));
+        const number_of_dims = random.randint(1, 8).g(0);
+        let dims = random.randint(1, 10, [number_of_dims]).data;
         let a = numts.zeros(dims);
         let b = numts.zeros(dims);
         let result = indexing.calculate_broadcast_dimensions(a.shape, b.shape);
@@ -90,8 +90,8 @@ describe("Basic calculations.", function () {
 
     it("One shorter.", function () {
       for (let i = 0; i < 10; i++) {
-        let number_of_dims = _.random(1, 8);
-        let dims = _.range(number_of_dims).map(() => _.random(1, 10));
+        const number_of_dims = random.randint(1, 8).g(0);
+        let dims = random.randint(1, 10, [number_of_dims]).data;
         let a = numts.zeros(dims);
         let b = numts.zeros(dims.slice(number_of_dims - 3));
         let result = indexing.calculate_broadcast_dimensions(a.shape, b.shape);
@@ -101,19 +101,18 @@ describe("Basic calculations.", function () {
 
     it("Random ones.", function () {
       for (let i = 0; i < 100; i++) {
-        let number_of_dims = _.random(1, 8);
-        let a_dims = _.range(number_of_dims).map(() => _.random(1, 10));
+        const number_of_dims = random.randint(1, 8).g(0);
+        let a_dims = random.randint(1, 10, [number_of_dims]).data;
         let b_dims = a_dims.slice(0);
 
-        _.range(a_dims.length).map((j, i) => {
-          let sw = Math.random() < 1 / a_dims.length;
+        for (let j of a_dims) {
+          const sw = Math.random() < 1 / a_dims.length;
           if (sw) {
             a_dims[i] = 1;
           }
-        });
-
-        let a = numts.zeros(a_dims);
-        let b = numts.zeros(b_dims);
+        }
+        const a = numts.zeros(a_dims);
+        const b = numts.zeros(b_dims);
 
         let result = indexing.calculate_broadcast_dimensions(a.shape, b.shape);
         expect(result).toEqual(new Uint32Array(b_dims), `Input dims: ${b_dims}. Result: ${result}`);

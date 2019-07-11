@@ -1,7 +1,6 @@
 let z = require("../numts/tndarray");
 let numts = require("../numts/numts");
 let tndarray = numts.tndarray;
-let _ = require("lodash");
 
 
 // TODO: Randomly generated tests.
