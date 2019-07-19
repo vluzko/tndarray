@@ -102,11 +102,11 @@ function givens_rotation_up(a: tndarray, i: number, j: number): [tndarray, tndar
   const s = bottom_val / r;
   const c = top_val /r;
   const [m, n] = a.shape;
-  const G = numts.eye(m);
-  G.s(i, i) = c;
-  G.s(j, j) = c;
-  G.s(j, i) = s;
-  G.s(i, j) = -s;
+  // const G = numts.eye(m);
+  // G.s(i, i) = c;
+  // G.s(j, j) = c;
+  // G.s(j, i) = s;
+  // G.s(i, j) = -s;
 
   throw new Error();
 }

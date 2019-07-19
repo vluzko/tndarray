@@ -96,7 +96,9 @@ export namespace indexing {
   export function compute_slice_size(lower_bounds: Shape, upper_bounds: Shape, steps: Shape): number {
     const ranges = utils._typed_array_sub(upper_bounds, lower_bounds);
     const values = ranges.map((e, i) => Math.ceil(e / steps[i]));
-    return values.reduce((a, e) => a * e, 1);
+    const f = (a: number, b: number) => a * b;
+    // @ts-ignore
+    return values.reduce(f, 1);
   }
 
   /**
@@ -241,6 +243,125 @@ export namespace indexing {
     };
     return <Iterable<Uint32Array>> iter
   }
+
+  export function data_order_iterator(shape: Uint32Array) {
+
+  }
+
+  export function index_order_iterator(shape: Uint32Array, stride: Uint32Array, lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array) {
+
+    let iter = {};
+    const upper_inclusive = upper_bounds.map(e => e - 1);
+    const start = this._compute_real_index(lower_bounds);
+    const step = stride[stride.length - 1];
+    const end = this._compute_real_index(upper_inclusive);
+    const index_stride = stride.slice(0, -1);
+    let starting_indices = indexing.slice_iterator(lower_bounds.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
+
+    iter[Symbol.iterator] = function* () {
+      for (let starting_index of starting_indices) {
+
+        let current_index = utils.dot(starting_index, index_stride) + start;
+        while (current_index <= end) {
+          yield current_index;
+          current_index += step;
+        }
+      }
+    };
+    return <Iterable<number>> iter;
+  }
+
+  export function slice(indices, shape: Uint32Array, stride: Uint32Array, offset: Uint32Array, dstride: Uint32Array, initial_offset: number) {
+    // Handle empty inputs.
+    const positive_indices = indexing.convert_negative_indices(indices, shape);
+    let start = new Uint32Array(shape.length);
+    let end = shape.slice();
+    let steps = new Uint32Array(shape.length);
+    let dims_to_drop = new Set();
+
+    steps.fill(1);
+    let i = 0;
+    for (let index of positive_indices) {
+      if (index === null) {
+
+      } else if (utils.is_numeric(index)) {
+        start[i] = index;
+        end[i] = index + 1;
+        dims_to_drop.add(i);
+        // initial_offset += index * this.dstride[i];
+      } else if (index.length === 2) {
+        start[i] = index[0];
+        end[i] = index[1];
+      } else if (index.length === 3) {
+        start[i] = index[0];
+        end[i] = index[1];
+        steps[i] = index[2];
+      } else {
+        throw new Error(`Arguments to slice were wrong: ${positive_indices}. Broke on ${index}.`);
+      }
+      i += 1;
+    }
+
+    const new_shape = indexing.new_shape_from_slice(start, end, steps);
+    const size = indexing.compute_size(new_shape);
+
+    const new_offset = start.map((e, j) => e + offset[j]);
+    const new_stride = steps.map((e, j) => e * stride[j]);
+    initial_offset += start.reduce((acc, e, j) => acc + e * stride[j], 0);
+
+    const filt = (e, j) => !dims_to_drop.has(j);
+
+    const final_stride = stride.filter(filt);
+    const new_dstride = dstride.filter(filt);
+    return [new_shape.filter(filt), offset.filter(filt), final_stride, new_dstride, initial_offset];
+  }
+
+  /**
+   * Create an iterator over the real indices of the array.
+   * Equivalent to calling _compute_real_index on result of _slice_iterator, but faster.
+   * @param {Uint32Array} lower_or_upper
+   * @param {Uint32Array} upper_bounds
+   * @param {Uint32Array} steps
+   * @return {Iterable<number>}
+   * @private
+   */
+  export function real_index_iterator(stride: Uint32Array, shape: Uint32Array, lower_or_upper?: Uint32Array, upper_bounds?: Uint32Array, steps?: Uint32Array): Iterable<number> {
+
+    if (lower_or_upper === undefined) {
+      lower_or_upper = shape;
+    }
+
+    if (steps === undefined) {
+      steps = new Uint32Array(lower_or_upper.length);
+      steps.fill(1);
+    }
+
+    if (upper_bounds === undefined) {
+      upper_bounds = lower_or_upper;
+      lower_or_upper = new Uint32Array(upper_bounds.length);
+    }
+
+    let iter = {};
+    const upper_inclusive = upper_bounds.map(e => e - 1);
+    const start = this._compute_real_index(lower_or_upper);
+    const step = stride[stride.length - 1];
+    const end = this._compute_real_index(upper_inclusive);
+    const index_stride = stride.slice(0, -1);
+    let starting_indices = indexing.slice_iterator(lower_or_upper.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
+
+    iter[Symbol.iterator] = function* () {
+      for (let starting_index of starting_indices) {
+
+        let current_index = utils.dot(starting_index, index_stride) + start;
+        while (current_index <= end) {
+          yield current_index;
+          current_index += step;
+        }
+      }
+    };
+    return <Iterable<number>> iter;
+  }
+
 
   /**
    * Convert an index to a slice.
