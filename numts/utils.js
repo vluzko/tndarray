@@ -219,5 +219,15 @@ var utils;
         return [lower, shape.slice(0), steps];
     }
     utils.shape_to_lus = shape_to_lus;
+    /**
+     * Create a fixed-sized array of ones.
+     * @param length - The length of the array.
+     */
+    function fixed_ones(length) {
+        let steps = new Uint32Array(length);
+        steps.fill(1);
+        return steps;
+    }
+    utils.fixed_ones = fixed_ones;
 })(utils = exports.utils || (exports.utils = {}));
 //# sourceMappingURL=utils.js.map

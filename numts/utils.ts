@@ -222,4 +222,14 @@ export namespace utils {
     steps.fill(1);
     return [lower, shape.slice(0), steps];
   }
+
+  /**
+   * Create a fixed-sized array of ones.
+   * @param length - The length of the array.
+   */
+  export function fixed_ones(length: number): Uint32Array {
+    let steps = new Uint32Array(length);
+    steps.fill(1);
+    return steps
+  }
 }
