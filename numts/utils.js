@@ -13,17 +13,22 @@ var utils;
     }
     utils.dot = dot;
     /**
-     * TODO: Move to a static function in tndarray
-     * @param array1
-     * @param array2
+     * Compare two numeric arrays.
+     * @param {Numeric} a - The first array to compare.
+     * @param {Numeric} b - Second array to compare.
      * @return {boolean}
      */
-    function array_equal(array1, array2) {
-        if (array1.length !== array2.length) {
+    function array_equal(a, b) {
+        if (a.length !== b.length) {
             return false;
         }
         else {
-            return array1.reduce((a, b, i) => a && (b === array2[i]), true);
+            for (let i = 0; i < a.length; i++) {
+                if (a[i] !== b[i]) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
     utils.array_equal = array_equal;
