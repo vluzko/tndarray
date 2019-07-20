@@ -1,7 +1,6 @@
 let utils = require("../numts/utils").utils;
 let tndarray = require("../numts/tndarray");
 let numts = require("../numts/numts");
-let _ = require("lodash");
 
 describe("utils.", function () {
   it("dot.", function () {

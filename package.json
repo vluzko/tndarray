@@ -4,8 +4,7 @@
   "description": "Typed n-dimensional arrays",
   "devDependencies": {
     "jest": "^23.6.0",
-    "jsverify": "^0.8.4",
-    "lodash": "^4.17.11"
+    "jsverify": "^0.8.4"
   },
   "scripts": {
     "test": "jest",
@@ -24,5 +23,6 @@
   "bugs": {
     "url": "https://github.com/vluzko/tndarray/issues"
   },
-  "homepage": "https://github.com/vluzko/tndarray#readme"
+  "homepage": "https://github.com/vluzko/tndarray#readme",
+  "dependencies": {}
 }

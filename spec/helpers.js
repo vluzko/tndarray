@@ -1,4 +1,3 @@
-
 function random_shape(max_size, upper) {
   if (max_size === undefined) {
     max_size = 10;
