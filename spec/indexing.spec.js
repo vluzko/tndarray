@@ -1,6 +1,7 @@
 const indexing = require('../numts/indexing').indexing;
 const numts = require('../numts/numts');
 const random = require('../numts/random');
+const tndarray = require('../numts/tndarray').tndarray;
 
 
 describe('Basic calculations.', function () {
@@ -145,24 +146,36 @@ describe('Basic calculations.', function () {
 });
 
 describe('Iterators.', function () {
-  describe('_slice_iterator', function() {
+  const a = numts.arange(30).reshape(5, 6);
+  let steps = new Uint32Array(a.shape.length);
+  steps.fill(1);
+  describe('iorder_index_iterator.', function() {
+    it('Basic test.', function() {
+      
+      const iter = indexing.iorder_index_iterator(new Uint32Array(a.shape.length), a.shape, steps);
+      let prev = -1;
+      for (let i of iter) {
+        expect(a.g(...i)).toBe(prev + 1);
+        prev = a.g(...i);
+      }
+    });
 
     it('3 2 5.', function () {
-      let iter = indexing.slice_iterator([0, 0], [3, 1], [1, 1]);
+      let iter = indexing.iorder_index_iterator([0, 0], [3, 1], [1, 1]);
       let x = Array.from(iter);
       expect(x).toEqual([[0, 0], [1, 0], [2, 0]]);
     });
 
     it('one dimensional.', function() {
-      const x = Array.from(indexing.slice_iterator([0], [5], [1]));
+      const x = Array.from(indexing.iorder_index_iterator([0], [5], [1]));
       expect(x).toEqual([[0], [1], [2], [3], [4]]);
     });
 
-    fit('three dimensions.', function() {
-      const a = numts.arange(30).reshape(5, 3, 2);
-      let steps = new Uint32Array(a.shape.length);
+    it('three dimensions.', function() {
+      const b = a.reshape(5, 3, 2);
+      let steps = new Uint32Array(b.shape.length);
       steps.fill(1);
-      const iter = indexing.slice_iterator(new Uint32Array(3), a.shape, steps);
+      const iter = indexing.iorder_index_iterator(new Uint32Array(3), a.shape, steps);
       const x = Array.from(iter);
       expect(x[0]).toEqual(new Uint32Array([0, 0, 0]));
       expect(x[x.length-1]).toEqual(new Uint32Array([4, 2, 1]));
@@ -172,24 +185,32 @@ describe('Iterators.', function () {
     it('Mismatched.', function () {
       let i = 0;
       throw new Error();
-      for (let index of indexing.slice_iterator([0, 5], [4, 0], [5, 5])) {
+      for (let index of indexing.iorder_index_iterator([0, 5], [4, 0], [5, 5])) {
         throw new Error();
       }
     });
   });
 
-  describe('index_order_iterator.', function() {
-    fit('Basic test.', function() {
-      const a = numts.arange(30).reshape(5, 6);
-      let steps = new Uint32Array(a.shape.length);
-      steps.fill(1);
+  describe('iorder_data_iterator.', function() {
+    fit('Basic.', function() {
       const iter = indexing.iorder_data_iterator(a.stride, new Uint32Array(a.shape.length), a.shape, steps, 0);
       let prev = -1;
       for (let i of iter) {
-        expect(a.data[i]).toEqual(prev + 1);
-
+        expect(a.data[i]).toBe(prev + 1);
         prev = a.data[i];
       }
+    });
+  });
+
+  describe('dorder_data_iterator', function() {
+    it('Basic.', function() {
+      expect(false).toBe(true);
+    });
+  });
+
+  describe('dorder_index_iterator.', function() {
+    it('Basic.', function() {
+      expect(false).toBe(true);
     });
   });
 });

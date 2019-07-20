@@ -167,7 +167,7 @@ function from_nested_array(array, dtype) {
         return tndarray_1.tndarray.array([]);
     }
     const dimensions = _nested_array_shape(array);
-    let slice_iter = indexing_1.indexing.slice_iterator(dimensions);
+    let slice_iter = indexing_1.indexing.iorder_index_iterator(dimensions);
     const size = indexing_1.indexing.compute_size(dimensions);
     const array_type = utils_1.utils.dtype_map(dtype);
     const data = new array_type(size);

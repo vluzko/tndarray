@@ -170,7 +170,7 @@ export function from_nested_array(array: any[], dtype?: string): tndarray {
   }
 
   const dimensions = _nested_array_shape(array);
-  let slice_iter = indexing.slice_iterator(dimensions);
+  let slice_iter = indexing.iorder_index_iterator(dimensions);
 
   const size = indexing.compute_size(dimensions);
   const array_type = utils.dtype_map(dtype);
