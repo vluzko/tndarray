@@ -11,7 +11,7 @@ export namespace indexing {
    * @private
    */
   export function compute_size(shape: Shape): number {
-    // @ts-ignore
+    //@ts-ignore: error TS2349
     return shape.reduce((a, b) => a * b);
   }
 
@@ -114,7 +114,7 @@ export namespace indexing {
   }
 
   /**
-   * Produces a column-major stride from an array shape.
+   * Produce a column-major stride from an array shape.
    * @param {Uint32Array} shape
    * @private
    */
@@ -204,7 +204,7 @@ export namespace indexing {
    * @return {Iterable<any>}
    * @private
    */
-  export function slice_iterator(lower_or_upper: Shape, upper_bounds?: Shape, steps?: Shape): Iterable<Uint32Array> {
+  export function iorder_index_iterator(lower_or_upper: Shape, upper_bounds?: Shape, steps?: Shape): Iterable<Uint32Array> {
     if (steps === undefined) {
       steps = new Uint32Array(lower_or_upper.length);
       steps.fill(1);
@@ -215,13 +215,12 @@ export namespace indexing {
       lower_or_upper = new Uint32Array(upper_bounds.length);
     }
 
-    let iter = {};
     const size = indexing.compute_slice_size(lower_or_upper, upper_bounds, steps);
     const end_dimension = upper_bounds.length - 1;
-    iter[Symbol.iterator] = function* () {
+    const iter = {
+      [Symbol.iterator]: function* () {
 
       let current_index = lower_or_upper.slice();
-      let count = 0;
 
       // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
       for (let i = 0; i < size; i++) {
@@ -238,37 +237,60 @@ export namespace indexing {
           current_index[current_dimension] += steps[current_dimension];
         }
 
-        count++;
       }
-    };
+    }
+  };
     return <Iterable<Uint32Array>> iter
   }
 
-  export function data_order_iterator(shape: Uint32Array) {
+  export function iorder_data_iterator(stride: Uint32Array, lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array, initial_offset: number): Iterable<number> {
 
-  }
-
-  export function index_order_iterator(shape: Uint32Array, stride: Uint32Array, lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array) {
-
-    let iter = {};
     const upper_inclusive = upper_bounds.map(e => e - 1);
-    const start = this._compute_real_index(lower_bounds);
+    const start = index_in_data(lower_bounds, stride, initial_offset)
     const step = stride[stride.length - 1];
-    const end = this._compute_real_index(upper_inclusive);
+    const end = index_in_data(upper_inclusive, stride, initial_offset);
     const index_stride = stride.slice(0, -1);
-    let starting_indices = indexing.slice_iterator(lower_bounds.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
-
-    iter[Symbol.iterator] = function* () {
-      for (let starting_index of starting_indices) {
-
-        let current_index = utils.dot(starting_index, index_stride) + start;
-        while (current_index <= end) {
-          yield current_index;
-          current_index += step;
+    let starting_indices = indexing.iorder_index_iterator(lower_bounds.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
+    const iter = {
+      [Symbol.iterator]: function* () {
+        for (let starting_index of starting_indices) {
+          let current_index = utils.dot(starting_index, index_stride) + start;
+          while (current_index <= end) {
+            yield current_index;
+            current_index += step;
+          }
         }
       }
     };
     return <Iterable<number>> iter;
+  }
+
+  export function dorder_data_iterator(lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array, stride: Uint32Array,  initial_offset: number) {
+    
+  }
+
+  export function dorder_index_iterator(lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array, stride: Uint32Array,  initial_offset: number): Iterable<number> {
+
+    const upper_inclusive = upper_bounds.map(e => e - 1);
+    const start = index_in_data(lower_bounds, stride, initial_offset);
+    const step = stride[stride.length - 1];
+    const end = index_in_data(upper_inclusive, stride, initial_offset);
+    const index_stride = stride.slice(0, -1);
+    let starting_indices = iorder_index_iterator(lower_bounds.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
+
+    const iter = {
+      [Symbol.iterator]: function* () {
+        for (let starting_index of starting_indices) {
+
+          let current_index = utils.dot(starting_index, index_stride) + start;
+          while (current_index <= end) {
+            yield current_index;
+            current_index += step;
+          }
+        }
+      }
+    };
+    return iter;
   }
 
   export function slice(indices, shape: Uint32Array, stride: Uint32Array, offset: Uint32Array, dstride: Uint32Array, initial_offset: number) {
@@ -347,7 +369,7 @@ export namespace indexing {
     const step = stride[stride.length - 1];
     const end = this._compute_real_index(upper_inclusive);
     const index_stride = stride.slice(0, -1);
-    let starting_indices = indexing.slice_iterator(lower_or_upper.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
+    let starting_indices = indexing.iorder_index_iterator(lower_or_upper.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
 
     iter[Symbol.iterator] = function* () {
       for (let starting_index of starting_indices) {

@@ -24,5 +24,7 @@
     "url": "https://github.com/vluzko/tndarray/issues"
   },
   "homepage": "https://github.com/vluzko/tndarray#readme",
-  "dependencies": {}
+  "dependencies": {
+    "typescript": "^3.5.3"
+  }
 }

@@ -11,7 +11,7 @@ var indexing;
      * @private
      */
     function compute_size(shape) {
-        // @ts-ignore
+        //@ts-ignore: error TS2349
         return shape.reduce((a, b) => a * b);
     }
     indexing.compute_size = compute_size;
@@ -116,7 +116,7 @@ var indexing;
     }
     indexing.index_in_data = index_in_data;
     /**
-     * Produces a column-major stride from an array shape.
+     * Produce a column-major stride from an array shape.
      * @param {Uint32Array} shape
      * @private
      */
@@ -204,7 +204,7 @@ var indexing;
      * @return {Iterable<any>}
      * @private
      */
-    function slice_iterator(lower_or_upper, upper_bounds, steps) {
+    function iorder_index_iterator(lower_or_upper, upper_bounds, steps) {
         if (steps === undefined) {
             steps = new Uint32Array(lower_or_upper.length);
             steps.fill(1);
@@ -213,53 +213,74 @@ var indexing;
             upper_bounds = lower_or_upper;
             lower_or_upper = new Uint32Array(upper_bounds.length);
         }
-        let iter = {};
         const size = indexing.compute_slice_size(lower_or_upper, upper_bounds, steps);
         const end_dimension = upper_bounds.length - 1;
-        iter[Symbol.iterator] = function* () {
-            let current_index = lower_or_upper.slice();
-            let count = 0;
-            // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
-            for (let i = 0; i < size; i++) {
-                // Yield a copy of the current index.
-                yield current_index.slice();
-                ++current_index[end_dimension];
-                // Carry the ones.
-                let current_dimension = end_dimension;
-                while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
-                    current_index[current_dimension] = lower_or_upper[current_dimension];
-                    current_dimension--;
-                    current_index[current_dimension] += steps[current_dimension];
+        const iter = {
+            [Symbol.iterator]: function* () {
+                let current_index = lower_or_upper.slice();
+                // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
+                for (let i = 0; i < size; i++) {
+                    // Yield a copy of the current index.
+                    yield current_index.slice();
+                    ++current_index[end_dimension];
+                    // Carry the ones.
+                    let current_dimension = end_dimension;
+                    while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
+                        current_index[current_dimension] = lower_or_upper[current_dimension];
+                        current_dimension--;
+                        current_index[current_dimension] += steps[current_dimension];
+                    }
                 }
-                count++;
             }
         };
         return iter;
     }
-    indexing.slice_iterator = slice_iterator;
-    function data_order_iterator(shape) {
-    }
-    indexing.data_order_iterator = data_order_iterator;
-    function index_order_iterator(shape, stride, lower_bounds, upper_bounds, steps) {
-        let iter = {};
+    indexing.iorder_index_iterator = iorder_index_iterator;
+    function iorder_data_iterator(stride, lower_bounds, upper_bounds, steps, initial_offset) {
         const upper_inclusive = upper_bounds.map(e => e - 1);
-        const start = this._compute_real_index(lower_bounds);
+        const start = index_in_data(lower_bounds, stride, initial_offset);
         const step = stride[stride.length - 1];
-        const end = this._compute_real_index(upper_inclusive);
+        const end = index_in_data(upper_inclusive, stride, initial_offset);
         const index_stride = stride.slice(0, -1);
-        let starting_indices = indexing.slice_iterator(lower_bounds.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
-        iter[Symbol.iterator] = function* () {
-            for (let starting_index of starting_indices) {
-                let current_index = utils_1.utils.dot(starting_index, index_stride) + start;
-                while (current_index <= end) {
-                    yield current_index;
-                    current_index += step;
+        let starting_indices = indexing.iorder_index_iterator(lower_bounds.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
+        const iter = {
+            [Symbol.iterator]: function* () {
+                for (let starting_index of starting_indices) {
+                    let current_index = utils_1.utils.dot(starting_index, index_stride) + start;
+                    while (current_index <= end) {
+                        yield current_index;
+                        current_index += step;
+                    }
                 }
             }
         };
         return iter;
     }
-    indexing.index_order_iterator = index_order_iterator;
+    indexing.iorder_data_iterator = iorder_data_iterator;
+    function dorder_data_iterator(lower_bounds, upper_bounds, steps, stride, initial_offset) {
+    }
+    indexing.dorder_data_iterator = dorder_data_iterator;
+    function dorder_index_iterator(lower_bounds, upper_bounds, steps, stride, initial_offset) {
+        const upper_inclusive = upper_bounds.map(e => e - 1);
+        const start = index_in_data(lower_bounds, stride, initial_offset);
+        const step = stride[stride.length - 1];
+        const end = index_in_data(upper_inclusive, stride, initial_offset);
+        const index_stride = stride.slice(0, -1);
+        let starting_indices = iorder_index_iterator(lower_bounds.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
+        const iter = {
+            [Symbol.iterator]: function* () {
+                for (let starting_index of starting_indices) {
+                    let current_index = utils_1.utils.dot(starting_index, index_stride) + start;
+                    while (current_index <= end) {
+                        yield current_index;
+                        current_index += step;
+                    }
+                }
+            }
+        };
+        return iter;
+    }
+    indexing.dorder_index_iterator = dorder_index_iterator;
     function slice(indices, shape, stride, offset, dstride, initial_offset) {
         // Handle empty inputs.
         const positive_indices = indexing.convert_negative_indices(indices, shape);
@@ -330,7 +351,7 @@ var indexing;
         const step = stride[stride.length - 1];
         const end = this._compute_real_index(upper_inclusive);
         const index_stride = stride.slice(0, -1);
-        let starting_indices = indexing.slice_iterator(lower_or_upper.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
+        let starting_indices = indexing.iorder_index_iterator(lower_or_upper.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
         iter[Symbol.iterator] = function* () {
             for (let starting_index of starting_indices) {
                 let current_index = utils_1.utils.dot(starting_index, index_stride) + start;

@@ -585,7 +585,7 @@ class tndarray {
         let b_array = tndarray._upcast_to_tndarray(b);
         const new_dimensions = indexing_1.indexing.calculate_broadcast_dimensions(a_array.shape, b_array.shape);
         const new_dtype = utils_1.utils._dtype_join(a_array.dtype, b_array.dtype);
-        let index_iter = indexing_1.indexing.slice_iterator(new_dimensions);
+        let index_iter = indexing_1.indexing.iorder_index_iterator(new_dimensions);
         const iterator = utils_1.utils.zip_longest(a_array._real_index_iterator(), b_array._real_index_iterator(), index_iter);
         let iter = {};
         iter[Symbol.iterator] = function* () {
@@ -674,7 +674,7 @@ class tndarray {
         const step = this.stride[this.stride.length - 1];
         const end = this._compute_real_index(upper_inclusive);
         const index_stride = this.stride.slice(0, -1);
-        let starting_indices = indexing_1.indexing.slice_iterator(lower_or_upper.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
+        let starting_indices = indexing_1.indexing.iorder_index_iterator(lower_or_upper.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
         iter[Symbol.iterator] = function* () {
             for (let starting_index of starting_indices) {
                 let current_index = utils_1.utils.dot(starting_index, index_stride) + start;
@@ -691,7 +691,7 @@ class tndarray {
      * @private
      */
     _index_iterator() {
-        return indexing_1.indexing.slice_iterator(this.offset, this.shape);
+        return indexing_1.indexing.iorder_index_iterator(this.offset, this.shape);
     }
     /**
      * TODO: Test
@@ -710,7 +710,7 @@ class tndarray {
             upper_bounds = lower_or_upper;
             lower_or_upper = new Uint32Array(upper_bounds.length);
         }
-        const index_iterator = indexing_1.indexing.slice_iterator(lower_or_upper, upper_bounds, steps);
+        const index_iterator = indexing_1.indexing.iorder_index_iterator(lower_or_upper, upper_bounds, steps);
         let iter = {};
         // Alas, generators are dynamically scoped.
         const self = this;
@@ -732,7 +732,7 @@ class tndarray {
         const final_shape = indexing_1.indexing.compute_shape(shape);
         const size = indexing_1.indexing.compute_size(final_shape);
         const array_type = utils_1.utils.dtype_map(dtype);
-        const index_iterator = indexing_1.indexing.slice_iterator(final_shape);
+        const index_iterator = indexing_1.indexing.iorder_index_iterator(final_shape);
         const val_gen = iterable[Symbol.iterator]();
         let data = new array_type(size);
         const stride = indexing_1.indexing.stride_from_shape(final_shape);
@@ -844,9 +844,9 @@ class tndarray {
         else {
             const new_dtype = utils_1.utils._dtype_join(a_array.dtype, b_array.dtype);
             let array = tndarray.zeros(new_dimensions, new_dtype);
-            const index_iter = indexing_1.indexing.slice_iterator(new_dimensions.slice(0, -2));
-            const a_iter = indexing_1.indexing.slice_iterator(a_shape.slice(0, -2));
-            const b_iter = indexing_1.indexing.slice_iterator(b_shape.slice(0, -2));
+            const index_iter = indexing_1.indexing.iorder_index_iterator(new_dimensions.slice(0, -2));
+            const a_iter = indexing_1.indexing.iorder_index_iterator(a_shape.slice(0, -2));
+            const b_iter = indexing_1.indexing.iorder_index_iterator(b_shape.slice(0, -2));
             const iter = utils_1.utils.zip_longest(a_iter, b_iter, index_iter);
             for (let [a_index, b_index, index] of iter) {
                 const slice = indexing_1.indexing.index_to_slice(index);

@@ -1,24 +1,24 @@
-const indexing = require("../numts/indexing").indexing;
-const numts = require("../numts/numts");
+const indexing = require('../numts/indexing').indexing;
+const numts = require('../numts/numts');
 const random = require('../numts/random');
 
 
-describe("Basic calculations.", function () {
+describe('Basic calculations.', function () {
 
-  describe("compute_slice_size.", function () {
-    it("From failing test.", function () {
+  describe('compute_slice_size.', function () {
+    it('From failing test.', function () {
       let x = indexing.compute_slice_size([0, 0], [3, 1], [1, 1]);
       expect(x).toBe(3);
     });
 
-    it("Basic checks.", function () {
+    it('Basic checks.', function () {
       expect(indexing.compute_slice_size([0, 0], [2, 2], [1, 1])).toBe(4);
       expect(indexing.compute_slice_size(new Uint32Array([0, 5]), new Uint32Array([6, 10]), new Uint32Array([5, 2]))).toBe(6);
     });
   });
 
-  describe("new_shape_from_slice.", function () {
-    it("Basic test.", function () {
+  describe('new_shape_from_slice.', function () {
+    it('Basic test.', function () {
       const starts = new Uint32Array(3);
       const ends = new Uint32Array([1, 2, 3]);
       const steps = new Uint32Array(3);
@@ -28,7 +28,7 @@ describe("Basic calculations.", function () {
       expect(shape).toEqual(ends);
     });
 
-    it("With steps and offsets.", function () {
+    it('With steps and offsets.', function () {
       const starts = new Uint32Array([2, 6, 9]);
       const ends = new Uint32Array([10, 12, 11]);
       const steps = new Uint32Array([2, 3, 1]);
@@ -39,7 +39,7 @@ describe("Basic calculations.", function () {
     });
 
 
-    it("With unit dimension.", function () {
+    it('With unit dimension.', function () {
       const starts = new Uint32Array([2, 6, 10]);
       const ends = new Uint32Array([10, 12, 11]);
       const steps = new Uint32Array([2, 3, 1]);
@@ -50,7 +50,7 @@ describe("Basic calculations.", function () {
       expect(shape).toEqual(expected);
     });
 
-    it("Singleton.", function() {
+    it('Singleton.', function() {
       const starts = new Uint32Array([0, 0]);
       const ends = new Uint32Array([1, 1]);
       const steps = new Uint32Array([1, 1]);
@@ -61,13 +61,13 @@ describe("Basic calculations.", function () {
     });
   });
 
-  it("_stride_from_shape.", function () {
+  it('_stride_from_shape.', function () {
     expect(indexing.stride_from_shape([2, 2, 3])).toEqual(new Uint32Array([1, 2, 4]));
     expect(indexing.stride_from_shape([2, 5])).toEqual(new Uint32Array([1, 2]));
   });
 
-  describe("convert_negative_indices.", function () {
-    it("basic test.", function () {
+  describe('convert_negative_indices.', function () {
+    it('basic test.', function () {
       const indices = [-2, [2, 3], [2, -1], [,-3, 4]];
       const shape = [4, 4, 5, 12];
       const expected = [2, [2, 3], [2, 4], [, 9, 4]];
@@ -75,8 +75,8 @@ describe("Basic calculations.", function () {
     });
   });
 
-  describe("calculate_broadcast_dimensions.", function () {
-    it("same dims.", function () {
+  describe('calculate_broadcast_dimensions.', function () {
+    it('same dims.', function () {
       for (let i = 0; i < 100; i++) {
         const number_of_dims = random.randint(1, 8).g(0);
         let dims = random.randint(1, 10, [number_of_dims]).data;
@@ -88,7 +88,7 @@ describe("Basic calculations.", function () {
 
     });
 
-    it("One shorter.", function () {
+    it('One shorter.', function () {
       for (let i = 0; i < 10; i++) {
         const number_of_dims = random.randint(1, 8).g(0);
         let dims = random.randint(1, 10, [number_of_dims]).data;
@@ -99,7 +99,7 @@ describe("Basic calculations.", function () {
       }
     });
 
-    it("Random ones.", function () {
+    it('Random ones.', function () {
       for (let i = 0; i < 100; i++) {
         const number_of_dims = random.randint(1, 8).g(0);
         let a_dims = random.randint(1, 10, [number_of_dims]).data;
@@ -120,15 +120,15 @@ describe("Basic calculations.", function () {
     });
   });
 
-  describe("check_indices_are_single_index.", function() {
-    it("Simple test.", function() {
+  describe('check_indices_are_single_index.', function() {
+    it('Simple test.', function() {
       let result = indexing.checks_indices_are_single_index(0, 1, 2);
       expect(result).toBe(true);
     });
   });
 
   describe('index_to_slice.', function () {
-    it("Empty.", function () {
+    it('Empty.', function () {
       expect(indexing.index_to_slice([])).toEqual([]);
     });
 
@@ -136,7 +136,7 @@ describe("Basic calculations.", function () {
       expect(indexing.index_to_slice(new Uint32Array(1))).toEqual([[0, 1]]);
     });
 
-    it("Simple.", function () {
+    it('Simple.', function () {
       expect(indexing.index_to_slice([0, 1])).toEqual([[0, 1], [1, 2]]);
     });
 
@@ -144,16 +144,32 @@ describe("Basic calculations.", function () {
 
 });
 
-describe("Iterators.", function () {
-  describe("_slice_iterator", function() {
+describe('Iterators.', function () {
+  describe('_slice_iterator', function() {
 
-    it("3 2 5", function () {
+    it('3 2 5.', function () {
       let iter = indexing.slice_iterator([0, 0], [3, 1], [1, 1]);
       let x = Array.from(iter);
       expect(x).toEqual([[0, 0], [1, 0], [2, 0]]);
     });
 
-    it("_slice_iterator.", function () {
+    it('one dimensional.', function() {
+      const x = Array.from(indexing.slice_iterator([0], [5], [1]));
+      expect(x).toEqual([[0], [1], [2], [3], [4]]);
+    });
+
+    fit('three dimensions.', function() {
+      const a = numts.arange(30).reshape(5, 3, 2);
+      let steps = new Uint32Array(a.shape.length);
+      steps.fill(1);
+      const iter = indexing.slice_iterator(new Uint32Array(3), a.shape, steps);
+      const x = Array.from(iter);
+      expect(x[0]).toEqual(new Uint32Array([0, 0, 0]));
+      expect(x[x.length-1]).toEqual(new Uint32Array([4, 2, 1]));
+      expect(x[13]).toEqual(new Uint32Array([2, 0, 1]));
+    });
+
+    it('Mismatched.', function () {
       let i = 0;
       throw new Error();
       for (let index of indexing.slice_iterator([0, 5], [4, 0], [5, 5])) {
@@ -161,11 +177,26 @@ describe("Iterators.", function () {
       }
     });
   });
+
+  describe('index_order_iterator.', function() {
+    fit('Basic test.', function() {
+      const a = numts.arange(30).reshape(5, 6);
+      let steps = new Uint32Array(a.shape.length);
+      steps.fill(1);
+      const iter = indexing.iorder_data_iterator(a.stride, new Uint32Array(a.shape.length), a.shape, steps, 0);
+      let prev = -1;
+      for (let i of iter) {
+        expect(a.data[i]).toEqual(prev + 1);
+
+        prev = a.data[i];
+      }
+    });
+  });
 });
 
-describe("slice.", function () {
+describe('slice.', function () {
 
-  fit("basic test.", function () {
+  it('basic test.', function () {
     const base_array = numts.arange(16).reshape([4, 4]);
     const s = indexing.slice([[0,2], [1, 3]], base_array.shape, base_array.stride, base_array.offset, base_array.dstride, base_array.initial_offset);
     console.log(s);
@@ -173,17 +204,17 @@ describe("slice.", function () {
 
   });
 
-  it("single value slice.", function () {
+  it('single value slice.', function () {
     const base_array = numts.arange(16).reshape([4, 4]);
     const slice = base_array.slice(0);
     const expected = numts.arange(4);
 
-    const actual = tndarray.from_iterable(slice._value_iterator(), slice.shape, "int32");
+    const actual = tndarray.from_iterable(slice._value_iterator(), slice.shape, 'int32');
     expect(expected.equals(actual)).toBe(true);
     expect(slice.data).toEqual(base_array.data);
   });
 
-  it("Successive slices.", function () {
+  it('Successive slices.', function () {
     const base_array = numts.arange(16).reshape([4, 4]);
     const first_slice = base_array.slice([0, 2], [1, 3]);
     expect(first_slice.shape).toEqual(new Uint32Array([2, 2]));
@@ -191,39 +222,39 @@ describe("slice.", function () {
 
     const expected = numts.arange(1, 3);
 
-    const actual = tndarray.from_iterable(second_slice._value_iterator(), second_slice.shape, "int32");
+    const actual = tndarray.from_iterable(second_slice._value_iterator(), second_slice.shape, 'int32');
     expect(expected.equals(actual)).toBe(true);
   });
 
-  it("Slice with large steps.", function () {
+  it('Slice with large steps.', function () {
     const base_array = numts.arange(16).reshape([4, 4]);
     const slice = base_array.slice([0, 4, 2], [1, 3]);
 
     const expected = numts.from_nested_array([
       [1, 2],
       [9, 10]
-    ], "int32");
-    const actual = tndarray.from_iterable(slice._value_iterator(), slice.shape, "int32");
+    ], 'int32');
+    const actual = tndarray.from_iterable(slice._value_iterator(), slice.shape, 'int32');
 
     expect(expected.equals(actual)).toBe(true);
 
   });
 
-  it("Subdimensions", function () {
+  it('Subdimensions', function () {
     const base_array = numts.arange(120).reshape([4, 5, 6]);
     const first = base_array.slice([0, 4, 2], [1, 3, 2]);
     expect(first.shape).toEqual(new Uint32Array([2, 1, 6]));
     const expected = numts.from_nested_array([
       [[6, 7, 8, 9, 10, 11]],
       [[66, 67, 68, 69, 70, 71]]
-    ], "int32");
+    ], 'int32');
 
 
-    const actual = tndarray.from_iterable(first._value_iterator(), first.shape, "int32");
+    const actual = tndarray.from_iterable(first._value_iterator(), first.shape, 'int32');
     expect(expected).toEqual(actual);
   });
 
-  it("Successive slice, large steps.", function () {
+  it('Successive slice, large steps.', function () {
     const base_array = numts.arange(120).reshape([4, 5, 6]);
     const first = base_array.slice([0, 4, 2], [1, 3, 2]);
     expect(first.shape).toEqual(new Uint32Array([2, 1, 6]));
@@ -234,20 +265,20 @@ describe("slice.", function () {
     const expected = numts.from_nested_array([
       [[6, 9]],
       [[66, 69]]
-    ], "int32");
+    ], 'int32');
 
-    const actual = tndarray.from_iterable(second._value_iterator(), second.shape, "int32");
+    const actual = tndarray.from_iterable(second._value_iterator(), second.shape, 'int32');
     expect(expected.equals(actual)).toBe(true);
   });
 
-  it("slice with last dropped", function () {
+  it('slice with last dropped', function () {
     const a = numts.arange(24).reshape(2, 3, 4);
     const slice = a.slice(...[null, null, 1]);
     expect([...slice._value_iterator()]).toEqual([1, 5, 9, 13, 17, 21]);
   });
 
   describe('previous breaks.', function () {
-    it("broadcast_matmul break.", function () {
+    it('broadcast_matmul break.', function () {
       const a = numts.arange(24).reshape(2, 3, 4);
       const slice = a.slice(...[1]);
       expect([...slice._value_iterator()]).toEqual([
@@ -255,7 +286,7 @@ describe("slice.", function () {
       ]);
     });
 
-    it("successive slice break.", function(){
+    it('successive slice break.', function(){
       const a = numts.arange(24).reshape(2, 3, 4);
       const first_slice = a.slice(0);
       const second_slice = first_slice.slice(1);

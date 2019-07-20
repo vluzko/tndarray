@@ -208,5 +208,16 @@ var utils;
         }
     }
     utils._dtype_join = _dtype_join;
+    /**
+     * Get lower indices and steps for a slice over an entire shape.
+     * @param shape - The shape of the array.
+     */
+    function shape_to_lus(shape) {
+        const lower = new Uint32Array(shape.length);
+        let steps = new Uint32Array(shape.length);
+        steps.fill(1);
+        return [lower, shape.slice(0), steps];
+    }
+    utils.shape_to_lus = shape_to_lus;
 })(utils = exports.utils || (exports.utils = {}));
 //# sourceMappingURL=utils.js.map

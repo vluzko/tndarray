@@ -211,4 +211,15 @@ export namespace utils {
       return a;
     }
   }
+
+  /**
+   * Get lower indices and steps for a slice over an entire shape. 
+   * @param shape - The shape of the array.
+   */
+  export function shape_to_lus(shape: Uint32Array): [Uint32Array, Uint32Array, Uint32Array] {
+    const lower = new Uint32Array(shape.length);
+    let steps = new Uint32Array(shape.length);
+    steps.fill(1);
+    return [lower, shape.slice(0), steps];
+  }
 }

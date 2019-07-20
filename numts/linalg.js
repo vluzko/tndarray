@@ -120,11 +120,10 @@ exports.chol = chol;
 function rank(a) {
 }
 exports.rank = rank;
-<<<<<<< HEAD
 function householder() {
 }
 function givens() {
-=======
+}
 /**
  *
  * @param a - The matrix to perform the rotation on.
@@ -144,6 +143,5 @@ function givens_rotation_up(a, i, j) {
     // G.s(j, i) = s;
     // G.s(i, j) = -s;
     throw new Error();
->>>>>>> 396cd256f4f49ba232c3cfdf7ae8045aca41c65c
 }
 //# sourceMappingURL=linalg.js.map
