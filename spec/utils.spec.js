@@ -58,3 +58,19 @@ describe("utils.", function () {
     });
   });
 });
+
+describe('increment_number.', function() {
+  it('Basic.', function() {
+    const val = new Uint32Array([1, 2, 3]);
+    const bounds = new Uint32Array([3, 4, 5]);
+    const result = utils.increment_digit(val, bounds, 2);
+    expect(result).toEqual(new Uint32Array([1, 2, 4]));
+  });
+
+  it('With carry.', function() {
+    const val = new Uint32Array([1, 2, 3]);
+    const bounds = new Uint32Array([3, 4, 3]);
+    const result = utils.increment_digit(val, bounds, 2);
+    expect(result).toEqual(new Uint32Array([1, 3, 0]));
+  });
+});

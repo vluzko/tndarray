@@ -229,5 +229,29 @@ var utils;
         return steps;
     }
     utils.fixed_ones = fixed_ones;
+    /**
+     * Add one to a mixed-radix number represented by a Uint32Array.
+     * Note that it is assumed that it is *possible* to add one to the given value. This function will *not* extend the array.
+     * @param value - The current value of the number.
+     * @param upper_bounds - The upper bounds of each digit. In other words the base for the numerical system used in that column
+     * @param index - The index to increment.
+     */
+    function increment_digit(value, upper_bounds, index) {
+        let cur_index = index;
+        let copy = value.slice(0);
+        let done = false;
+        while (!done) {
+            if (copy[cur_index] === upper_bounds[cur_index]) {
+                copy[cur_index] = 0;
+                cur_index -= 1;
+            }
+            else {
+                copy[cur_index] = copy[cur_index] + 1;
+                done = true;
+            }
+        }
+        return copy;
+    }
+    utils.increment_digit = increment_digit;
 })(utils = exports.utils || (exports.utils = {}));
 //# sourceMappingURL=utils.js.map
