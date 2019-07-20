@@ -175,7 +175,7 @@ describe('Iterators.', function () {
       const b = a.reshape(5, 3, 2);
       let steps = new Uint32Array(b.shape.length);
       steps.fill(1);
-      const iter = indexing.iorder_index_iterator(new Uint32Array(3), a.shape, steps);
+      const iter = indexing.iorder_index_iterator(new Uint32Array(3), b.shape, steps);
       const x = Array.from(iter);
       expect(x[0]).toEqual(new Uint32Array([0, 0, 0]));
       expect(x[x.length-1]).toEqual(new Uint32Array([4, 2, 1]));
@@ -192,8 +192,8 @@ describe('Iterators.', function () {
   });
 
   describe('iorder_data_iterator.', function() {
-    fit('Basic.', function() {
-      const iter = indexing.iorder_data_iterator(a.stride, new Uint32Array(a.shape.length), a.shape, steps, 0);
+    it('Basic.', function() {
+      const iter = indexing.iorder_data_iterator(new Uint32Array(a.shape.length), a.shape, steps, a.stride, 0);
       let prev = -1;
       for (let i of iter) {
         expect(a.data[i]).toBe(prev + 1);
@@ -204,13 +204,16 @@ describe('Iterators.', function () {
 
   describe('dorder_data_iterator', function() {
     it('Basic.', function() {
-      expect(false).toBe(true);
+      throw new Error();
     });
   });
 
   describe('dorder_index_iterator.', function() {
     it('Basic.', function() {
-      expect(false).toBe(true);
+      const iter = indexing.dorder_index_iterator(new Uint32Array(a.shape.length), a.shape, steps, a.stride, 0);
+      for (let i of iter) {
+        console.log(i);
+      }
     });
   });
 });

@@ -243,7 +243,7 @@ export namespace indexing {
     return <Iterable<Uint32Array>> iter
   }
 
-  export function iorder_data_iterator(stride: Uint32Array, lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array, initial_offset: number): Iterable<number> {
+  export function iorder_data_iterator(lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array, stride: Uint32Array, initial_offset: number): Iterable<number> {
 
     const upper_inclusive = upper_bounds.map(e => e - 1);
     const start = index_in_data(lower_bounds, stride, initial_offset)
@@ -265,32 +265,13 @@ export namespace indexing {
     return <Iterable<number>> iter;
   }
 
-  export function dorder_data_iterator(lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array, stride: Uint32Array,  initial_offset: number) {
-    
+  export function dorder_data_iterator(lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array, stride: Uint32Array,  initial_offset: number): Iterable<number> {
+    throw new Error();
   }
 
-  export function dorder_index_iterator(lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array, stride: Uint32Array,  initial_offset: number): Iterable<number> {
+  export function dorder_index_iterator(lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array, stride: Uint32Array,  initial_offset: number): Iterable<Uint32Array> {
 
-    const upper_inclusive = upper_bounds.map(e => e - 1);
-    const start = index_in_data(lower_bounds, stride, initial_offset);
-    const step = stride[stride.length - 1];
-    const end = index_in_data(upper_inclusive, stride, initial_offset);
-    const index_stride = stride.slice(0, -1);
-    let starting_indices = iorder_index_iterator(lower_bounds.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
-
-    const iter = {
-      [Symbol.iterator]: function* () {
-        for (let starting_index of starting_indices) {
-
-          let current_index = utils.dot(starting_index, index_stride) + start;
-          while (current_index <= end) {
-            yield current_index;
-            current_index += step;
-          }
-        }
-      }
-    };
-    return iter;
+    throw new Error();
   }
 
   export function slice(indices, shape: Uint32Array, stride: Uint32Array, offset: Uint32Array, dstride: Uint32Array, initial_offset: number) {

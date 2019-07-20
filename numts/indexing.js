@@ -236,7 +236,7 @@ var indexing;
         return iter;
     }
     indexing.iorder_index_iterator = iorder_index_iterator;
-    function iorder_data_iterator(stride, lower_bounds, upper_bounds, steps, initial_offset) {
+    function iorder_data_iterator(lower_bounds, upper_bounds, steps, stride, initial_offset) {
         const upper_inclusive = upper_bounds.map(e => e - 1);
         const start = index_in_data(lower_bounds, stride, initial_offset);
         const step = stride[stride.length - 1];
@@ -258,27 +258,11 @@ var indexing;
     }
     indexing.iorder_data_iterator = iorder_data_iterator;
     function dorder_data_iterator(lower_bounds, upper_bounds, steps, stride, initial_offset) {
+        throw new Error();
     }
     indexing.dorder_data_iterator = dorder_data_iterator;
     function dorder_index_iterator(lower_bounds, upper_bounds, steps, stride, initial_offset) {
-        const upper_inclusive = upper_bounds.map(e => e - 1);
-        const start = index_in_data(lower_bounds, stride, initial_offset);
-        const step = stride[stride.length - 1];
-        const end = index_in_data(upper_inclusive, stride, initial_offset);
-        const index_stride = stride.slice(0, -1);
-        let starting_indices = iorder_index_iterator(lower_bounds.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
-        const iter = {
-            [Symbol.iterator]: function* () {
-                for (let starting_index of starting_indices) {
-                    let current_index = utils_1.utils.dot(starting_index, index_stride) + start;
-                    while (current_index <= end) {
-                        yield current_index;
-                        current_index += step;
-                    }
-                }
-            }
-        };
-        return iter;
+        throw new Error();
     }
     indexing.dorder_index_iterator = dorder_index_iterator;
     function slice(indices, shape, stride, offset, dstride, initial_offset) {
