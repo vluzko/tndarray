@@ -2,6 +2,7 @@ const indexing = require('../numts/indexing').indexing;
 const numts = require('../numts/numts');
 const random = require('../numts/random');
 const tndarray = require('../numts/tndarray').tndarray;
+const utils = require('../numts/utils').utils;
 
 
 describe('Basic calculations.', function () {
@@ -204,7 +205,29 @@ describe('Iterators.', function () {
 
   describe('dorder_data_iterator', function() {
     it('Basic.', function() {
-      throw new Error();
+      const slice = a.slice([2, 4]);
+      const iter = indexing.dorder_data_iterator(new Uint32Array(slice.shape.length), slice.shape, utils.fixed_ones(slice.shape.length), slice.stride, slice.initial_offset);
+      const arr = Array.from(iter);
+      expect(arr).toEqual([2, 3, 7, 8, 12, 13, 17, 18, 22, 23, 27, 28]);
+    });
+
+    it('Three dimensions.', function() {
+      const slice = numts.arange(75).reshape(5, 5, 3).slice([0, 3], [2, 5]);
+      const steps = utils.fixed_ones(slice.shape.length);
+      const iter = indexing.dorder_data_iterator(new Uint32Array(slice.shape.length), slice.shape, steps, slice.stride, slice.initial_offset);
+      const indices = Array.from(iter);
+      const data = indices.map(e => slice.data[e]);
+      expect(data).toEqual([
+        6, 21, 36,
+        9, 24, 39,
+        12, 27, 42,
+        7, 22, 37,
+        10, 25, 40,
+        13, 28, 43,
+        8, 23, 38,
+        11, 26, 41,
+        14, 29, 44
+      ])
     });
   });
 

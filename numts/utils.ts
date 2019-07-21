@@ -230,7 +230,7 @@ export namespace utils {
   export function fixed_ones(length: number): Uint32Array {
     let steps = new Uint32Array(length);
     steps.fill(1);
-    return steps
+    return steps;
   }
 
   /**

@@ -257,8 +257,69 @@ var indexing;
         return iter;
     }
     indexing.iorder_data_iterator = iorder_data_iterator;
+    /**
+     * Iterate over the given slice in data order.
+     * Should in theory be faster than iterating in index order, since memory accesses are all in the correct order.
+     * @param lower_bounds - The index to start iterating at.
+     * @param upper_bounds - The index to stop iterating at.
+     * @param steps - The size of the step to take (in array space, not data space).
+     * @param stride - The size of the strides in the underlying array.
+     * @param initial_offset - The offset of the view.
+     */
     function dorder_data_iterator(lower_bounds, upper_bounds, steps, stride, initial_offset) {
-        throw new Error();
+        const offset = lower_bounds.reduce((a, b) => a * b, 1);
+        // The size of a step to go from a[..., i, ...] to a[..., i+1, ...]
+        // For instance, if i is the last dimension and the array in question isn't a view,
+        // full_steps[i] == 1, because a single column of the last dimension is stored contiguously.
+        const full_steps = steps.map((e, i) => e * stride[i]);
+        // The number of steps to make along each dimension.
+        const max_steps = upper_bounds.map((e, i) => e - lower_bounds[i] - 1);
+        const distance_covered = full_steps.slice(0, -1).map((e, i) => e * max_steps[i]);
+        const step_size = full_steps.map((e, i) => {
+            // The amount covered by the inner steps.
+            const loss = (i === 0) ? 0 : distance_covered[i - 1];
+            // The amount covered by the final step.
+            const secondary_loss = (i >= 2) ? distance_covered[i - 2] : 0;
+            // The amount needed to rotate through to the next row.
+            return e - loss - secondary_loss;
+        });
+        let iters = [];
+        // Each time we make a step along the ith dimension, we first do a full round of lower-level steps, recursively.
+        step_size.forEach((e, i) => {
+            const i_iter = {
+                [Symbol.iterator]: function* () {
+                    for (let j = 0; j < max_steps[i]; j++) {
+                        // Every time we make a step at dimension i, we go through all the dimensions < i.
+                        if (i > 0) {
+                            for (let k of iters[i - 1]) {
+                                yield k;
+                            }
+                        }
+                        // Make one step at the ith dimension.
+                        yield e;
+                    }
+                    // Run through the i-1 level again.
+                    if (i > 0) {
+                        for (let k of iters[i - 1]) {
+                            yield k;
+                        }
+                    }
+                }
+            };
+            iters.push(i_iter);
+        });
+        let index = initial_offset + offset;
+        const iter = {
+            [Symbol.iterator]: function* () {
+                for (let step of iters[iters.length - 1]) {
+                    yield index;
+                    index += step;
+                }
+                // Yield the final index.
+                yield index;
+            }
+        };
+        return iter;
     }
     indexing.dorder_data_iterator = dorder_data_iterator;
     function dorder_index_iterator(lower_bounds, upper_bounds, steps, stride, initial_offset) {
