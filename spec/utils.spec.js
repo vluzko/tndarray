@@ -73,4 +73,13 @@ describe('increment_number.', function() {
     const result = utils.increment_digit(val, bounds, 2);
     expect(result).toEqual(new Uint32Array([1, 3, 0]));
   });
+
+  describe('From failures.', function() {
+    it('From dorder.', function() {
+      const val = new Uint32Array([0, 5]);
+      const bounds = new Uint32Array([1, 5]);
+      const result = utils.increment_digit(val, bounds, 1);
+      expect(result).toEqual(new Uint32Array([1, 0]));
+    });
+  });
 });
