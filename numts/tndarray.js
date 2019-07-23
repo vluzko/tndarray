@@ -649,39 +649,52 @@ class tndarray {
         return utils_1.utils.zip_iterable(old_iter, new_iter);
     }
     /**
-     * Create an iterator over the real indices of the array.
-     * Equivalent to calling _compute_real_index on result of _slice_iterator, but faster.
-     * @param {Uint32Array} lower_or_upper
-     * @param {Uint32Array} upper_bounds
-     * @param {Uint32Array} steps
+     * Create an iterator over the data indices of the elements of the tensor, in index order.
+     * Just a convenience wrapper around `indexing.iorder_data_iterator`.
+     * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
+     * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
+     * @param steps - The size of the steps to take along each axis.
      * @return {Iterable<number>}
-     * @private
      */
     _iorder_data_iterator(lower_or_upper, upper_bounds, steps) {
-        let lower_bounds;
-        if (lower_or_upper === undefined) {
-            lower_bounds = new Uint32Array(this.shape.length);
-            upper_bounds = this.shape;
-        }
-        else if (upper_bounds === undefined) {
-            lower_bounds = new Uint32Array(this.shape.length);
-            upper_bounds = lower_or_upper;
-        }
-        else {
-            lower_bounds = lower_or_upper;
-        }
-        if (steps === undefined) {
-            steps = utils_1.utils.fixed_ones(this.shape.length);
-        }
-        return indexing_1.indexing.iorder_data_iterator(lower_bounds, upper_bounds, steps, this.stride, this.initial_offset);
+        const bounds = this._calculate_slice_bounds(lower_or_upper, upper_bounds, steps);
+        return indexing_1.indexing.iorder_data_iterator(bounds[0], bounds[1], bounds[2], this.stride, this.initial_offset);
     }
+    /**
+    * Create an iterator over the indices of the elements of the tensor, in index order.
+    * Just a convenience wrapper around `indexing.iorder_index_iterator`.
+    * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
+    * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
+    * @param steps - The size of the steps to take along each axis.
+    * @return {Iterable<number>}
+    */
     _iorder_index_iterator(lower_or_upper, upper_bounds, steps) {
         const bounds = this._calculate_slice_bounds(lower_or_upper, upper_bounds, steps);
         return indexing_1.indexing.iorder_index_iterator(...bounds);
     }
+    /**
+    * Create an iterator over the data indices of the elements of the tensor, in data order.
+    * Just a convenience wrapper around `indexing.dorder_data_iterator`.
+    * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
+    * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
+    * @param steps - The size of the steps to take along each axis.
+    * @return {Iterable<number>}
+    */
     _dorder_data_iterator(lower_or_upper, upper_bounds, steps) {
         const bounds = this._calculate_slice_bounds(lower_or_upper, upper_bounds, steps);
-        return indexing_1.indexing.iorder_data_iterator(bounds[0], bounds[1], bounds[2], this.stride, this.initial_offset);
+        return indexing_1.indexing.dorder_data_iterator(bounds[0], bounds[1], bounds[2], this.stride, this.initial_offset);
+    }
+    /**
+    * Create an iterator over the indices of the elements of the tensor, in data order.
+    * Just a convenience wrapper around `indexing.dorder_index_iterator`.
+    * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
+    * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
+    * @param steps - The size of the steps to take along each axis.
+    * @return {Iterable<number>}
+    */
+    _dorder_index_iterator(lower_or_upper, upper_bounds, steps) {
+        const bounds = this._calculate_slice_bounds(lower_or_upper, upper_bounds, steps);
+        return indexing_1.indexing.dorder_index_iterator(...bounds);
     }
     /**
      * Compute the lower bounds, upper bounds, and steps for a slice.
@@ -692,11 +705,11 @@ class tndarray {
     _calculate_slice_bounds(lower_or_upper, upper_bounds, steps) {
         let lower_bounds;
         if (lower_or_upper === undefined) {
-            lower_bounds = this.offset;
+            lower_bounds = new Uint32Array(this.shape.length);
             upper_bounds = this.shape;
         }
         else if (upper_bounds === undefined) {
-            lower_bounds = this.offset;
+            lower_bounds = new Uint32Array(this.shape.length);
             upper_bounds = lower_or_upper;
         }
         else {
@@ -734,103 +747,6 @@ class tndarray {
             }
         };
         return iter;
-    }
-    /**
-     * Create an n-dimensional array from an iterable.
-     * @param iterable
-     * @param shape
-     * @param {string} dtype
-     * @return {tndarray}
-     */
-    static from_iterable(iterable, shape, dtype) {
-        const final_shape = indexing_1.indexing.compute_shape(shape);
-        const size = indexing_1.indexing.compute_size(final_shape);
-        const array_type = utils_1.utils.dtype_map(dtype);
-        const index_iterator = indexing_1.indexing.iorder_index_iterator(final_shape);
-        const val_gen = iterable[Symbol.iterator]();
-        let data = new array_type(size);
-        const stride = indexing_1.indexing.stride_from_shape(final_shape);
-        const initial_offset = 0;
-        let i = 0;
-        for (let index of index_iterator) {
-            const real_index = indexing_1.indexing.index_in_data(index, stride, initial_offset);
-            let val = val_gen.next();
-            data[real_index] = val.value;
-        }
-        if (data.length !== size) {
-            throw new errors.MismatchedShapeSize(`Iterable passed has size ${data.length}. Size expected from shape was: ${size}`);
-        }
-        return tndarray.array(data, final_shape, { disable_checks: true, dtype: dtype });
-    }
-    /**
-     * Produces an array of the desired shape filled with a single value.
-     * @param {number} value                - The value to fill in.
-     * @param shape - A numerical array or a number. If this is a number a one-dimensional array of that length is produced.
-     * @param {string} dtype                - The data type to use for the array. float64 by default.
-     * @return {tndarray}
-     */
-    static filled(value, shape, dtype) {
-        const final_shape = indexing_1.indexing.compute_shape(shape);
-        const size = indexing_1.indexing.compute_size(final_shape);
-        const array_type = utils_1.utils.dtype_map(dtype);
-        const data = new array_type(size).fill(value);
-        return tndarray.array(data, final_shape, { disable_checks: true, dtype: dtype });
-    }
-    /**
-     * Create a tndarray containing the specified data
-     * @param data
-     * @param shape
-     * @param options
-     * @return {tndarray}
-     */
-    static array(data, shape, options) {
-        let final_shape;
-        let size;
-        let dtype;
-        if (shape === undefined) {
-            shape = new Uint32Array([data.length]);
-        }
-        if (options && options.dtype) {
-            dtype = options.dtype;
-        }
-        if (options && options.disable_checks === true) {
-            final_shape = shape;
-            size = indexing_1.indexing.compute_size(shape);
-        }
-        else {
-            if (!utils_1.utils.is_numeric_array(data)) {
-                throw new errors.BadData();
-            }
-            if (shape === undefined || shape === null) {
-                final_shape = new Uint32Array([data.length]);
-            }
-            else {
-                final_shape = indexing_1.indexing.compute_shape(shape);
-            }
-            // Compute length
-            size = indexing_1.indexing.compute_size(final_shape);
-            if (size !== data.length) {
-                throw new errors.MismatchedShapeSize();
-            }
-        }
-        const stride = indexing_1.indexing.stride_from_shape(final_shape);
-        const offset = new Uint32Array(final_shape.length);
-        const dstride = stride.slice();
-        return new tndarray(data, final_shape, offset, stride, dstride, size, dtype);
-    }
-    /**
-     * Return an array of the specified size filled with zeroes.
-     * Equivalent to `tndarray.filled`, but slightly faster.
-     * @param {number} shape
-     * @param {string} dtype
-     * @return {tndarray}
-     */
-    static zeros(shape, dtype) {
-        const final_shape = indexing_1.indexing.compute_shape(shape);
-        const size = indexing_1.indexing.compute_size(final_shape);
-        const array_type = utils_1.utils.dtype_map(dtype);
-        const data = new array_type(size);
-        return tndarray.array(data, final_shape, { disable_checks: true, dtype: dtype });
     }
     /**
      *
@@ -934,7 +850,7 @@ class tndarray {
     static take_min(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => Math.min(x, y));
     }
-    // TODO: Type upcasting.
+    /**BEGIN OPERATIONS */
     /**
      * Compute the sum of two arrays.
      * output[i] = a[i] + [i].
@@ -1060,6 +976,7 @@ class tndarray {
     static _eq(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => +(x === y), "uint8");
     }
+    /** END OPERATIONS */
     /**
      * Check if two n-dimensional arrays are equal.
      * @param {tndarray} array1
@@ -1100,6 +1017,116 @@ class tndarray {
      */
     static copy(a) {
         return new tndarray(a.data.slice(0), a.shape.slice(0), a.offset.slice(0), a.stride.slice(0), a.dstride.slice(0), a.length, a.dtype);
+    }
+    /** BEGIN CONSTRUCTORS */
+    /**
+     * Create an n-dimensional array from an iterable.
+     * @param iterable
+     * @param shape
+     * @param {string} dtype
+     * @return {tndarray}
+     */
+    static from_iterable(iterable, shape, dtype) {
+        const final_shape = indexing_1.indexing.compute_shape(shape);
+        const size = indexing_1.indexing.compute_size(final_shape);
+        const array_type = utils_1.utils.dtype_map(dtype);
+        const index_iterator = indexing_1.indexing.iorder_index_iterator(final_shape);
+        const val_gen = iterable[Symbol.iterator]();
+        let data = new array_type(size);
+        const stride = indexing_1.indexing.stride_from_shape(final_shape);
+        const initial_offset = 0;
+        let i = 0;
+        for (let index of index_iterator) {
+            const real_index = indexing_1.indexing.index_in_data(index, stride, initial_offset);
+            let val = val_gen.next();
+            data[real_index] = val.value;
+        }
+        if (data.length !== size) {
+            throw new errors.MismatchedShapeSize(`Iterable passed has size ${data.length}. Size expected from shape was: ${size}`);
+        }
+        return tndarray.array(data, final_shape, { disable_checks: true, dtype: dtype });
+    }
+    /**
+     * Produces an array of the desired shape filled with a single value.
+     * @param {number} value                - The value to fill in.
+     * @param shape - A numerical array or a number. If this is a number a one-dimensional array of that length is produced.
+     * @param {string} dtype                - The data type to use for the array. float64 by default.
+     * @return {tndarray}
+     */
+    static filled(value, shape, dtype) {
+        const final_shape = indexing_1.indexing.compute_shape(shape);
+        const size = indexing_1.indexing.compute_size(final_shape);
+        const array_type = utils_1.utils.dtype_map(dtype);
+        const data = new array_type(size).fill(value);
+        return tndarray.array(data, final_shape, { disable_checks: true, dtype: dtype });
+    }
+    /**
+     * Create a tndarray containing the specified data
+     * @param data
+     * @param shape
+     * @param options
+     * @return {tndarray}
+     */
+    static array(data, shape, options) {
+        let final_shape;
+        let size;
+        let dtype;
+        if (shape === undefined) {
+            shape = new Uint32Array([data.length]);
+        }
+        if (options && options.dtype) {
+            dtype = options.dtype;
+        }
+        if (options && options.disable_checks === true) {
+            final_shape = shape;
+            size = indexing_1.indexing.compute_size(shape);
+        }
+        else {
+            if (!utils_1.utils.is_numeric_array(data)) {
+                throw new errors.BadData();
+            }
+            if (shape === undefined || shape === null) {
+                final_shape = new Uint32Array([data.length]);
+            }
+            else {
+                final_shape = indexing_1.indexing.compute_shape(shape);
+            }
+            // Compute length
+            size = indexing_1.indexing.compute_size(final_shape);
+            if (size !== data.length) {
+                throw new errors.MismatchedShapeSize();
+            }
+        }
+        const stride = indexing_1.indexing.stride_from_shape(final_shape);
+        const offset = new Uint32Array(final_shape.length);
+        const dstride = stride.slice();
+        return new tndarray(data, final_shape, offset, stride, dstride, size, dtype);
+    }
+    /**
+     * Return an array of the specified size filled with zeroes.
+     * Equivalent to `tndarray.filled`, but slightly faster.
+     * @param {number} shape
+     * @param {string} dtype
+     * @return {tndarray}
+     */
+    static zeros(shape, dtype) {
+        const final_shape = indexing_1.indexing.compute_shape(shape);
+        const size = indexing_1.indexing.compute_size(final_shape);
+        const array_type = utils_1.utils.dtype_map(dtype);
+        const data = new array_type(size);
+        return tndarray.array(data, final_shape, { disable_checks: true, dtype: dtype });
+    }
+    /**
+     * Create an identity matrix of a given size.
+     * @param m - The size of the identity matrix.
+     * @param dtype - The dtype for the identity matrix.
+     */
+    static eye(m, dtype) {
+        let array = tndarray.zeros([m, m], dtype);
+        for (let i = 0; i < m; i++) {
+            array.s(1, i, i);
+        }
+        return array;
     }
 }
 exports.tndarray = tndarray;
