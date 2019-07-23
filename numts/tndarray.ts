@@ -183,66 +183,9 @@ export class tndarray {
     }
     return this;
   }
-  
-  flatten() {}
 
-  /**
-   * Returns the maximum element of the array.
-   * @param {number} axis
-   * @return {number}
-   */
-  max(axis?: number): tndarray | number {
-    return this.apply_to_axis(e => Math.max(...e), axis);
-  }
-  
-  /**
-   * Calculate the mean of the array.
-   * @param {number} axis
-   */
-  mean(axis?: number): tndarray | number {
-    if (axis === undefined) {
-      return <number> this.sum() / this.length;
-    } else {
-      return tndarray._div(this.sum(axis), this.shape[axis]);
-    }
-  }
-  
-  /**
-   * Returns the minimum element of the array along the specified axis.
-   * @param {number} axis
-   * @return {number}
-   */
-  min(axis?: number): tndarray | number {
-    return this.apply_to_axis(e => Math.min(...e), axis);
-  }
-  
-  /**
-   * Returns the indices of the nonzero elements of the array.
-   */
-  nonzero(): Uint32Array[] {
-    let indices = [];
-    const steps = utils.fixed_ones(this.shape.length);
-    for (let index of indexing.iorder_index_iterator(this.offset, this.shape, steps)) {
-      const real_value = this._compute_real_index(index);
-      if (this.data[real_value] !== 0) {
-        indices.push(index)
-      }
-    }
-    return indices
-  }
-  
-  partition() {}
-  
-  /**
-   * Compute an element-wise power.
-   * @param {number} exp
-   */
-  power(exp: number ) {
-    return this.map(e => Math.pow(e, exp));
-  }
-  
-  prod() {}
-  
+  /** BEGIN METHOD CONSTRUCTORS */
+
   /**
    * Create a copy of this with a different shape.
    * @param {Uint32Array} new_shape - The shape to make the new array.
@@ -271,12 +214,67 @@ export class tndarray {
     return tndarray.from_iterable(value_iter, shape, this.dtype);
   }
   
-  round() {}
-  
-  sort() {}
-  
-  squeeze() {}
-  
+  flatten() {
+
+  }
+
+  /**
+   * Extract the upper triangle of this tensor.
+   */
+  triu(): tndarray {
+    throw new Error();
+  }
+
+  /**
+   * Extract the lower triangle of this tensor.
+   */
+  tril(): tndarray {
+    const k = Math.min(...this.shape);
+    const iter = utils.imap(this._iorder_index_iterator(), i => {
+
+      if (i[i.length - 2] >= i[i.length - 1]) {
+        return this.g(...i);
+      } else {
+        return 0;
+      }
+    });
+    return tndarray.from_iterable(iter, this.shape, this.dtype);
+  }
+
+  /** END METHOD CONSTRUCTORS */
+
+  /** BEGIN AGGREGATION */
+
+  /**
+   * Returns the maximum element of the array.
+   * @param {number} axis
+   * @return {number}
+   */
+  max(axis?: number): tndarray | number {
+    return this.apply_to_axis(e => Math.max(...e), axis);
+  }
+
+  /**
+   * Returns the minimum element of the array along the specified axis.
+   * @param {number} axis
+   * @return {number}
+   */
+  min(axis?: number): tndarray | number {
+    return this.apply_to_axis(e => Math.min(...e), axis);
+  }
+
+  /**
+   * Calculate the mean of the array.
+   * @param {number} axis
+   */
+  mean(axis?: number): tndarray | number {
+    if (axis === undefined) {
+      return <number> this.sum() / this.length;
+    } else {
+      return tndarray._div(this.sum(axis), this.shape[axis]);
+    }
+  }
+
   /**
    * Return the standard deviation along the specified axis.
    * @param {number} axis
@@ -319,6 +317,42 @@ export class tndarray {
   sum(axis?: number): number | tndarray {
     return this.reduce((a, e) => a + e, axis);
   }
+  
+
+  /** END AGGREGATION */
+  
+  /**
+   * Returns the indices of the nonzero elements of the array.
+   */
+  nonzero(): Uint32Array[] {
+    let indices = [];
+    const steps = utils.fixed_ones(this.shape.length);
+    for (let index of indexing.iorder_index_iterator(this.offset, this.shape, steps)) {
+      const real_value = this._compute_real_index(index);
+      if (this.data[real_value] !== 0) {
+        indices.push(index)
+      }
+    }
+    return indices
+  }
+  
+  partition() {}
+  
+  /**
+   * Compute an element-wise power.
+   * @param {number} exp
+   */
+  power(exp: number ) {
+    return this.map(e => Math.pow(e, exp));
+  }
+  
+  prod() {}
+  
+  round() {}
+  
+  sort() {}
+  
+  squeeze() {}
   
   trace() {}
 
@@ -638,93 +672,17 @@ export class tndarray {
   _compute_real_index(indices): number {
     return indexing.index_in_data(indices, this.stride, this.initial_offset);
   }
-  
-  /**
-   * Convert a broadcastable value to a tndarray.
-   * @param {Broadcastable} value - The value to convert. Numbers will be converted to 1x1 tndarrays, TypedArrays will be 1xn, and tndarrays will be left alone.
-   * @return {tndarray}           - The resulting tndarray.
-   * @private
-   */
-  private static _upcast_to_tndarray(value: Broadcastable): tndarray {
-    let a_array;
-    if (utils.is_numeric(value)) {
-      a_array = tndarray.array(new Float64Array([value]), new Uint32Array([1]), {disable_checks: true});
-    } else if (utils.is_typed_array(value)) {
-      a_array = tndarray.array(value, new Uint32Array([value.length]), {disable_checks: true});
-    } else {
-      a_array = value;
-    }
-    return a_array;
-  }
-  
-  /**
-   * Broadcast two values together.
-   * Works like numpy broadcasting.
-   * @param {Broadcastable} a - The first broadcastable value.
-   * @param {Broadcastable} b - The second broadcastable value.
-   * @return {[IterableIterator<number[]>, Uint32Array, string]}  - An iterator over that returns a tuple (a_i, b_i) of broadcasted values, the new shape, and the new dtype.
-   * @private
-   */
-  private static _broadcast_by_index(a: Broadcastable, b: Broadcastable): [IterableIterator<[number, number, Uint32Array]>, Uint32Array, string] {
-
-    let a_array = tndarray._upcast_to_tndarray(a);
-    let b_array = tndarray._upcast_to_tndarray(b);
-
-    const new_dimensions = indexing.calculate_broadcast_dimensions(a_array.shape, b_array.shape);
-    const new_dtype = utils._dtype_join(a_array.dtype, b_array.dtype);
-    let index_iter = indexing.iorder_index_iterator(new_dimensions);
-
-    const iterator = utils.zip_longest(a_array._iorder_data_iterator(), b_array._iorder_data_iterator(), index_iter);
-
-    let iter = {};
-    iter[Symbol.iterator] = function* () {
-      for (let [a_index, b_index, index] of iterator) {
-        const a_val = a_array.data[a_index];
-        const b_val = b_array.data[b_index];
-        yield [a_val, b_val, index];
-      }
-    };
-
-    return [<IterableIterator<[number, number, Uint32Array]>>iter, new_dimensions, new_dtype];
-  }
 
   /**
-   * Apply a binary function to two broadcastables.
-   * @param {Broadcastable} a - The first argument to f.
-   * @param {Broadcastable} b - The second argument to f.
-   * @param {(a: number, b: number) => number} f  - The function to apply.
-   * @param {string} dtype  - Optional forced data type.
-   * @return {tndarray}  - The result of applying f to a and b.
-   * @private
-   */
-  static _binary_broadcast(a: Broadcastable, b: Broadcastable, f: (a: number, b: number) => number, dtype?: string): tndarray {
-    let [iter, shape, new_dtype] = tndarray._broadcast_by_index(a, b);
-
-    if (dtype === undefined) {
-      dtype = new_dtype
-    }
-
-    let new_array = tndarray.filled(0, shape, dtype);
-
-    for (let [a_val, b_val, index] of iter) {
-      const new_val = f(a_val, b_val);
-      new_array.s(new_val, ...index);
-    }
-
-    return new_array
-  }
-
-  /**
-   * Compute lower, upper, and steps for a slice of `full_array` along `axis`.
+   * Compute lower, upper, and steps for a slice of an array along `axis`.
    * @param {number} axis
    * @return {[Uint32Array, Uint32Array, Uint32Array]}  - [lower, upper, steps]
    * @private
    */
   private _slice_for_axis(axis: number): [Uint32Array, Uint32Array, Uint32Array] {
-    let lower = new Uint32Array(this.shape.length);
+    const lower = new Uint32Array(this.shape.length);
     let upper = this.shape.slice(0);
-    let steps = new Uint32Array(this.shape.length);
-    steps.fill(1);
+    const steps = utils.fixed_ones(this.shape.length);
     upper[axis] = 1;
     return [lower, upper, steps];
   }
@@ -867,7 +825,83 @@ export class tndarray {
 
     return [lower_bounds, upper_bounds, steps];
   }
+
+  /** BEGIN OPERATIONS */
   
+  /**
+   * Convert a broadcastable value to a tndarray.
+   * @param {Broadcastable} value - The value to convert. Numbers will be converted to 1x1 tndarrays, TypedArrays will be 1xn, and tndarrays will be left alone.
+   * @return {tndarray}           - The resulting tndarray.
+   * @private
+   */
+  private static _upcast_to_tndarray(value: Broadcastable): tndarray {
+    let a_array;
+    if (utils.is_numeric(value)) {
+      a_array = tndarray.array(new Float64Array([value]), new Uint32Array([1]), {disable_checks: true});
+    } else if (utils.is_typed_array(value)) {
+      a_array = tndarray.array(value, new Uint32Array([value.length]), {disable_checks: true});
+    } else {
+      a_array = value;
+    }
+    return a_array;
+  }
+  
+  /**
+   * Broadcast two values together.
+   * Works like numpy broadcasting.
+   * @param {Broadcastable} a - The first broadcastable value.
+   * @param {Broadcastable} b - The second broadcastable value.
+   * @return {[IterableIterator<number[]>, Uint32Array, string]}  - An iterator over that returns a tuple (a_i, b_i) of broadcasted values, the new shape, and the new dtype.
+   * @private
+   */
+  private static _broadcast_by_index(a: Broadcastable, b: Broadcastable): [IterableIterator<[number, number, Uint32Array]>, Uint32Array, string] {
+
+    let a_array = tndarray._upcast_to_tndarray(a);
+    let b_array = tndarray._upcast_to_tndarray(b);
+
+    const new_dimensions = indexing.calculate_broadcast_dimensions(a_array.shape, b_array.shape);
+    const new_dtype = utils._dtype_join(a_array.dtype, b_array.dtype);
+    let index_iter = indexing.iorder_index_iterator(new_dimensions);
+
+    const iterator = utils.zip_longest(a_array._iorder_data_iterator(), b_array._iorder_data_iterator(), index_iter);
+
+    let iter = {};
+    iter[Symbol.iterator] = function* () {
+      for (let [a_index, b_index, index] of iterator) {
+        const a_val = a_array.data[a_index];
+        const b_val = b_array.data[b_index];
+        yield [a_val, b_val, index];
+      }
+    };
+
+    return [<IterableIterator<[number, number, Uint32Array]>>iter, new_dimensions, new_dtype];
+  }
+
+  /**
+   * Apply a binary function to two broadcastables.
+   * @param {Broadcastable} a - The first argument to f.
+   * @param {Broadcastable} b - The second argument to f.
+   * @param {(a: number, b: number) => number} f  - The function to apply.
+   * @param {string} dtype  - Optional forced data type.
+   * @return {tndarray}  - The result of applying f to a and b.
+   * @private
+   */
+  static _binary_broadcast(a: Broadcastable, b: Broadcastable, f: (a: number, b: number) => number, dtype?: string): tndarray {
+    let [iter, shape, new_dtype] = tndarray._broadcast_by_index(a, b);
+
+    if (dtype === undefined) {
+      dtype = new_dtype
+    }
+
+    let new_array = tndarray.filled(0, shape, dtype);
+
+    for (let [a_val, b_val, index] of iter) {
+      const new_val = f(a_val, b_val);
+      new_array.s(new_val, ...index);
+    }
+
+    return new_array
+  }
 
   /**
    * 
@@ -982,7 +1016,7 @@ export class tndarray {
     return tndarray._binary_broadcast(a, b, (x, y) => Math.min(x, y));
   }
 
-  /**BEGIN OPERATIONS */
+  
 
   /**
    * Compute the sum of two arrays.

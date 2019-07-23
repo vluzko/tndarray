@@ -694,3 +694,21 @@ describe('Basic statistics.', function () {
     });
   });
 });
+
+describe('Method constructors.', function() {
+  describe('tril.', function() {
+    fit('Three dimensions.', function() {
+      const a = numts.arange(30).reshape(3, 2, 5);
+      const b = a.tril();
+      const expected = numts.from_nested_array([
+        [[0, 0, 0, 0, 0],
+        [5, 6, 0, 0, 0]],
+        [[10, 0, 0, 0, 0],
+        [15, 16, 0, 0, 0]],
+        [[20, 0, 0, 0, 0],
+        [25, 26, 0, 0, 0]]
+      ], 'int32');
+      expect(b.equals(expected)).toBe(true);
+    });
+  });
+})

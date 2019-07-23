@@ -351,7 +351,7 @@ var indexing;
      * @param slice - The slice provided by the user.
      * @param shape - The shape of the array being sliced.
      */
-    function uslice_to_islice(slice, shape) {
+    function fill_uslice(slice, shape) {
         let islice = [];
         let dims_to_drop = [];
         const positive_indices = indexing.convert_negative_indices(slice, shape);
@@ -375,7 +375,17 @@ var indexing;
             }
             i += 1;
         }
-        for (; i < shape.length; i++) {
+        return [islice, dims_to_drop];
+    }
+    indexing.fill_uslice = fill_uslice;
+    /**
+     * Convert a user slice to an internal slice.
+     * @param slice - The slice provided by the user.
+     * @param shape - The shape of the array being sliced.
+     */
+    function uslice_to_islice(slice, shape) {
+        let [islice, dims_to_drop] = fill_uslice(slice, shape);
+        for (let i = islice.length; i < shape.length; i++) {
             islice.push([0, shape[i], 1]);
         }
         return [islice, dims_to_drop];

@@ -364,7 +364,7 @@ export namespace indexing {
    * @param slice - The slice provided by the user.
    * @param shape - The shape of the array being sliced.
    */
-  export function uslice_to_islice(slice: USlice, shape: Shape): [ISlice, number[]] {
+  export function fill_uslice(slice: USlice, shape: Shape): [ISlice, number[]] {
     let islice = [];
     let dims_to_drop = []
     const positive_indices = indexing.convert_negative_indices(slice, shape);
@@ -385,7 +385,17 @@ export namespace indexing {
       i += 1;
     }
 
-    for (; i < shape.length; i++) {
+    return [islice, dims_to_drop];
+  }
+
+  /**
+   * Convert a user slice to an internal slice.
+   * @param slice - The slice provided by the user.
+   * @param shape - The shape of the array being sliced.
+   */
+  export function uslice_to_islice(slice: USlice, shape: Shape): [ISlice, number[]] {
+    let [islice, dims_to_drop] = fill_uslice(slice, shape);
+    for (let i = islice.length; i < shape.length; i++) {
       islice.push([0, shape[i], 1]);
     }
 
