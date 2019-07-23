@@ -88,7 +88,7 @@ describe("Constructors and factories.", function () {
 
         let good_nested = numts.from_nested_array(nested);
         expect(good_nested.shape).toEqual(new Uint32Array([3, 2, 4, 5]));
-        for (let indices of good_nested._index_iterator()) {
+        for (let indices of good_nested._iorder_index_iterator()) {
           let expected = numts._nested_array_value_from_index(nested, indices);
           let actual = good_nested.g(...indices);
           expect(actual).toBe(expected, `index: ${indices}`);

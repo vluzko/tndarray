@@ -112,7 +112,7 @@ describe("Iterators.", function () {
 
     it("one-dimensional.", function () {
       let tensor = numts.arange(0, 10);
-      let indices = [...tensor._index_iterator()];
+      let indices = [...tensor._iorder_index_iterator()];
       let real_indices = [...tensor._iorder_data_iterator()];
 
       indices.forEach((e, i) => {
@@ -124,7 +124,7 @@ describe("Iterators.", function () {
 
     it("two-dimensional.", function () {
       let tensor = numts.arange(0, 10).reshape([5, 2]);
-      let indices = [...tensor._index_iterator()];
+      let indices = [...tensor._iorder_index_iterator()];
       let real_indices = [...tensor._iorder_data_iterator()];
 
       indices.forEach((e, i) => {
@@ -136,7 +136,7 @@ describe("Iterators.", function () {
 
     it("four-dimensional.", function () {
       let tensor = numts.arange(0, 16).reshape(new Uint32Array([2, 2, 2, 2]));
-      let indices = [...tensor._index_iterator()];
+      let indices = [...tensor._iorder_index_iterator()];
       let real_indices = [...tensor._iorder_data_iterator()];
 
       indices.forEach((e, i) => {
@@ -152,7 +152,7 @@ describe("Iterators.", function () {
     it("two-dimensional", function () {
       let array = numts.zeros([2, 2]);
       const expected = [[0, 0], [0, 1], [1, 0], [1, 1]].map(e => new Uint32Array(e));
-      const actual = Array.from(array._index_iterator());
+      const actual = Array.from(array._iorder_index_iterator());
       expect(actual).toEqual(expected);
     });
   });
@@ -340,6 +340,14 @@ describe("Methods.", function () {
       const values = [...x.slice([0,2], [0, 2])._value_iterator()];
       expect(values).toEqual([10, 11, 12, 13]);
     });
+
+    // it('From failed matrix multiplication.', function() {
+    //   let x = numts.zeros([2, 3, 4]);
+    //   const a = numts.from_nested_array([
+    //     [56, 62, 68, 74],
+    //     [152, 174, 196, 218]
+    //   ])
+    // })
   });
 
 });

@@ -185,7 +185,8 @@ class tndarray {
      */
     nonzero() {
         let indices = [];
-        for (let index of this._index_iterator()) {
+        const steps = utils_1.utils.fixed_ones(this.shape.length);
+        for (let index of indexing_1.indexing.iorder_index_iterator(this.offset, this.shape, steps)) {
             const real_value = this._compute_real_index(index);
             if (this.data[real_value] !== 0) {
                 indices.push(index);
@@ -383,6 +384,7 @@ class tndarray {
      * @param indices
      */
     s(values, ...indices) {
+        // Set a single element of the array.
         if (indexing_1.indexing.checks_indices_are_single_index(...indices) && indices.length === this.shape.length) {
             if (!utils_1.utils.is_numeric(values)) {
                 throw new Error(`To set a single element of the array, the values must be a scalar. Got ${values}.`);
@@ -673,12 +675,37 @@ class tndarray {
         }
         return indexing_1.indexing.iorder_data_iterator(lower_bounds, upper_bounds, steps, this.stride, this.initial_offset);
     }
+    _iorder_index_iterator(lower_or_upper, upper_bounds, steps) {
+        const bounds = this._calculate_slice_bounds(lower_or_upper, upper_bounds, steps);
+        return indexing_1.indexing.iorder_index_iterator(...bounds);
+    }
+    _dorder_data_iterator(lower_or_upper, upper_bounds, steps) {
+        const bounds = this._calculate_slice_bounds(lower_or_upper, upper_bounds, steps);
+        return indexing_1.indexing.iorder_data_iterator(bounds[0], bounds[1], bounds[2], this.stride, this.initial_offset);
+    }
     /**
-     * Returns an iterator over the indices of the array.
-     * @private
+     * Compute the lower bounds, upper bounds, and steps for a slice.
+     * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
+     * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
+     * @param steps - The size of the steps to take along each axis.
      */
-    _index_iterator() {
-        return indexing_1.indexing.iorder_index_iterator(this.offset, this.shape);
+    _calculate_slice_bounds(lower_or_upper, upper_bounds, steps) {
+        let lower_bounds;
+        if (lower_or_upper === undefined) {
+            lower_bounds = this.offset;
+            upper_bounds = this.shape;
+        }
+        else if (upper_bounds === undefined) {
+            lower_bounds = this.offset;
+            upper_bounds = lower_or_upper;
+        }
+        else {
+            lower_bounds = lower_or_upper;
+        }
+        if (steps === undefined) {
+            steps = utils_1.utils.fixed_ones(this.shape.length);
+        }
+        return [lower_bounds, upper_bounds, steps];
     }
     /**
      * TODO: Test

@@ -256,7 +256,6 @@ describe('slice.', function () {
   it('basic test.', function () {
     const base_array = numts.arange(16).reshape([4, 4]);
     const s = indexing.slice([[0,2], [1, 3]], base_array.shape, base_array.stride, base_array.offset, base_array.dstride, base_array.initial_offset);
-    console.log(s);
     const slice = base_array.slice([0, 2], [1, 3]);
 
   });

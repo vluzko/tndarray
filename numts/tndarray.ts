@@ -221,7 +221,8 @@ export class tndarray {
    */
   nonzero(): Uint32Array[] {
     let indices = [];
-    for (let index of this._index_iterator()) {
+    const steps = utils.fixed_ones(this.shape.length);
+    for (let index of indexing.iorder_index_iterator(this.offset, this.shape, steps)) {
       const real_value = this._compute_real_index(index);
       if (this.data[real_value] !== 0) {
         indices.push(index)
@@ -444,6 +445,7 @@ export class tndarray {
    * @param indices
    */
   s(values: Broadcastable, ...indices) {
+    // Set a single element of the array.
     if (indexing.checks_indices_are_single_index(...indices) && indices.length === this.shape.length) {
       if (! utils.is_numeric(values)) {
         throw new Error(`To set a single element of the array, the values must be a scalar. Got ${values}.`);
@@ -455,6 +457,7 @@ export class tndarray {
     }
 
     const view = this.slice(...indices);
+
     let b_array = tndarray._upcast_to_tndarray(values);
 
     // Check that shapes are compatible.
@@ -468,10 +471,10 @@ export class tndarray {
         throw new Error(`Bad dimensions for broadcasting. a: ${view.shape}, b: ${b_array.shape}`);
       }
     }
-
     const iterator = utils.zip_longest(view._iorder_data_iterator(), b_array._iorder_data_iterator());
 
     for (let [a_index, b_index] of iterator) {
+      
       view.data[a_index] = b_array.data[b_index];
     }
   }
@@ -771,12 +774,39 @@ export class tndarray {
     return indexing.iorder_data_iterator(lower_bounds, upper_bounds, steps, this.stride, this.initial_offset);
   }
 
+  _iorder_index_iterator(lower_or_upper?: Uint32Array, upper_bounds?: Uint32Array, steps?: Uint32Array): Iterable<Uint32Array> {
+    const bounds = this._calculate_slice_bounds(lower_or_upper, upper_bounds, steps);
+    return indexing.iorder_index_iterator(...bounds);
+  }
+
+  _dorder_data_iterator(lower_or_upper?: Uint32Array, upper_bounds?: Uint32Array, steps?: Uint32Array): Iterable<number> {
+    const bounds = this._calculate_slice_bounds(lower_or_upper, upper_bounds, steps);
+    return indexing.iorder_data_iterator(bounds[0], bounds[1], bounds[2], this.stride, this.initial_offset);
+  }
+
   /**
-   * Returns an iterator over the indices of the array.
-   * @private
+   * Compute the lower bounds, upper bounds, and steps for a slice.
+   * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
+   * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
+   * @param steps - The size of the steps to take along each axis.
    */
-  _index_iterator(): Iterable<Uint32Array> {
-    return indexing.iorder_index_iterator(this.offset, this.shape);
+  private _calculate_slice_bounds(lower_or_upper: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array): [Uint32Array, Uint32Array, Uint32Array] {
+    let lower_bounds;
+    if (lower_or_upper === undefined) {
+      lower_bounds = this.offset;
+      upper_bounds = this.shape;
+    } else if (upper_bounds === undefined) {
+      lower_bounds = this.offset;
+      upper_bounds = lower_or_upper;
+    } else {
+      lower_bounds = lower_or_upper;
+    }
+
+    if (steps === undefined) {
+      steps = utils.fixed_ones(this.shape.length);
+    }
+
+    return [lower_bounds, upper_bounds, steps];
   }
   
   /**
@@ -958,15 +988,14 @@ export class tndarray {
       const index_iter = indexing.iorder_index_iterator(new_dimensions.slice(0, -2));
       const a_iter = indexing.iorder_index_iterator(a_shape.slice(0, -2));
       const b_iter = indexing.iorder_index_iterator(b_shape.slice(0, -2));
-
       const iter = utils.zip_longest(a_iter, b_iter, index_iter);
       for (let [a_index, b_index, index] of iter) {
-
         const slice = indexing.index_to_slice(index);
 
         const b1 = b_array.slice(...b_index);
         const a1 = a_array.slice(...a_index);
         const subarray = tndarray.matmul_2d(a1, b1);
+
         array.s(subarray, ...slice);
       }
       return array;

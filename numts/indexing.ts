@@ -254,13 +254,14 @@ export namespace indexing {
         for (let starting_index of starting_indices) {
           let current_index = utils.dot(starting_index, index_stride) + start;
           while (current_index <= end) {
+            
             yield current_index;
             current_index += step;
           }
         }
       }
     };
-    return <Iterable<number>> iter;
+    return iter;
   }
 
   /**
