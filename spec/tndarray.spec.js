@@ -571,11 +571,17 @@ describe('Broadcasting.', function () {
     });
 
     it('take_max', function () {
-      throw new Error();
+      const a = numts.arange(30).reshape(5, 6);
+      const b = numts.arange(30, 60).reshape(5, 6);
+      const c = tndarray.take_max(a, b);
+      expect(b.equals(c)).toBe(true);
     });
 
     it('take_min', function () {
-      throw new Error();
+      const a = numts.arange(30).reshape(5, 6);
+      const b = numts.arange(30, 60).reshape(5, 6);
+      const c = tndarray.take_min(a, b);
+      expect(a.equals(c)).toBe(true);
     });
   });
 });

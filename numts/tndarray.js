@@ -838,7 +838,6 @@ class tndarray {
         }
         return acc;
     }
-    // TODO: Broadcasting
     /**
      * Create an array containing the element-wise max of the inputs.
      * Inputs must be the same shape.
@@ -849,7 +848,6 @@ class tndarray {
     static take_max(a, b) {
         return tndarray._binary_broadcast(a, b, (x, y) => Math.max(x, y));
     }
-    // TODO: Broadcasting
     /**
      * Create an array containing the element-wise min of the inputs.
      * Inputs must be the same shape.
