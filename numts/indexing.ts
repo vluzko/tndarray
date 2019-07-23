@@ -330,7 +330,7 @@ export namespace indexing {
     return iter;
   }
 
-  export function dorder_index_iterator(lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array, stride: Uint32Array,  initial_offset: number): Iterable<Uint32Array> {
+  export function dorder_index_iterator(lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array): Iterable<Uint32Array> {
 
     const size = indexing.compute_slice_size(lower_bounds, upper_bounds, steps);
     const end_dimension = upper_bounds.length - 1;

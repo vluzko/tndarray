@@ -322,7 +322,7 @@ var indexing;
         return iter;
     }
     indexing.dorder_data_iterator = dorder_data_iterator;
-    function dorder_index_iterator(lower_bounds, upper_bounds, steps, stride, initial_offset) {
+    function dorder_index_iterator(lower_bounds, upper_bounds, steps) {
         const size = indexing.compute_slice_size(lower_bounds, upper_bounds, steps);
         const end_dimension = upper_bounds.length - 1;
         const iter = {
