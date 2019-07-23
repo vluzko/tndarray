@@ -108,20 +108,6 @@ export class tndarray {
     return tndarray._add(this, b);
   }
   
-  /**
-   * Return true if all elements are true.
-   */
-  all(axis?: number): boolean {
-    for (let index of this._iorder_data_iterator()) {
-      if (!this.data[index]) {
-        return false;
-      }
-    }
-    return true;
-  }
-  
-  any() {}
-  
   argmax() {}
   
   argmin() {}
@@ -253,6 +239,36 @@ export class tndarray {
   /** BEGIN AGGREGATION */
 
   /**
+   * Return true if all elements are true.
+   */
+  all(axis?: number): number | tndarray {
+    const f = data => {
+      for (let value of data) {
+        if (!value) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return this.apply_to_axis(f, axis);
+  }
+  
+  /**
+   * Return true if any element is true.
+   */
+  any(axis?: number): number | tndarray {
+    const f = data => {
+      for (let value of data) {
+        if (value) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return this.apply_to_axis(f, axis);
+  }
+
+  /**
    * Returns the maximum element of the array.
    * @param {number} axis
    * @return {number}
@@ -325,7 +341,6 @@ export class tndarray {
     return this.reduce((a, e) => a + e, axis);
   }
   
-
   /** END AGGREGATION */
   
   /**

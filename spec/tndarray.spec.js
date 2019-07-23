@@ -675,7 +675,35 @@ describe('Math.', function () {
   });
 });
 
-describe('Basic statistics.', function () {
+describe('Aggregation.', function () {
+
+  describe('all.', function() {
+    it('Basic.', function() {
+      const a = numts.from_nested_array([
+        [0, 0, 1],
+        [1, 1, 1]
+      ], 'int32');
+      expect(a.all()).toBe(false);
+      expect(a.all(0).data).toEqual(new Int32Array([0, 0, 1]));
+      expect(a.all(1).data).toEqual(new Int32Array([0, 1]));
+    });
+  });
+
+  describe('any.', function() {
+    it('Basic.', function() {
+      const a = numts.from_nested_array([
+        [0, 0, 1],
+        [0, 1, 1]
+      ], 'int32');
+      expect(a.any()).toBe(true);
+      expect(a.any(0).data).toEqual(new Int32Array([0, 1, 1]));
+      expect(a.any(1).data).toEqual(new Int32Array([1, 1]));
+    });
+  });
+
+  describe('variance.', function() {
+
+  });
 
   describe('mean.', function () {
     it('2d.', function () {
