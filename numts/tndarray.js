@@ -184,13 +184,20 @@ class tndarray {
      * Extract the upper triangle of this tensor.
      */
     triu() {
-        throw new Error();
+        const iter = utils_1.utils.imap(this._iorder_index_iterator(), i => {
+            if (i[i.length - 2] <= i[i.length - 1]) {
+                return this.g(...i);
+            }
+            else {
+                return 0;
+            }
+        });
+        return tndarray.from_iterable(iter, this.shape, this.dtype);
     }
     /**
      * Extract the lower triangle of this tensor.
      */
     tril() {
-        const k = Math.min(...this.shape);
         const iter = utils_1.utils.imap(this._iorder_index_iterator(), i => {
             if (i[i.length - 2] >= i[i.length - 1]) {
                 return this.g(...i);

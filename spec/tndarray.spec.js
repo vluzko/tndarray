@@ -697,7 +697,7 @@ describe('Basic statistics.', function () {
 
 describe('Method constructors.', function() {
   describe('tril.', function() {
-    fit('Three dimensions.', function() {
+    it('Three dimensions.', function() {
       const a = numts.arange(30).reshape(3, 2, 5);
       const b = a.tril();
       const expected = numts.from_nested_array([
@@ -707,6 +707,22 @@ describe('Method constructors.', function() {
         [15, 16, 0, 0, 0]],
         [[20, 0, 0, 0, 0],
         [25, 26, 0, 0, 0]]
+      ], 'int32');
+      expect(b.equals(expected)).toBe(true);
+    });
+  });
+
+  describe('triu.', function() {
+    it('Three dimensions.', function() {
+      const a = numts.arange(30).reshape(3, 2, 5);
+      const b = a.triu();
+      const expected = numts.from_nested_array([
+        [[ 0,  1,  2,  3,  4],
+        [ 0,  6,  7,  8,  9]],
+        [[10, 11, 12, 13, 14],
+        [ 0, 16, 17, 18, 19]],
+        [[20, 21, 22, 23, 24],
+        [ 0, 26, 27, 28, 29]]
       ], 'int32');
       expect(b.equals(expected)).toBe(true);
     });
