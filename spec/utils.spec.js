@@ -30,7 +30,7 @@ describe("utils.", function () {
     const a = numts.arange(4);
     const b = numts.arange(2);
 
-    let zipped = utils.zip_longest(a._real_index_iterator(), b._real_index_iterator());
+    let zipped = utils.zip_longest(a._iorder_data_iterator(), b._iorder_data_iterator());
     let result = [...zipped];
     expect(result).toEqual([
       [0, 0],

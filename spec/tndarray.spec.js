@@ -113,7 +113,7 @@ describe("Iterators.", function () {
     it("one-dimensional.", function () {
       let tensor = numts.arange(0, 10);
       let indices = [...tensor._index_iterator()];
-      let real_indices = [...tensor._real_index_iterator()];
+      let real_indices = [...tensor._iorder_data_iterator()];
 
       indices.forEach((e, i) => {
         let real_index = real_indices[i];
@@ -125,7 +125,7 @@ describe("Iterators.", function () {
     it("two-dimensional.", function () {
       let tensor = numts.arange(0, 10).reshape([5, 2]);
       let indices = [...tensor._index_iterator()];
-      let real_indices = [...tensor._real_index_iterator()];
+      let real_indices = [...tensor._iorder_data_iterator()];
 
       indices.forEach((e, i) => {
         let real_index = real_indices[i];
@@ -137,7 +137,7 @@ describe("Iterators.", function () {
     it("four-dimensional.", function () {
       let tensor = numts.arange(0, 16).reshape(new Uint32Array([2, 2, 2, 2]));
       let indices = [...tensor._index_iterator()];
-      let real_indices = [...tensor._real_index_iterator()];
+      let real_indices = [...tensor._iorder_data_iterator()];
 
       indices.forEach((e, i) => {
         let real_index = real_indices[i];

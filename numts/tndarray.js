@@ -90,7 +90,7 @@ class tndarray {
      * Return true if all elements are true.
      */
     all(axis) {
-        for (let index of this._real_index_iterator()) {
+        for (let index of this._iorder_data_iterator()) {
             if (!this.data[index]) {
                 return false;
             }
@@ -404,7 +404,7 @@ class tndarray {
                 throw new Error(`Bad dimensions for broadcasting. a: ${view.shape}, b: ${b_array.shape}`);
             }
         }
-        const iterator = utils_1.utils.zip_longest(view._real_index_iterator(), b_array._real_index_iterator());
+        const iterator = utils_1.utils.zip_longest(view._iorder_data_iterator(), b_array._iorder_data_iterator());
         for (let [a_index, b_index] of iterator) {
             view.data[a_index] = b_array.data[b_index];
         }
@@ -456,7 +456,7 @@ class tndarray {
             }
             let previous_index = 0;
             let index_in_new = 0;
-            for (let index of this._real_index_iterator()) {
+            for (let index of this._iorder_data_iterator()) {
                 new_array.data[index_in_new] = f(new_array.data[previous_index], this.data[index]);
                 previous_index = index_in_new;
                 index_in_new += 1;
@@ -466,7 +466,7 @@ class tndarray {
             const [lower, upper, steps] = this._slice_for_axis(axis);
             new_array = tndarray.zeros(this.shape, dtype);
             const step_along_axis = this.stride[axis];
-            for (let index of this._real_index_iterator(lower, upper, steps)) {
+            for (let index of this._iorder_data_iterator(lower, upper, steps)) {
                 let first_value;
                 if (start !== undefined) {
                     first_value = f(start, this.data[index]);
@@ -501,7 +501,7 @@ class tndarray {
             const new_shape = indexing_1.indexing.new_shape_from_axis(this.shape, axis);
             let new_array = tndarray.zeros(new_shape, dtype);
             const step_along_axis = this.stride[axis];
-            for (let [old_index, new_index] of this._true_index_iterator_over_axes(axis)) {
+            for (let [old_index, new_index] of this.map_old_indices_to_new(axis)) {
                 let axis_values = [];
                 for (let i = 0; i < this.shape[axis]; i++) {
                     axis_values.push(this.data[old_index + i * step_along_axis]);
@@ -526,7 +526,7 @@ class tndarray {
             const new_shape = indexing_1.indexing.new_shape_from_axis(this.shape, axis);
             let new_array = tndarray.zeros(new_shape, dtype);
             const step_along_axis = this.stride[axis];
-            for (let [old_index, new_index] of this._true_index_iterator_over_axes(axis)) {
+            for (let [old_index, new_index] of this.map_old_indices_to_new(axis)) {
                 let accum = this.data[old_index];
                 for (let i = 1; i < this.shape[axis]; i++) {
                     accum = f(accum, this.data[old_index + i * step_along_axis]);
@@ -586,7 +586,7 @@ class tndarray {
         const new_dimensions = indexing_1.indexing.calculate_broadcast_dimensions(a_array.shape, b_array.shape);
         const new_dtype = utils_1.utils._dtype_join(a_array.dtype, b_array.dtype);
         let index_iter = indexing_1.indexing.iorder_index_iterator(new_dimensions);
-        const iterator = utils_1.utils.zip_longest(a_array._real_index_iterator(), b_array._real_index_iterator(), index_iter);
+        const iterator = utils_1.utils.zip_longest(a_array._iorder_data_iterator(), b_array._iorder_data_iterator(), index_iter);
         let iter = {};
         iter[Symbol.iterator] = function* () {
             for (let [a_index, b_index, index] of iterator) {
@@ -638,15 +638,14 @@ class tndarray {
      * @return {Iterable<number[]>}
      * @private
      */
-    _true_index_iterator_over_axes(axis) {
+    map_old_indices_to_new(axis) {
         const new_shape = indexing_1.indexing.new_shape_from_axis(this.shape, axis);
         let new_array = tndarray.zeros(new_shape, this.dtype);
         let [lower, upper, steps] = this._slice_for_axis(axis);
-        let old_iter = this._real_index_iterator(lower, upper, steps)[Symbol.iterator]();
-        let new_iter = new_array._real_index_iterator()[Symbol.iterator]();
+        let old_iter = this._iorder_data_iterator(lower, upper, steps)[Symbol.iterator]();
+        let new_iter = new_array._iorder_data_iterator()[Symbol.iterator]();
         return utils_1.utils.zip_iterable(old_iter, new_iter);
     }
-    // TODO: Make recursive
     /**
      * Create an iterator over the real indices of the array.
      * Equivalent to calling _compute_real_index on result of _slice_iterator, but faster.
@@ -656,35 +655,23 @@ class tndarray {
      * @return {Iterable<number>}
      * @private
      */
-    _real_index_iterator(lower_or_upper, upper_bounds, steps) {
+    _iorder_data_iterator(lower_or_upper, upper_bounds, steps) {
+        let lower_bounds;
         if (lower_or_upper === undefined) {
-            lower_or_upper = this.shape;
+            lower_bounds = new Uint32Array(this.shape.length);
+            upper_bounds = this.shape;
+        }
+        else if (upper_bounds === undefined) {
+            lower_bounds = new Uint32Array(this.shape.length);
+            upper_bounds = lower_or_upper;
+        }
+        else {
+            lower_bounds = lower_or_upper;
         }
         if (steps === undefined) {
-            steps = new Uint32Array(lower_or_upper.length);
-            steps.fill(1);
+            steps = utils_1.utils.fixed_ones(this.shape.length);
         }
-        if (upper_bounds === undefined) {
-            upper_bounds = lower_or_upper;
-            lower_or_upper = new Uint32Array(upper_bounds.length);
-        }
-        let iter = {};
-        const upper_inclusive = upper_bounds.map(e => e - 1);
-        const start = this._compute_real_index(lower_or_upper);
-        const step = this.stride[this.stride.length - 1];
-        const end = this._compute_real_index(upper_inclusive);
-        const index_stride = this.stride.slice(0, -1);
-        let starting_indices = indexing_1.indexing.iorder_index_iterator(lower_or_upper.slice(0, -1), upper_bounds.slice(0, -1), steps.slice(0, -1));
-        iter[Symbol.iterator] = function* () {
-            for (let starting_index of starting_indices) {
-                let current_index = utils_1.utils.dot(starting_index, index_stride) + start;
-                while (current_index <= end) {
-                    yield current_index;
-                    current_index += step;
-                }
-            }
-        };
-        return iter;
+        return indexing_1.indexing.iorder_data_iterator(lower_bounds, upper_bounds, steps, this.stride, this.initial_offset);
     }
     /**
      * Returns an iterator over the indices of the array.
