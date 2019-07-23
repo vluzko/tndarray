@@ -184,11 +184,9 @@ describe('Iterators.', function () {
     });
 
     it('Mismatched.', function () {
-      let i = 0;
-      throw new Error();
-      for (let index of indexing.iorder_index_iterator([0, 5], [4, 0], [5, 5])) {
-        throw new Error();
-      }
+      const iter = indexing.iorder_index_iterator([0, 5], [4, 5], [5, 5]);
+      const arr = Array.from(iter);
+      expect(arr.length).toBe(0);
     });
   });
 
@@ -200,6 +198,19 @@ describe('Iterators.', function () {
         expect(a.data[i]).toBe(prev + 1);
         prev = a.data[i];
       }
+    });
+
+    it('Three dimensions.', function() {
+      const slice = numts.arange(75).reshape(5, 5, 3).slice([0, 3], [2, 5]);
+      const steps = utils.fixed_ones(slice.shape.length);
+      const iter = indexing.iorder_data_iterator(new Uint32Array(slice.shape.length), slice.shape, steps, slice.stride, slice.initial_offset);
+      const indices = Array.from(iter);
+      const data = indices.map(e => slice.data[e]);
+      expect(data).toEqual([
+        6, 7, 8, 9, 10, 11, 12, 13, 14,
+        21, 22, 23, 24, 25, 26, 27, 28, 29,
+        36, 37, 38, 39, 40, 41, 42, 43, 44
+      ]);
     });
   });
 
