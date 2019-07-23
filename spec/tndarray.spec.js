@@ -170,10 +170,10 @@ describe('Iterators.', function () {
     });
   });
 
-  it('_value_iterator.', function () {
+  it('_iorder_value_iterator.', function () {
     let array = tndarray.array([1, 2, 3, 4]);
     const expected = [1, 2, 3, 4];
-    const actual = Array.from(array._value_iterator());
+    const actual = Array.from(array._iorder_value_iterator());
     expect(actual).toEqual(expected);
 
   });
@@ -198,7 +198,7 @@ describe('Slicing.', function () {
         [5, 6]
       ], 'int32');
 
-      const actual = tndarray.from_iterable(slice._value_iterator(), slice.shape, 'int32');
+      const actual = tndarray.from_iterable(slice._iorder_value_iterator(), slice.shape, 'int32');
       expect(expected.equals(actual)).toBe(true);
       expect(slice.data).toEqual(base_array.data);
     });
@@ -208,7 +208,7 @@ describe('Slicing.', function () {
       const slice = base_array.slice(0);
       const expected = numts.arange(4);
 
-      const actual = tndarray.from_iterable(slice._value_iterator(), slice.shape, 'int32');
+      const actual = tndarray.from_iterable(slice._iorder_value_iterator(), slice.shape, 'int32');
       expect(expected.equals(actual)).toBe(true);
       expect(slice.data).toEqual(base_array.data);
     });
@@ -221,7 +221,7 @@ describe('Slicing.', function () {
 
       const expected = numts.arange(1, 3);
 
-      const actual = tndarray.from_iterable(second_slice._value_iterator(), second_slice.shape, 'int32');
+      const actual = tndarray.from_iterable(second_slice._iorder_value_iterator(), second_slice.shape, 'int32');
       expect(expected.equals(actual)).toBe(true);
     });
 
@@ -233,7 +233,7 @@ describe('Slicing.', function () {
         [1, 2],
         [9, 10]
       ], 'int32');
-      const actual = tndarray.from_iterable(slice._value_iterator(), slice.shape, 'int32');
+      const actual = tndarray.from_iterable(slice._iorder_value_iterator(), slice.shape, 'int32');
 
       expect(expected.equals(actual)).toBe(true);
 
@@ -249,7 +249,7 @@ describe('Slicing.', function () {
       ], 'int32');
 
 
-      const actual = tndarray.from_iterable(first._value_iterator(), first.shape, 'int32');
+      const actual = tndarray.from_iterable(first._iorder_value_iterator(), first.shape, 'int32');
       expect(expected).toEqual(actual);
     });
 
@@ -266,21 +266,21 @@ describe('Slicing.', function () {
         [[66, 69]]
       ], 'int32');
 
-      const actual = tndarray.from_iterable(second._value_iterator(), second.shape, 'int32');
+      const actual = tndarray.from_iterable(second._iorder_value_iterator(), second.shape, 'int32');
       expect(expected.equals(actual)).toBe(true);
     });
 
     it('slice with last dropped', function () {
       const a = numts.arange(24).reshape(2, 3, 4);
       const slice = a.slice(...[null, null, 1]);
-      expect([...slice._value_iterator()]).toEqual([1, 5, 9, 13, 17, 21]);
+      expect([...slice._iorder_value_iterator()]).toEqual([1, 5, 9, 13, 17, 21]);
     });
 
     describe('previous breaks.', function () {
       it('broadcast_matmul break.', function () {
         const a = numts.arange(24).reshape(2, 3, 4);
         const slice = a.slice(...[1]);
-        expect([...slice._value_iterator()]).toEqual([
+        expect([...slice._iorder_value_iterator()]).toEqual([
           12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
         ]);
       });
@@ -289,7 +289,7 @@ describe('Slicing.', function () {
         const a = numts.arange(24).reshape(2, 3, 4);
         const first_slice = a.slice(0);
         const second_slice = first_slice.slice(1);
-        expect([...second_slice._value_iterator()]).toEqual([4, 5, 6, 7]);
+        expect([...second_slice._iorder_value_iterator()]).toEqual([4, 5, 6, 7]);
       });
 
     });
@@ -350,7 +350,7 @@ describe('Methods.', function () {
       let x = numts.arange(10).reshape(2, 5);
       const replacement = numts.arange(10, 14).reshape(2, 2);
       x.s(replacement, [0, 2], [0, 2]);
-      const values = [...x.slice([0,2], [0, 2])._value_iterator()];
+      const values = [...x.slice([0,2], [0, 2])._iorder_value_iterator()];
       expect(values).toEqual([10, 11, 12, 13]);
     });
 

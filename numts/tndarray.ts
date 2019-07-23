@@ -267,7 +267,7 @@ export class tndarray {
     if (size !== new_size) {
       throw new errors.BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${shape}`);
     }
-    let value_iter = this._value_iterator();
+    let value_iter = this._iorder_value_iterator();
     return tndarray.from_iterable(value_iter, shape, this.dtype);
   }
   
@@ -772,6 +772,28 @@ export class tndarray {
     return indexing.iorder_index_iterator(...bounds);
   }
 
+  /**
+   * Create an iterator over the values of the array, in index order.
+   * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
+   * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
+   * @param steps - The size of the steps to take along each axis.
+   * @private
+   */
+  _iorder_value_iterator(lower_or_upper?: Uint32Array, upper_bounds?: Uint32Array, steps?: Uint32Array): Iterable<number> {
+
+    const index_iterator = this._iorder_data_iterator(lower_or_upper, upper_bounds, steps);
+    const self = this;
+    const iter = {
+      [Symbol.iterator]: function* () {
+        for (let index of index_iterator) {
+          yield self.data[index];
+        }
+      }
+    }
+
+    return iter;
+  }
+
    /**
    * Create an iterator over the data indices of the elements of the tensor, in data order.
    * Just a convenience wrapper around `indexing.dorder_data_iterator`.
@@ -799,6 +821,29 @@ export class tndarray {
   }
 
   /**
+   * Create an iterator over the values of the array, in data order.
+   * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
+   * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
+   * @param steps - The size of the steps to take along each axis.
+   * @private
+   */
+  _dorder_value_iterator(lower_or_upper?: Uint32Array, upper_bounds?: Uint32Array, steps?: Uint32Array): Iterable<number> {
+
+    const index_iterator = this._dorder_data_iterator(lower_or_upper, upper_bounds, steps);
+    const self = this;
+    const iter = {
+      [Symbol.iterator]: function* () {
+        for (let index of index_iterator) {
+          yield self.data[index];
+        }
+      }
+    }
+
+    return iter;
+  }
+
+
+  /**
    * Compute the lower bounds, upper bounds, and steps for a slice.
    * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
    * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
@@ -823,38 +868,6 @@ export class tndarray {
     return [lower_bounds, upper_bounds, steps];
   }
   
-  /**
-   * TODO: Test
-   * Returns a generator of the values of the array, in index order.
-   * @private
-   */
-  _value_iterator(lower_or_upper?: Uint32Array, upper_bounds?: Uint32Array, steps?: Uint32Array): Iterable<any> {
-    
-    if (lower_or_upper === undefined) {
-      lower_or_upper = this.shape;
-    }
-    
-    if (steps === undefined) {
-      steps = new Uint32Array(lower_or_upper.length);
-      steps.fill(1);
-    }
-    
-    if (upper_bounds === undefined) {
-      upper_bounds = lower_or_upper;
-      lower_or_upper = new Uint32Array(upper_bounds.length);
-    }
-
-    const index_iterator = indexing.iorder_index_iterator(lower_or_upper, upper_bounds, steps);
-    let iter = {};
-    // Alas, generators are dynamically scoped.
-    const self = this;
-    iter[Symbol.iterator] = function* () {
-      for (let index of index_iterator) {
-        yield self.g(...index);
-      }
-    };
-    return <Iterable<number>> iter;
-  }
 
   /**
    * 
@@ -939,8 +952,8 @@ export class tndarray {
    */
   static dot(a: tndarray, b: tndarray): number {
     let acc = 0;
-    let a_iter = a._value_iterator();
-    let b_iter = b._value_iterator();
+    let a_iter = a._iorder_value_iterator();
+    let b_iter = b._iorder_value_iterator();
     for (let [a_val, b_val] of utils.zip_iterable(a_iter[Symbol.iterator](), b_iter[Symbol.iterator]())) {
       acc += a_val * b_val;
     }
