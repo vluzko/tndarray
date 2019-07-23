@@ -253,5 +253,16 @@ var utils;
         return copy;
     }
     utils.increment_digit = increment_digit;
+    function imap(iter, f) {
+        const new_iter = {
+            [Symbol.iterator]: function* () {
+                for (let i of iter) {
+                    yield f(i);
+                }
+            }
+        };
+        return new_iter;
+    }
+    utils.imap = imap;
 })(utils = exports.utils || (exports.utils = {}));
 //# sourceMappingURL=utils.js.map

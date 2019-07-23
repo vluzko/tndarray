@@ -255,4 +255,15 @@ export namespace utils {
     }
     return copy;
   }
+
+  export function imap<T, S>(iter: Iterable<T>, f: (a: T) => S): Iterable<S> {
+    const new_iter = {
+      [Symbol.iterator]: function* () {
+        for (let i of iter) {
+          yield f(i);
+        }
+      }
+    };
+    return new_iter;
+  }
 }

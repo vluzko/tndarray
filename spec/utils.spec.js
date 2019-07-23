@@ -83,3 +83,12 @@ describe('increment_number.', function() {
     });
   });
 });
+
+describe('imap.', function() {
+  it('Basic.', function() {
+    const a = [1, 2, 3, 4, 5];
+    const f = e => e + 1;
+    const b = Array.from(utils.imap(a, f));
+    expect(b).toEqual([2, 3, 4, 5, 6]);
+  });
+});
