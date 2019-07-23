@@ -381,8 +381,22 @@ var indexing;
         return [islice, dims_to_drop];
     }
     indexing.uslice_to_islice = uslice_to_islice;
+    /**
+     * Convert an internal slice to lower bounds, upper bounds, and steps for iterating over that slice.
+     * @param slice - The slice to convert.
+     */
     function slice_to_bounds(slice) {
-        throw new Error();
+        let lower_bounds = new Uint32Array(slice.length);
+        let upper_bounds = lower_bounds.slice();
+        let steps = lower_bounds.slice();
+        let i = 0;
+        for (let [l, u, s] of slice) {
+            lower_bounds[i] = l;
+            upper_bounds[i] = u;
+            steps[i] = s;
+            i += 1;
+        }
+        return [lower_bounds, upper_bounds, steps];
     }
     indexing.slice_to_bounds = slice_to_bounds;
     function slice(indices, shape, stride, offset, dstride, initial_offset) {

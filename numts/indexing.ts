@@ -392,8 +392,22 @@ export namespace indexing {
     return [islice, dims_to_drop];
   }
 
+  /**
+   * Convert an internal slice to lower bounds, upper bounds, and steps for iterating over that slice.
+   * @param slice - The slice to convert.
+   */
   export function slice_to_bounds(slice: ISlice): [Uint32Array, Uint32Array, Uint32Array] {
-    throw new Error();
+    let lower_bounds = new Uint32Array(slice.length);
+    let upper_bounds = lower_bounds.slice();
+    let steps = lower_bounds.slice();
+    let i = 0;
+    for (let [l, u, s] of slice) {
+      lower_bounds[i] = l;
+      upper_bounds[i] = u;
+      steps[i] = s;
+      i += 1;
+    }
+    return [lower_bounds, upper_bounds, steps];
   }
 
   export function slice(indices, shape: Uint32Array, stride: Uint32Array, offset: Uint32Array, dstride: Uint32Array, initial_offset: number) {

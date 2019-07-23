@@ -351,3 +351,53 @@ describe('slice.', function () {
 
   });
 });
+
+describe('uslice_to_islice.', function() {
+  it('empty slice.', function() {
+    const shape = [2, 3, 4];
+    const [slice, _] = indexing.uslice_to_islice([], shape);
+    let i = 0;
+    for (let [l, u, s] of slice) {
+      expect(l).toBe(0);
+      expect(u).toBe(shape[i]);
+      expect(s).toBe(1);
+      i += 1;
+    }
+  });
+
+  it('null slice.', function() {
+    const shape = [2, 3, 4];
+    const [slice, _] = indexing.uslice_to_islice([null], shape);
+    let i = 0;
+    for (let [l, u, s] of slice) {
+      expect(l).toBe(0);
+      expect(u).toBe(shape[i]);
+      expect(s).toBe(1);
+      i += 1;
+    }
+  });
+
+  it('all types', function() {
+    const shape = [5, 5, 5, 5, 5];
+    const uslice = [null, 1, [1, 3], [0, 5, 2]];
+    const [islice, dims] = indexing.uslice_to_islice(uslice, shape);
+    expect(dims).toEqual([1]);
+    expect(islice).toEqual([
+      [0, 5, 1],
+      [1, 2, 1],
+      [1, 3, 1],
+      [0, 5, 2],
+      [0, 5, 1]
+    ]);
+  });
+});
+
+describe('slice_to_bounds.', function() {
+  it('Basic.', function() {
+    const islice = [[1, 2, 3], [3, 100, 2]];
+    const [l, u, s] = indexing.slice_to_bounds(islice);
+    expect(l).toEqual(new Uint32Array([1, 3]));
+    expect(u).toEqual(new Uint32Array([2, 100]));
+    expect(s).toEqual(new Uint32Array([3, 2]));
+  });
+});
