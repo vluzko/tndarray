@@ -245,9 +245,8 @@ describe('Iterators.', function () {
   describe('dorder_index_iterator.', function() {
     it('Basic.', function() {
       const iter = indexing.dorder_index_iterator(new Uint32Array(a.shape.length), a.shape, steps, a.stride, 0);
-      for (let i of iter) {
-        console.log(i);
-      }
+      const values = Int32Array.from(utils.imap(iter, e => a.g(...e)));
+      expect(values).toEqual(a.data);
     });
   });
 });

@@ -323,7 +323,27 @@ var indexing;
     }
     indexing.dorder_data_iterator = dorder_data_iterator;
     function dorder_index_iterator(lower_bounds, upper_bounds, steps, stride, initial_offset) {
-        throw new Error();
+        const size = indexing.compute_slice_size(lower_bounds, upper_bounds, steps);
+        const end_dimension = upper_bounds.length - 1;
+        const iter = {
+            [Symbol.iterator]: function* () {
+                let current_index = lower_bounds.slice();
+                // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
+                for (let i = 0; i < size; i++) {
+                    // Yield a copy of the current index.
+                    yield current_index.slice();
+                    current_index[0] += 1;
+                    // Carry the ones.
+                    let current_dimension = 0;
+                    while (current_dimension <= end_dimension && (current_index[current_dimension] === upper_bounds[current_dimension])) {
+                        current_index[current_dimension] = lower_bounds[current_dimension];
+                        current_dimension += 1;
+                        current_index[current_dimension] += steps[current_dimension];
+                    }
+                }
+            }
+        };
+        return iter;
     }
     indexing.dorder_index_iterator = dorder_index_iterator;
     function slice(indices, shape, stride, offset, dstride, initial_offset) {

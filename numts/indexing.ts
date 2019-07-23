@@ -219,26 +219,25 @@ export namespace indexing {
     const end_dimension = upper_bounds.length - 1;
     const iter = {
       [Symbol.iterator]: function* () {
+        let current_index = lower_or_upper.slice();
 
-      let current_index = lower_or_upper.slice();
+        // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
+        for (let i = 0; i < size; i++) {
+          // Yield a copy of the current index.
+          yield current_index.slice();
 
-      // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
-      for (let i = 0; i < size; i++) {
-        // Yield a copy of the current index.
-        yield current_index.slice();
+          ++current_index[end_dimension];
 
-        ++current_index[end_dimension];
-
-        // Carry the ones.
-        let current_dimension = end_dimension;
-        while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
-          current_index[current_dimension] = lower_or_upper[current_dimension];
-          current_dimension--;
-          current_index[current_dimension] += steps[current_dimension];
+          // Carry the ones.
+          let current_dimension = end_dimension;
+          while (current_dimension >= 0 && (current_index[current_dimension] === upper_bounds[current_dimension])) {
+            current_index[current_dimension] = lower_or_upper[current_dimension];
+            current_dimension--;
+            current_index[current_dimension] += steps[current_dimension];
+          }
         }
       }
-    }
-  };
+    };
     return <Iterable<Uint32Array>> iter
   }
 
@@ -333,7 +332,30 @@ export namespace indexing {
 
   export function dorder_index_iterator(lower_bounds: Uint32Array, upper_bounds: Uint32Array, steps: Uint32Array, stride: Uint32Array,  initial_offset: number): Iterable<Uint32Array> {
 
-    throw new Error();
+    const size = indexing.compute_slice_size(lower_bounds, upper_bounds, steps);
+    const end_dimension = upper_bounds.length - 1;
+    const iter = {
+      [Symbol.iterator]: function* () {
+        let current_index = lower_bounds.slice();
+
+        // Equivalent to stopping when the maximum index is reached, but saves actually checking for array equality.
+        for (let i = 0; i < size; i++) {
+          // Yield a copy of the current index.
+          yield current_index.slice();
+
+          current_index[0] += 1;
+
+          // Carry the ones.
+          let current_dimension = 0;
+          while (current_dimension <= end_dimension && (current_index[current_dimension] === upper_bounds[current_dimension])) {
+            current_index[current_dimension] = lower_bounds[current_dimension];
+            current_dimension += 1;
+            current_index[current_dimension] += steps[current_dimension];
+          }
+        }
+      }
+    };
+    return <Iterable<Uint32Array>> iter
   }
 
   export function slice(indices, shape: Uint32Array, stride: Uint32Array, offset: Uint32Array, dstride: Uint32Array, initial_offset: number) {
