@@ -346,6 +346,45 @@ var indexing;
         return iter;
     }
     indexing.dorder_index_iterator = dorder_index_iterator;
+    /**
+     * Convert a user slice to an internal slice.
+     * @param slice - The slice provided by the user.
+     * @param shape - The shape of the array being sliced.
+     */
+    function uslice_to_islice(slice, shape) {
+        let islice = [];
+        let dims_to_drop = [];
+        const positive_indices = indexing.convert_negative_indices(slice, shape);
+        let i = 0;
+        for (let index of slice) {
+            if (index === null) {
+                islice.push([0, shape[i], 1]);
+            }
+            else if (utils_1.utils.is_numeric(index)) {
+                islice.push([index, index + 1, 1]);
+                dims_to_drop.push(i);
+            }
+            else if (index.length === 2) {
+                islice.push([index[0], index[1], 1]);
+            }
+            else if (index.length === 3) {
+                islice.push(index);
+            }
+            else {
+                throw new Error(`Arguments to slice were wrong: ${positive_indices}. Broke on ${index}.`);
+            }
+            i += 1;
+        }
+        for (; i < shape.length; i++) {
+            islice.push([0, shape[i], 1]);
+        }
+        return [islice, dims_to_drop];
+    }
+    indexing.uslice_to_islice = uslice_to_islice;
+    function slice_to_bounds(slice) {
+        throw new Error();
+    }
+    indexing.slice_to_bounds = slice_to_bounds;
     function slice(indices, shape, stride, offset, dstride, initial_offset) {
         // Handle empty inputs.
         const positive_indices = indexing.convert_negative_indices(indices, shape);

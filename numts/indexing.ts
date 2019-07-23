@@ -1,5 +1,5 @@
 import {utils} from "./utils";
-import {Broadcastable, Shape} from "./types";
+import {Broadcastable, Shape, USlice, ISlice} from "./types";
 import {errors, tndarray} from "./tndarray";
 
 
@@ -357,6 +357,43 @@ export namespace indexing {
       }
     };
     return <Iterable<Uint32Array>> iter
+  }
+
+  /**
+   * Convert a user slice to an internal slice.
+   * @param slice - The slice provided by the user.
+   * @param shape - The shape of the array being sliced.
+   */
+  export function uslice_to_islice(slice: USlice, shape: Shape): [ISlice, number[]] {
+    let islice = [];
+    let dims_to_drop = []
+    const positive_indices = indexing.convert_negative_indices(slice, shape);
+    let i = 0;
+    for (let index of slice) {
+      if (index === null) {
+        islice.push([0, shape[i], 1]);
+      } else if (utils.is_numeric(index)) {
+        islice.push([index, index + 1, 1]);
+        dims_to_drop.push(i);
+      } else if (index.length === 2) {
+        islice.push([index[0], index[1], 1]);
+      } else if (index.length === 3) {
+        islice.push(index);
+      } else {
+        throw new Error(`Arguments to slice were wrong: ${positive_indices}. Broke on ${index}.`);
+      }
+      i += 1;
+    }
+
+    for (; i < shape.length; i++) {
+      islice.push([0, shape[i], 1]);
+    }
+
+    return [islice, dims_to_drop];
+  }
+
+  export function slice_to_bounds(slice: ISlice): [Uint32Array, Uint32Array, Uint32Array] {
+    throw new Error();
   }
 
   export function slice(indices, shape: Uint32Array, stride: Uint32Array, offset: Uint32Array, dstride: Uint32Array, initial_offset: number) {
