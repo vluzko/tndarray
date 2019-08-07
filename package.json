@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Typed n-dimensional arrays",
   "devDependencies": {
+    "fast-check": "^1.16.0",
     "jest": "^23.6.0",
     "jsverify": "^0.8.4"
   },

@@ -178,7 +178,7 @@ var indexing;
             if (a_axis_size === b_axis_size) {
                 dimension = a_axis_size;
             }
-            else if (a_axis_size === 1) {
+            else if (a_axis_size === 1) { // If either dimension is 1, use the other.
                 dimension = b_axis_size;
             }
             else if (b_axis_size === 1) {

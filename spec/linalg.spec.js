@@ -1,4 +1,4 @@
-let tndarray = require("../numts/tndarray");
+let tndarray = require("../numts/tndarray").tndarray;
 let numts = require("../numts/numts");
 let linalg = require("../numts/linalg");
 
@@ -30,6 +30,18 @@ describe("Decompositions.", function() {
       ])
       expect(numts.isclose(exp_l, l));
       expect(numts.isclose(exp_u, u));
+    });
+  });
+
+  describe('QR decomposition.', function() {
+    describe('Givens QR.' ,function() {
+      fit('Basic test.', function() {
+        const a = numts.arange(15).reshape(5, 3);
+        const [q, r] = linalg.givens_qr(a);
+        const prod = tndarray.matmul_2d(q.transpose(), r);
+        
+        expect(numts.isclose(a, prod).all()).toBe(true);
+      });
     });
   });
 });

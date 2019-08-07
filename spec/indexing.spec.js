@@ -146,6 +146,9 @@ describe('Basic calculations.', function () {
 
 });
 
+describe('index_in_data.', function() {
+})
+
 describe('Iterators.', function () {
   const a = numts.arange(30).reshape(5, 6);
   let steps = new Uint32Array(a.shape.length);

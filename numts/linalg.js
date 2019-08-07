@@ -122,26 +122,53 @@ function rank(a) {
 exports.rank = rank;
 function householder() {
 }
-function givens() {
+function givens_qr(A) {
+    const [m, n] = A.shape;
+    let Q = null;
+    let R = A;
+    // Zero out the lower diagonal.
+    for (let i = 0; i < n; i++) {
+        for (let j = m - 1; j > i; j--) {
+            let G;
+            [G, R] = givens_rotation_up(R, i, j);
+            if (Q === null) {
+                Q = G;
+            }
+            else {
+                Q = tndarray_1.tndarray.matmul_2d(G, Q);
+            }
+        }
+    }
+    return [Q, R];
 }
+exports.givens_qr = givens_qr;
 /**
  *
- * @param a - The matrix to perform the rotation on.
+ * @param A - The matrix to perform the rotation on.
  * @param i - The row to rotate to.
  * @param j - The row to rotate from, and the column.
  */
-function givens_rotation_up(a, i, j) {
-    const bottom_val = a.g(j, j);
-    const top_val = a.g(i, j);
+function givens_rotation_up(A, i, j) {
+    const bottom_val = A.g(j, i);
+    const top_val = A.g(i, i);
     const r = Math.sqrt(Math.pow(bottom_val, 2) + Math.pow(top_val, 2));
     const s = bottom_val / r;
     const c = top_val / r;
-    const [m, n] = a.shape;
-    // const G = numts.eye(m);
-    // G.s(i, i) = c;
-    // G.s(j, j) = c;
-    // G.s(j, i) = s;
-    // G.s(i, j) = -s;
+    const [m, n] = A.shape;
+    let G = tndarray_1.tndarray.eye(m);
+    G.s(c, i, i);
+    G.s(c, j, j);
+    G.s(s, i, j);
+    G.s(-s, j, i);
+    const R = tndarray_1.tndarray.matmul_2d(G, A);
+    return [G, R];
+}
+/**
+ * Multiply a compressed Givens rotation matrix by a normal matrix.
+ * @param G - The compressed representation of the Givens rotation.
+ * @param A - The matrix being transformed.
+ */
+function compressed_givens_mult(G, A) {
     throw new Error();
 }
 //# sourceMappingURL=linalg.js.map
