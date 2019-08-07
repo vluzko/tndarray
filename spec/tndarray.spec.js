@@ -97,7 +97,7 @@ describe('Indices.', function () {
   });
 
   describe('g.', function () {
-    it('2-dims.', function () {
+    it('3-dims.', function () {
       const array = numts.arange(27).reshape([3, 3, 3]);
       expect(array.g(1, 1, 1)).toBe(13);
       expect(array.g(1, 0, 1)).toBe(10);
@@ -724,6 +724,24 @@ describe('Aggregation.', function () {
 });
 
 describe('Method constructors.', function() {
+
+  describe('flatten.', function() {
+
+  });
+
+  describe('transpose.', function() {
+    it('Two dimensions.', function() {
+      const a = numts.arange(4).reshape(2, 2);
+      const b = a.transpose();
+      const expected = numts.from_nested_array([
+        [0, 2],
+        [1, 3]
+      ], 'int32');
+      
+      expect(b.equals(expected)).toBe(true);
+    })
+  });
+
   describe('tril.', function() {
     it('Three dimensions.', function() {
       const a = numts.arange(30).reshape(3, 2, 5);

@@ -166,7 +166,21 @@ class tndarray {
         let value_iter = this._iorder_value_iterator();
         return tndarray.from_iterable(value_iter, shape, this.dtype);
     }
-    flatten() {
+    flatten(axis) {
+        throw new Error();
+    }
+    /**
+     * Return the transpose of this array.
+     */
+    transpose() {
+        const new_shape = this.shape.reverse();
+        let new_array = tndarray.zeros(new_shape, this.dtype);
+        for (let index of this._iorder_index_iterator()) {
+            const value = this.g(...index);
+            const new_index = index.reverse();
+            new_array.s(value, ...new_index);
+        }
+        return new_array;
     }
     /**
      * Extract the upper triangle of this tensor.
