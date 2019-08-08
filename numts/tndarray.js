@@ -1097,6 +1097,8 @@ class tndarray {
      * @return {tndarray}
      */
     static from_iterable(iterable, shape, dtype) {
+        console.log("Iterable:");
+        console.log(iterable);
         const final_shape = indexing_1.indexing.compute_shape(shape);
         const size = indexing_1.indexing.compute_size(final_shape);
         const array_type = utils_1.utils.dtype_map(dtype);

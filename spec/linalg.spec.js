@@ -1,6 +1,9 @@
-let tndarray = require("../numts/tndarray").tndarray;
-let numts = require("../numts/numts");
-let linalg = require("../numts/linalg");
+const fc = require('fast-check');
+const tndarray = require("../numts/tndarray").tndarray;
+const numts = require("../numts/numts");
+const linalg = require("../numts/linalg");
+
+const helpers = require('./helpers');
 
 describe("Matrix norms.", function() {
   
@@ -35,12 +38,22 @@ describe("Decompositions.", function() {
 
   describe('QR decomposition.', function() {
     describe('Givens QR.' ,function() {
-      fit('Basic test.', function() {
+      it('Basic test.', function() {
         const a = numts.arange(15).reshape(5, 3);
         const [q, r] = linalg.givens_qr(a);
         const prod = tndarray.matmul_2d(q.transpose(), r);
         
         expect(numts.isclose(a, prod).all()).toBe(true);
+      });
+
+      fit('Property based test.', function() {
+        const f = ([shape, data]) => {
+          const a = tndarray.from_iterable(data, shape);
+          const [q, r] = linalg.givens_qr(a);
+          // console.log(q);
+        }
+        helpers.check_matrix(f);
+        
       });
     });
   });

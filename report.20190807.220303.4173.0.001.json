@@ -1,0 +1,292 @@
+
+{
+  "header": {
+    "event": "Allocation failed - JavaScript heap out of memory",
+    "trigger": "FatalError",
+    "filename": "report.20190807.220303.4173.0.001.json",
+    "dumpEventTime": "2019-08-07T22:03:03Z",
+    "dumpEventTimeStamp": "1565229783017",
+    "processId": 4173,
+    "cwd": "/home/vincent/projects/tndarray",
+    "commandLine": [
+      "node",
+      "/home/vincent/software/nvm/versions/node/v12.3.1/bin/jasmine"
+    ],
+    "nodejsVersion": "v12.3.1",
+    "glibcVersionRuntime": "2.28",
+    "glibcVersionCompiler": "2.17",
+    "wordSize": 64,
+    "arch": "x64",
+    "platform": "linux",
+    "componentVersions": {
+      "node": "12.3.1",
+      "v8": "7.4.288.27-node.18",
+      "uv": "1.29.1",
+      "zlib": "1.2.11",
+      "brotli": "1.0.7",
+      "ares": "1.15.0",
+      "modules": "72",
+      "nghttp2": "1.38.0",
+      "napi": "4",
+      "llhttp": "1.1.3",
+      "http_parser": "2.8.0",
+      "openssl": "1.1.1b",
+      "cldr": "35.1",
+      "icu": "64.2",
+      "tz": "2019a",
+      "unicode": "12.1"
+    },
+    "release": {
+      "name": "node",
+      "headersUrl": "https://nodejs.org/download/release/v12.3.1/node-v12.3.1-headers.tar.gz",
+      "sourceUrl": "https://nodejs.org/download/release/v12.3.1/node-v12.3.1.tar.gz"
+    },
+    "osName": "Linux",
+    "osRelease": "4.13.0-1-amd64",
+    "osVersion": "#1 SMP Debian 4.13.4-2 (2017-10-15)",
+    "osMachine": "x86_64",
+    "host": "alexandria"
+  },
+  "javascriptStack": {
+    "message": "No stack.",
+    "stack": [
+      "Unavailable."
+    ]
+  },
+  "nativeStack": [
+    {
+      "pc": "0x0000000000aab8b5",
+      "symbol": "report::TriggerNodeReport(v8::Isolate*, node::Environment*, char const*, char const*, std::string const&, v8::Local<v8::String>) [node]"
+    },
+    {
+      "pc": "0x000000000098ec43",
+      "symbol": "node::OnFatalError(char const*, char const*) [node]"
+    },
+    {
+      "pc": "0x0000000000b0b37e",
+      "symbol": "v8::Utils::ReportOOMFailure(v8::internal::Isolate*, char const*, bool) [node]"
+    },
+    {
+      "pc": "0x0000000000b0b6f9",
+      "symbol": "v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, bool) [node]"
+    },
+    {
+      "pc": "0x0000000000f15e75",
+      "symbol": " [node]"
+    },
+    {
+      "pc": "0x0000000000f207db",
+      "symbol": "v8::internal::Heap::PerformGarbageCollection(v8::internal::GarbageCollector, v8::GCCallbackFlags) [node]"
+    },
+    {
+      "pc": "0x0000000000f214f7",
+      "symbol": "v8::internal::Heap::CollectGarbage(v8::internal::AllocationSpace, v8::internal::GarbageCollectionReason, v8::GCCallbackFlags) [node]"
+    },
+    {
+      "pc": "0x0000000000f23f95",
+      "symbol": "v8::internal::Heap::AllocateRawWithRetryOrFail(int, v8::internal::AllocationType, v8::internal::AllocationAlignment) [node]"
+    },
+    {
+      "pc": "0x0000000000eeefc0",
+      "symbol": "v8::internal::Factory::NewFillerObject(int, bool, v8::internal::AllocationSpace) [node]"
+    },
+    {
+      "pc": "0x00000000011c0eae",
+      "symbol": "v8::internal::Runtime_AllocateInNewSpace(int, unsigned long*, v8::internal::Isolate*) [node]"
+    },
+    {
+      "pc": "0x0000000001a8a982",
+      "symbol": " [node]"
+    }
+  ],
+  "javascriptHeap": {
+    "totalMemory": 2160578560,
+    "totalCommittedMemory": 2152418840,
+    "usedMemory": 2147982360,
+    "availableMemory": 47801568,
+    "memoryLimit": 2197815296,
+    "heapSpaces": {
+      "read_only_space": {
+        "memorySize": 524288,
+        "committedMemory": 32024,
+        "capacity": 523976,
+        "used": 31712,
+        "available": 492264
+      },
+      "new_space": {
+        "memorySize": 10485760,
+        "committedMemory": 3517648,
+        "capacity": 5239760,
+        "used": 989000,
+        "available": 4250760
+      },
+      "old_space": {
+        "memorySize": 2094129152,
+        "committedMemory": 2093922000,
+        "capacity": 2092862296,
+        "used": 2092280248,
+        "available": 582048
+      },
+      "code_space": {
+        "memorySize": 688128,
+        "committedMemory": 237856,
+        "capacity": 191616,
+        "used": 191616,
+        "available": 0
+      },
+      "map_space": {
+        "memorySize": 528384,
+        "committedMemory": 486464,
+        "capacity": 321520,
+        "used": 321520,
+        "available": 0
+      },
+      "large_object_space": {
+        "memorySize": 54173696,
+        "committedMemory": 54173696,
+        "capacity": 54164808,
+        "used": 54164808,
+        "available": 0
+      },
+      "code_large_object_space": {
+        "memorySize": 49152,
+        "committedMemory": 49152,
+        "capacity": 3456,
+        "used": 3456,
+        "available": 0
+      },
+      "new_large_object_space": {
+        "memorySize": 0,
+        "committedMemory": 0,
+        "capacity": 5239760,
+        "used": 0,
+        "available": 5239760
+      }
+    }
+  },
+  "resourceUsage": {
+    "userCpuSeconds": 48.9248,
+    "kernelCpuSeconds": 0.70169,
+    "cpuConsumptionPercent": 354.475,
+    "maxRss": 2416848896,
+    "pageFaults": {
+      "IORequired": 6,
+      "IONotRequired": 644096
+    },
+    "fsActivity": {
+      "reads": 1408,
+      "writes": 0
+    }
+  },
+  "uvthreadResourceUsage": {
+    "userCpuSeconds": 12.069,
+    "kernelCpuSeconds": 0.205379,
+    "cpuConsumptionPercent": 87.6745,
+    "fsActivity": {
+      "reads": 1408,
+      "writes": 0
+    }
+  },
+  "libuv": [
+  ],
+  "environmentVariables": {
+    "NVM_DIR": "/home/vincent/software/nvm",
+    "LD_LIBRARY_PATH": ":/home/vincent/software/cuda-9.0/lib64:/home/vincent/software/cuda-9.0/extras/CUPTI/lib64:/home/vincent/.mujoco/mjpro150/bin:/home/vincent/software/shared-python-3.7.0/lib",
+    "LS_COLORS": "rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:",
+    "LANG": "en_US.UTF-8",
+    "WABT": "/home/vincent/oss/wabt/bin",
+    "DISPLAY": ":0.0",
+    "GEM_HOME": "/home/vincent/software/gems",
+    "NVM_CD_FLAGS": "",
+    "SCRIPTS": "/home/vincent/projects/scripts",
+    "XDG_VTNR": "2",
+    "SSH_AUTH_SOCK": "/tmp/ssh-qofLKosrRNPG/agent.2969",
+    "XDG_SESSION_ID": "6",
+    "USER": "vincent",
+    "projects": "/home/vincent/projects",
+    "PWD": "/home/vincent/projects/tndarray",
+    "HOME": "/home/vincent",
+    "SCRIPT_BIN": "/home/vincent/projects/scripts/bin",
+    "SSH_AGENT_PID": "3009",
+    "CUDA_HOME": "/home/vincent/software/cuda-9.0",
+    "XDG_DATA_DIRS": "/usr/local/share:/usr/share:/var/lib/snapd/desktop",
+    "JDK_HOME": "/home/vincent/software/jdk1.8.0",
+    "GEM_PATH": "/home/vincent/software/gems",
+    "JASMINE_CONFIG_PATH": "./jasmine.json",
+    "OSS": "/home/vincent/oss",
+    "GEM_SPEC_CACHE": "/home/vincent/software/gems/specs",
+    "CUDNN": "/home/vincent/software/cudnn-6.0",
+    "GTK_MODULES": "gail:atk-bridge",
+    "software": "/home/vincent/software",
+    "MAIL": "/var/mail/vincent",
+    "SHELL": "/bin/bash",
+    "TERM": "xterm",
+    "NVM_BIN": "/home/vincent/software/nvm/versions/node/v12.3.1/bin",
+    "GPG_AGENT_INFO": "/run/user/1000/gnupg/S.gpg-agent:0:1",
+    "VSCODE_PATH": "/home/vincent/oss/vscode-insiders",
+    "SHLVL": "1",
+    "XDG_SEAT": "seat0",
+    "LOGNAME": "vincent",
+    "DBUS_SESSION_BUS_ADDRESS": "unix:path=/run/user/1000/bus",
+    "XDG_RUNTIME_DIR": "/run/user/1000",
+    "XAUTHORITY": "/home/vincent/.Xauthority",
+    "JRE_HOME": "/home/vincent/software/jre1.8.0",
+    "PATH": "/home/vincent/software/gems/bin:/home/vincent/software/nvm/versions/node/v12.3.1/bin:/home/vincent/.local/bin:/home/vincent/bin:/home/vincent/.cargo/bin:/home/vincent/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/snap/bin:/home/vincent/software/cuda-9.0/bin:/home/vincent/software/node/bin:/home/vincent/software/jdk1.8.0/bin:/home/vincent/software/jre1.8.0/bin:/home/vincent/projects/scripts/bin:/home/vincent/oss/wabt/bin:/home/vincent/projects/scripts/bin:/home/vincent/anaconda/bin/",
+    "NODE": "/home/vincent/software/node/bin",
+    "OLDPWD": "/home/vincent",
+    "_": "/home/vincent/software/nvm/versions/node/v12.3.1/bin/jasmine"
+  },
+  "userLimits": {
+    "core_file_size_blocks": {
+      "soft": 0,
+      "hard": "unlimited"
+    },
+    "data_seg_size_kbytes": {
+      "soft": "unlimited",
+      "hard": "unlimited"
+    },
+    "file_size_blocks": {
+      "soft": "unlimited",
+      "hard": "unlimited"
+    },
+    "max_locked_memory_bytes": {
+      "soft": 16777216,
+      "hard": 16777216
+    },
+    "max_memory_size_kbytes": {
+      "soft": "unlimited",
+      "hard": "unlimited"
+    },
+    "open_files": {
+      "soft": 1048576,
+      "hard": 1048576
+    },
+    "stack_size_bytes": {
+      "soft": 8388608,
+      "hard": "unlimited"
+    },
+    "cpu_time_seconds": {
+      "soft": "unlimited",
+      "hard": "unlimited"
+    },
+    "max_user_processes": {
+      "soft": 62577,
+      "hard": 62577
+    },
+    "virtual_memory_kbytes": {
+      "soft": "unlimited",
+      "hard": "unlimited"
+    }
+  },
+  "sharedObjects": [
+    "linux-vdso.so.1",
+    "/lib/x86_64-linux-gnu/libdl.so.2",
+    "/lib/x86_64-linux-gnu/librt.so.1",
+    "/usr/lib/x86_64-linux-gnu/libstdc++.so.6",
+    "/lib/x86_64-linux-gnu/libm.so.6",
+    "/lib/x86_64-linux-gnu/libgcc_s.so.1",
+    "/lib/x86_64-linux-gnu/libpthread.so.0",
+    "/lib/x86_64-linux-gnu/libc.so.6",
+    "/lib64/ld-linux-x86-64.so.2"
+  ]
+}
