@@ -1255,8 +1255,6 @@ export class tndarray {
    * @return {tndarray}
    */
   static from_iterable(iterable: Iterable<number>, shape: Shape, dtype?: string) {
-    console.log("Iterable:");
-    console.log(iterable);
     const final_shape = indexing.compute_shape(shape);
     
     const size = indexing.compute_size(final_shape);

@@ -139,6 +139,10 @@ function givens_qr(A) {
             }
         }
     }
+    // Handle one-dimensional arrays.
+    if (Q === null) {
+        Q = tndarray_1.tndarray.eye(m);
+    }
     return [Q, R];
 }
 exports.givens_qr = givens_qr;

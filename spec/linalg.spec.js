@@ -47,12 +47,18 @@ describe("Decompositions.", function() {
       });
 
       fit('Property based test.', function() {
-        const f = ([shape, data]) => {
-          const a = tndarray.from_iterable(data, shape);
+        function f(a) {
+          const [m, ] = a.shape;
           const [q, r] = linalg.givens_qr(a);
-          // console.log(q);
+          const t = q.transpose();
+          const inv_prod = tndarray.matmul_2d(q, t);
+          const expected = tndarray.eye(m);
+          expect(numts.isclose(inv_prod, expected).all()).toBe(true);
+
+          const qr_prod = tndarray.matmul_2d(t, r);
+          expect(numts.isclose(qr_prod, a).all()).toBe(true);
         }
-        helpers.check_matrix(f);
+        helpers.check_matrix(f, 'thin');
         
       });
     });

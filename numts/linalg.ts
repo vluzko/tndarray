@@ -147,6 +147,11 @@ export function givens_qr(A: tndarray): [tndarray, tndarray] {
     }
   }
 
+  // Handle one-dimensional arrays.
+  if (Q === null) {
+    Q = tndarray.eye(m);
+  }
+
   return [Q, R];
 }
 

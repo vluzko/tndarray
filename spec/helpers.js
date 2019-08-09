@@ -18,12 +18,21 @@ function random_shape(max_size, upper) {
   return new Uint32Array(shape);
 }
 
-const matrix = fc.array(fc.integer(1, 1000), 2, 2).chain(shape => {
+function array_arbitrary(dim_size_min, dim_size_max, min_dims, max_dims) {
+  return fc.array(fc.integer(dim_size_min, dim_size_max), min_dims, max_dims).chain(shape => {
+    const size = shape.reduce((a, b) => a * b, 1);
+    return fc.tuple(fc.array(fc.float(), size, size), fc.constant(shape))
+  });
+}
+
+const matrix = array_arbitrary(1, 100, 2, 2);
+const small_matrix = array_arbitrary(1, 10, 2, 2);
+const thin_matrix = fc.integer(1, 10).chain(n => fc.tuple(fc.constant(n), fc.integer(n, 11))).chain(shape => {
   const size = shape.reduce((a, b) => a * b, 1);
   return fc.tuple(fc.array(fc.float(), size, size), fc.constant(shape))
 });
 
-const squarish_array = fc.array(fc.integer(1, 10), 1, 5).chain(shape => {
+const squarish_array = fc.array(fc.integer(1, 5), 1, 10).chain(shape => {
   const size = shape.reduce((a, b) => a * b, 1);
   return fc.tuple(fc.array(fc.float(), size, size), fc.constant(shape),)
 });
@@ -43,17 +52,33 @@ function check_random_array(f) {
     const a = tndarray.from_iterable(data, shape);
     return f(a);
   }
-  fc.assert(fc.property(squarish_array, check));  
-  fc.assert(fc.property(many_dimensions, check));
-  fc.assert(fc.property(large_dimensions, check));
+  const params = {
+    numRuns: 15
+  };
+  fc.assert(fc.property(squarish_array, check), params);  
+  fc.assert(fc.property(many_dimensions, check), params);
+  fc.assert(fc.property(large_dimensions, check), params);
 }
 
-function check_matrix(f) {
+function check_matrix(f, filter = '') {
+  const params = {
+    numRuns: 15
+  };
+
   const check = ([data, shape]) => {
     const a = tndarray.from_iterable(data, shape);
     return f(a);
   }
-  fc.assert(fc.property(matrix, check));  
+
+  if (filter === 'only_small') {
+    fc.assert(fc.property(small_matrix, check), params);
+  } else if (filter === 'thin') {
+    fc.assert(fc.property(thin_matrix, check), params);
+  } else {
+    fc.assert(fc.property(small_matrix, check), params);
+    fc.assert(fc.property(thin_matrix, check), params);
+    fc.assert(fc.property(matrix, check), params);
+  }
 }
 
 module.exports = {random_shape, check_random_array, check_matrix};
