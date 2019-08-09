@@ -120,8 +120,17 @@ exports.chol = chol;
 function rank(a) {
 }
 exports.rank = rank;
-function householder() {
+function householder_qr(A) {
+    const [m, n] = A.shape;
+    let Q = null;
+    let R = tndarray_1.tndarray.copy(A);
+    for (let j = 0; j < n; j++) {
+        const lower_column = R.slice([j, -1], j);
+        const norm = Math.sqrt(lower_column.reduce((a, b) => a + Math.pow(b, 2), 0));
+    }
+    return [Q, R];
 }
+exports.householder_qr = householder_qr;
 function givens_qr(A) {
     const [m, n] = A.shape;
     let Q = null;

@@ -46,7 +46,7 @@ describe("Decompositions.", function() {
         expect(numts.isclose(a, prod).all()).toBe(true);
       });
 
-      fit('Property based test.', function() {
+      it('Property based test.', function() {
         function f(a) {
           const [m, ] = a.shape;
           const [q, r] = linalg.givens_qr(a);
@@ -61,6 +61,17 @@ describe("Decompositions.", function() {
         helpers.check_matrix(f, 'thin');
         
       });
+    });
+
+    describe('Householder QR', function() {
+      fit('Basic test.', function() {
+        const a = numts.arange(15).reshape(5, 3);
+        const [q, r] = linalg.householder_qr(a);
+        // const prod = tndarray.matmul_2d(q.transpose(), r);
+        
+        // expect(numts.isclose(a, prod).all()).toBe(true);
+      });
+
     });
   });
 });

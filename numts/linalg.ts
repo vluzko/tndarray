@@ -126,8 +126,15 @@ export function rank(a: tndarray) {
     
 }
 
-function householder() {
-
+export function householder_qr(A: tndarray) {
+  const [m, n] = A.shape;
+  let Q = null;
+  let R = tndarray.copy(A);
+  for (let j = 0; j < n; j++) {
+    const lower_column = R.slice([j, -1], j);
+    const norm = Math.sqrt(lower_column.reduce((a, b) => a + Math.pow(b, 2), 0));
+  }
+  return [Q, R];
 }
 
 export function givens_qr(A: tndarray): [tndarray, tndarray] {
