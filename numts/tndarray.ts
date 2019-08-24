@@ -156,7 +156,9 @@ export class tndarray {
   
   diagonal() {}
   
-  dot() {}
+  dot(b: tndarray) {
+    return tndarray.dot(this, b);
+  }
   
   /**
    * Fill the array with the given value, in-place.
@@ -577,6 +579,14 @@ export class tndarray {
     return tndarray._sub(this, b);
   }
   
+  mult(b: Broadcastable) {
+    return tndarray._mult(this, b);
+  }
+
+  div(b: Broadcastable) {
+    return tndarray._div(this, b);
+  }
+
   /**
    * Accumulating map over the entire array or along a particular axis.
    * If no axis is provided a flat array is returned.
@@ -670,14 +680,13 @@ export class tndarray {
    */
   reduce(f: (accum: number, e: number, i?: number, array?) => number, axis?: number, dtype?: string): number | tndarray {
     dtype = dtype === undefined ? this.dtype : dtype;
-    
     if (axis === undefined) {
       return this.data.reduce(f);
     } else {
       const new_shape = indexing.new_shape_from_axis(this.shape, axis);
       let new_array = tndarray.zeros(new_shape, dtype);
       const step_along_axis = this.stride[axis];
-      for (let [old_index, new_index] of this.map_old_indices_to_new( axis)) {
+      for (let [old_index, new_index] of this.map_old_indices_to_new(axis)) {
         let accum = this.data[old_index];
         for (let i = 1; i < this.shape[axis]; i ++) {
           accum = f(accum, this.data[old_index + i * step_along_axis]);
@@ -685,7 +694,6 @@ export class tndarray {
   
         new_array.data[new_index] = accum;
       }
-      
       return new_array;
     }
   }
