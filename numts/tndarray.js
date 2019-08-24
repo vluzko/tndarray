@@ -127,7 +127,9 @@ class tndarray {
         return this.accum_map((acc, b) => acc + b, axis, undefined, dtype);
     }
     diagonal() { }
-    dot() { }
+    dot(b) {
+        return tndarray.dot(this, b);
+    }
     /**
      * Fill the array with the given value, in-place.
      * @param {number} value  - The value to fill the array with
@@ -498,6 +500,12 @@ class tndarray {
      */
     sub(b) {
         return tndarray._sub(this, b);
+    }
+    mult(b) {
+        return tndarray._mult(this, b);
+    }
+    div(b) {
+        return tndarray._div(this, b);
     }
     /**
      * Accumulating map over the entire array or along a particular axis.

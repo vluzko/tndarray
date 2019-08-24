@@ -79,7 +79,7 @@ export namespace indexing {
   export function new_shape_from_axis(old_shape: Uint32Array, axis: number): Uint32Array {
     let new_shape;
     if (old_shape.length === 1) {
-      new_shape = new Uint32Array(1);
+      new_shape = new Uint32Array([1]);
     } else {
       new_shape = old_shape.filter((e, i) => i !== axis);
     }
