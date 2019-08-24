@@ -2,10 +2,6 @@
   "name": "@vluzko/tndarray",
   "version": "0.0.1",
   "description": "Typed n-dimensional arrays",
-  "devDependencies": {
-    "fast-check": "^1.16.0",
-    "jest": "^23.6.0"
-  },
   "scripts": {
     "test": "jest",
     "debug": "node --inspect-brk $(which jest) --runInBand"
@@ -27,6 +23,10 @@
   "homepage": "https://github.com/vluzko/tndarray#readme",
   "dependencies": {
     "typescript": "^3.5.3"
+  },
+  "devDependencies": {
+    "fast-check": "^1.16.0",
+    "jest": "^23.6.0"
   },
   "jest": {
     "verbose": false
