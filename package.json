@@ -4,7 +4,7 @@
   "description": "Typed n-dimensional arrays",
   "devDependencies": {
     "fast-check": "^1.16.0",
-    "jest": "^23.6.0",
+    "jest": "^23.6.0"
   },
   "scripts": {
     "test": "jest",
