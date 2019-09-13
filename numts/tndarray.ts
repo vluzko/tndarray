@@ -678,17 +678,17 @@ export class tndarray {
    * @param {number} axis
    * @param {string} dtype
    */
-  reduce(f: (accum: number, e: number, i?: number, array?) => number, axis?: number, dtype?: string): number | tndarray {
+  reduce(f: (accum: number, e: number, i?: number, array?) => number, initial?: number, axis?: number, dtype?: string): number | tndarray {
     dtype = dtype === undefined ? this.dtype : dtype;
     if (axis === undefined) {
-      return this.data.reduce(f);
+      return initial === undefined ? this.data.reduce(f) : this.data.reduce(f, initial);
     } else {
       const new_shape = indexing.new_shape_from_axis(this.shape, axis);
       let new_array = tndarray.zeros(new_shape, dtype);
       const step_along_axis = this.stride[axis];
       for (let [old_index, new_index] of this.map_old_indices_to_new(axis)) {
-        let accum = this.data[old_index];
-        for (let i = 1; i < this.shape[axis]; i ++) {
+        let accum = initial === undefined ? this.data[old_index] : initial;
+        for (let i = 1; i < this.shape[axis]; i++) {
           accum = f(accum, this.data[old_index + i * step_along_axis]);
         }
   
@@ -870,7 +870,7 @@ export class tndarray {
     return [lower_bounds, upper_bounds, steps];
   }
 
-  /** BEGIN OPERATIONS */
+  /** #region  BEGIN OPERATIONS */
   
   /**
    * Convert a broadcastable value to a tndarray.
@@ -1200,7 +1200,7 @@ export class tndarray {
     return tndarray._binary_broadcast(a, b, (x, y) => +(x === y), "uint8");
   }
 
-  /** END OPERATIONS */
+  /** #endregion END OPERATIONS */
 
   /**
    * Check if two n-dimensional arrays are equal.
@@ -1248,8 +1248,16 @@ export class tndarray {
    * @param {tndarray} a  - tndarray to copy.
    * @return {tndarray}   - The copy.
    */
-  static copy(a: tndarray): tndarray {
-    return new tndarray(a.data.slice(0), a.shape.slice(0), a.offset.slice(0), a.stride.slice(0), a.dstride.slice(0), a.length, a.dtype);
+  static copy(a: tndarray, dtype?: string): tndarray {
+    let new_type;
+    if (dtype === undefined) {
+      new_type = a.dtype;
+    } else {
+      new_type = dtype;
+    }
+    const array_type = utils.dtype_map(dtype);
+    const new_data = new array_type(a.data.slice(0));
+    return new tndarray(new_data, a.shape.slice(0), a.offset.slice(0), a.stride.slice(0), a.dstride.slice(0), a.length, new_type);
   }
 
   /** BEGIN CONSTRUCTORS */
@@ -1381,6 +1389,7 @@ export class tndarray {
   }
 
   /** END CONSTRUCTORS */
+
 }
 
 export {errors};

@@ -41,7 +41,7 @@ function is_square(a) {
 exports.is_square = is_square;
 function l1(a) {
     if (is_vector(a)) {
-        return a.data.reduce((a, b) => a + Math.abs(b), 0);
+        return a.data.reduce((x, y) => x + Math.abs(y), 0);
     }
     else if (is_matrix(a)) {
         let max = Number.MIN_VALUE;
@@ -123,27 +123,40 @@ exports.rank = rank;
 function householder_qr(A) {
     const [m, n] = A.shape;
     let Q = tndarray_1.tndarray.eye(m);
-    let R = tndarray_1.tndarray.copy(A);
+    let R = tndarray_1.tndarray.copy(A, 'float64');
     for (let j = 0; j < n; j++) {
+        // console.log([...R._iorder_data_iterator()]);
+        // console.log(R);
         const lower_column = R.slice([j, -1], [j, j + 1]);
         // @ts-ignore
-        const norm = Math.sqrt(lower_column.reduce((a, b) => a + Math.pow(b, 2), 0).data[0]);
+        const norm = Math.sqrt(lower_column.reduce((a, b) => a + Math.pow(b, 2), 0));
         const pivot = R.g(j, j);
         const s = pivot >= 0 ? 1 : -1;
         const u1 = pivot + s * norm;
         const normalized = lower_column.div(u1);
         normalized.s(1, 0);
         const tau = s * u1 / norm;
-        const temp1 = normalized.transpose().dot(R.slice([j, -1]));
-        const temp2 = normalized.mult(tau).mult(temp1);
-        const diff = lower_column.sub(temp2);
-        R.s(diff, [j, -1], [1, 2]);
+        // const temp1 = normalized.transpose().dot(R.slice([j, -1]));
+        // const temp2 = normalized.mult(tau).mult(temp1);
+        // const diff = lower_column.sub(temp2)
+        const tauw = normalized.mult(tau);
+        // Update R
+        const r_block = R.slice([j, -1], null);
+        const temp1 = tndarray_1.tndarray.matmul_2d(normalized.transpose(), r_block);
+        const temp2 = tndarray_1.tndarray.matmul_2d(tauw, temp1);
+        const r_diff = r_block.sub(temp2);
+        // console.log(tauw.shape);
+        // console.log(normalized.shape);
+        // console.log(r_block.shape)
+        // console.log(temp1.shape);
+        // console.log(r_diff)
+        R.s(r_diff, [j, -1], null);
         // Update Q
         const q_block = Q.slice(null, [j, -1]);
         const matmul = tndarray_1.tndarray.matmul_2d(q_block, normalized);
-        const temp3 = tndarray_1.tndarray.matmul_2d(matmul, normalized.mult(tau).transpose());
-        const diff2 = q_block.sub(temp3);
-        Q.s(diff2, null, [j, -1]);
+        const temp3 = tndarray_1.tndarray.matmul_2d(matmul, tauw.transpose());
+        const q_diff = q_block.sub(temp3);
+        Q.s(q_diff, null, [j, -1]);
     }
     return [Q, R];
 }

@@ -76,6 +76,7 @@ describe("Decompositions.", function() {
         const inv_prod = tndarray.matmul_2d(q, q.transpose());
         const expected = tndarray.eye(m);
         // expect(numts.isclose(inv_prod, expected).all()).toBe(true);
+        // console.log(inv_prod)
         // console.log(q)
         // console.log(r)
         console.log(a)
