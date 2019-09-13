@@ -50,11 +50,14 @@ describe("Decompositions.", function() {
         function f(a) {
           const [m, ] = a.shape;
           const [q, r] = linalg.givens_qr(a);
+
+          // Check that q is orthogonal
           const t = q.transpose();
           const inv_prod = tndarray.matmul_2d(q, t);
           const expected = tndarray.eye(m);
           expect(numts.isclose(inv_prod, expected).all()).toBe(true);
 
+          // Check that the product is correct
           const qr_prod = tndarray.matmul_2d(t, r);
           expect(numts.isclose(qr_prod, a).all()).toBe(true);
         }
@@ -66,9 +69,17 @@ describe("Decompositions.", function() {
     describe('Householder QR', function() {
       fit('Basic test.', function() {
         const a = numts.arange(15).reshape(5, 3);
+        const [m, ] = a.shape;
         const [q, r] = linalg.householder_qr(a);
-        // const prod = tndarray.matmul_2d(q.transpose(), r);
-        
+        const prod = tndarray.matmul_2d(q.transpose(), r);
+
+        const inv_prod = tndarray.matmul_2d(q, q.transpose());
+        const expected = tndarray.eye(m);
+        // expect(numts.isclose(inv_prod, expected).all()).toBe(true);
+        // console.log(q)
+        // console.log(r)
+        console.log(a)
+        console.log(prod);
         // expect(numts.isclose(a, prod).all()).toBe(true);
       });
 

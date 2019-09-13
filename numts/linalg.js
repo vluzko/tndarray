@@ -122,11 +122,28 @@ function rank(a) {
 exports.rank = rank;
 function householder_qr(A) {
     const [m, n] = A.shape;
-    let Q = null;
+    let Q = tndarray_1.tndarray.eye(m);
     let R = tndarray_1.tndarray.copy(A);
     for (let j = 0; j < n; j++) {
-        const lower_column = R.slice([j, -1], j);
-        const norm = Math.sqrt(lower_column.reduce((a, b) => a + Math.pow(b, 2), 0));
+        const lower_column = R.slice([j, -1], [j, j + 1]);
+        // @ts-ignore
+        const norm = Math.sqrt(lower_column.reduce((a, b) => a + Math.pow(b, 2), 0).data[0]);
+        const pivot = R.g(j, j);
+        const s = pivot >= 0 ? 1 : -1;
+        const u1 = pivot + s * norm;
+        const normalized = lower_column.div(u1);
+        normalized.s(1, 0);
+        const tau = s * u1 / norm;
+        const temp1 = normalized.transpose().dot(R.slice([j, -1]));
+        const temp2 = normalized.mult(tau).mult(temp1);
+        const diff = lower_column.sub(temp2);
+        R.s(diff, [j, -1], [1, 2]);
+        // Update Q
+        const q_block = Q.slice(null, [j, -1]);
+        const matmul = tndarray_1.tndarray.matmul_2d(q_block, normalized);
+        const temp3 = tndarray_1.tndarray.matmul_2d(matmul, normalized.mult(tau).transpose());
+        const diff2 = q_block.sub(temp3);
+        Q.s(diff2, null, [j, -1]);
     }
     return [Q, R];
 }

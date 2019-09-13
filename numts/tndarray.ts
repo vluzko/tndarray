@@ -210,7 +210,7 @@ export class tndarray {
    * Return the transpose of this array.
    */
   transpose(): tndarray {
-    const new_shape = this.shape.reverse();
+    const new_shape = this.shape.slice(0).reverse();
     let new_array = tndarray.zeros(new_shape, this.dtype);
     for (let index of this._iorder_index_iterator()) {
       const value = this.g(...index);
@@ -1060,8 +1060,6 @@ export class tndarray {
     return tndarray._binary_broadcast(a, b, (x, y) => Math.min(x, y));
   }
 
-  
-
   /**
    * Compute the sum of two arrays.
    * output[i] = a[i] + [i].
@@ -1103,6 +1101,7 @@ export class tndarray {
    * @return {Broadcastable}  - Quotient array.
    */
   static _div(a: Broadcastable, b: Broadcastable): tndarray {
+    debugger;
     return tndarray._binary_broadcast(a, b, (x, y) => x / y, "float64");
   }
   

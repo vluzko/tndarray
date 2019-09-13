@@ -175,7 +175,7 @@ class tndarray {
      * Return the transpose of this array.
      */
     transpose() {
-        const new_shape = this.shape.reverse();
+        const new_shape = this.shape.slice(0).reverse();
         let new_array = tndarray.zeros(new_shape, this.dtype);
         for (let index of this._iorder_index_iterator()) {
             const value = this.g(...index);
@@ -967,6 +967,7 @@ class tndarray {
      * @return {Broadcastable}  - Quotient array.
      */
     static _div(a, b) {
+        debugger;
         return tndarray._binary_broadcast(a, b, (x, y) => x / y, "float64");
     }
     /**

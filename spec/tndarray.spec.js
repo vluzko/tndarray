@@ -3,7 +3,6 @@ let numts = require('../numts/numts');
 let tndarray = numts.tndarray;
 
 
-// TODO: Randomly generated tests.
 // TODO: MAX_INT tests
 describe('Constructors and factories.', function () {
   describe('Shapes.', function () {
@@ -88,6 +87,15 @@ describe('Constructors and factories.', function () {
       }
     });
   });
+
+  describe('Filled.', function() {
+    it('Column vector.', function() {
+      const a = numts.arange(4).reshape(4, 1);
+      expect(a.stride).toEqual(new Uint32Array([1, 4]));
+      const arr = [...a._iorder_data_iterator()];
+      expect(arr).toEqual([0, 1, 2, 3]);
+    });
+  })
 });
 
 describe('Indices.', function () {
@@ -114,6 +122,15 @@ describe('Indices.', function () {
     it('negatives indices.', function () {
       const array = numts.arange(40).reshape([5, 4, 2]);
       expect(array.g(-1, -2, -1)).toBe(37);
+    });
+
+    describe('From failures.', function() {
+      it('From QR decomp.', function() {
+        const a = numts.from_nested_array([[0, 1, 0.5345224838248488, 0.8017837257372732]])
+        const index = new Uint32Array([0, 1]);
+        const b = a.g(...index);
+        expect(b).toBe(1);
+      });
     });
   });
 
@@ -484,6 +501,9 @@ describe('Broadcasting.', function () {
     expect(expected_array.equals(y)).toBe(true);
   });
 
+  describe('From failures.', function() {
+  }); 
+
   describe('_binary_broadcast.', function () {
     it('return first.', function () {
       let a = numts.arange(0, 10);
@@ -739,7 +759,16 @@ describe('Method constructors.', function() {
       ], 'int32');
       
       expect(b.equals(expected)).toBe(true);
-    })
+    });
+
+    describe('Failures.', function() {
+      it('Failed in QR decomp', function() {
+        const a = numts.from_nested_array([[0], [1], [0.5345224838248488], [0.8017837257372732]]);
+        const b = a.transpose();
+        const expected = numts.from_nested_array([[0, 1, 0.5345224838248488, 0.8017837257372732]]);
+        expect(b.equals(expected)).toBe(true);
+      });
+    });
   });
 
   describe('tril.', function() {

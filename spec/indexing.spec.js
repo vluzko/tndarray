@@ -191,6 +191,15 @@ describe('Iterators.', function () {
       const arr = Array.from(iter);
       expect(arr.length).toBe(0);
     });
+
+    describe('From failures.', function() {
+      it('From QR decomp.', function() {
+        const a = numts.from_nested_array([[0], [1], [0.5345224838248488], [0.8017837257372732]]);
+        console.log(a);
+        const vals = [...a._iorder_index_iterator()];
+        expect(vals).toEqual([new Uint32Array([0, 0]), new Uint32Array([1, 0]), new Uint32Array([2, 0]), new Uint32Array([3, 0])])
+      })
+    });
   });
 
   describe('iorder_data_iterator.', function() {
