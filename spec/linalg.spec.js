@@ -78,11 +78,11 @@ describe("Decompositions.", function() {
     describe('Householder QR', function() {
       fit('Basic test.', function() {
         const a = numts.from_nested_array([
-          [1   , 6 ,  11],
-          [2    ,7  , 12],
-          [3  ,  8   ,13],
-          [4,    9   ,14],
-          [5 ,  10   ,15]
+          [1, 6,  11],
+          [2, 7, 12],
+          [3, 8, 13],
+          [4, 9, 14],
+          [5, 10, 15]
         ])
         const [m, ] = a.shape;
         const [q, r] = linalg.householder_qr(a);
@@ -90,12 +90,12 @@ describe("Decompositions.", function() {
 
         const inv_prod = tndarray.matmul_2d(q, q.transpose());
         const expected = tndarray.eye(m);
-        // expect(numts.isclose(inv_prod, expected).all()).toBe(true);
+        expect(numts.isclose(inv_prod, expected).all()).toBe(true);
         // console.log(inv_prod)
         // console.log([...q._iorder_value_iterator()])
         // console.log([...r._iorder_value_iterator()])
-        // console.log(a)
-        // console.log(prod);
+        console.log(a)
+        console.log(prod);
         // expect(numts.isclose(a, prod).all()).toBe(true);
       });
 
