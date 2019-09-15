@@ -6,19 +6,19 @@ var errors;
 (function (errors) {
     class MismatchedSizes extends Error {
         constructor() {
-            super("Array sizes do not match.");
+            super('Array sizes do not match.');
         }
     }
     errors.MismatchedSizes = MismatchedSizes;
     class MismatchedShapes extends Error {
         constructor() {
-            super("Array shapes do not match.");
+            super('Array shapes do not match.');
         }
     }
     errors.MismatchedShapes = MismatchedShapes;
     class BadData extends Error {
         constructor() {
-            super("Bad data.");
+            super('Bad data.');
         }
     }
     errors.BadData = BadData;
@@ -74,7 +74,7 @@ class tndarray {
         }
         else {
             this.data = data;
-            this.dtype = "float64";
+            this.dtype = 'float64';
         }
         this.initial_offset = initial_offset === undefined ? 0 : initial_offset;
         this.is_view = is_view === undefined ? false : is_view;
@@ -987,8 +987,7 @@ class tndarray {
      * @return {Broadcastable}  - Quotient array.
      */
     static _div(a, b) {
-        debugger;
-        return tndarray._binary_broadcast(a, b, (x, y) => x / y, "float64");
+        return tndarray._binary_broadcast(a, b, (x, y) => x / y, 'float64');
     }
     /**
      * Compute the element-wise power of two inputs
@@ -998,7 +997,7 @@ class tndarray {
      * @private
      */
     static _power(a, b) {
-        return tndarray._binary_broadcast(a, b, (x, y) => Math.pow(x, y), "float64");
+        return tndarray._binary_broadcast(a, b, (x, y) => Math.pow(x, y), 'float64');
     }
     /**
      * Compute the element-wise quotient of two arrays, rounding values up to the nearest integer.
@@ -1033,7 +1032,7 @@ class tndarray {
      * @param {tndarray} b
      */
     static _lt(a, b) {
-        return tndarray._binary_broadcast(a, b, (x, y) => +(x < y), "uint8");
+        return tndarray._binary_broadcast(a, b, (x, y) => +(x < y), 'uint8');
     }
     /**
      * Compute element-wise greater than.
@@ -1041,7 +1040,7 @@ class tndarray {
      * @param {tndarray} b
      */
     static _gt(a, b) {
-        return tndarray._binary_broadcast(a, b, (x, y) => +(x > y), "uint8");
+        return tndarray._binary_broadcast(a, b, (x, y) => +(x > y), 'uint8');
     }
     /**
      * Compute element-wise less than or equal to.
@@ -1049,7 +1048,7 @@ class tndarray {
      * @param {Broadcastable} b
      */
     static _le(a, b) {
-        return tndarray._binary_broadcast(a, b, (x, y) => +(x <= y), "uint8");
+        return tndarray._binary_broadcast(a, b, (x, y) => +(x <= y), 'uint8');
     }
     /**
      * Compute element-wise greater than or equal to.
@@ -1057,7 +1056,7 @@ class tndarray {
      * @param {Broadcastable} b
      */
     static _ge(a, b) {
-        return tndarray._binary_broadcast(a, b, (x, y) => +(x >= y), "uint8");
+        return tndarray._binary_broadcast(a, b, (x, y) => +(x >= y), 'uint8');
     }
     /**
      * Compute element-wise not equal to.
@@ -1065,7 +1064,7 @@ class tndarray {
      * @param {Broadcastable} b
      */
     static _ne(a, b) {
-        return tndarray._binary_broadcast(a, b, (x, y) => +(x !== y), "uint8");
+        return tndarray._binary_broadcast(a, b, (x, y) => +(x !== y), 'uint8');
     }
     /**
      * Compute element-wise equality.
@@ -1073,7 +1072,7 @@ class tndarray {
      * @param {Broadcastable} b
      */
     static _eq(a, b) {
-        return tndarray._binary_broadcast(a, b, (x, y) => +(x === y), "uint8");
+        return tndarray._binary_broadcast(a, b, (x, y) => +(x === y), 'uint8');
     }
     /** #endregion END OPERATIONS */
     /**

@@ -31,7 +31,7 @@ export function is_vector(a: tndarray): boolean {
 }
 
 export function is_flat(a: tndarray): boolean {
-  return (a.shape.length === 1) || (a.shape.reduce((x, y) => y === 1 ? x : x + 1, 0) === 1);
+  return (a.shape.length === 1) || (a.shape.reduce((x, y) => y === 1 ? x : x + 1, 0) <= 1);
 }
 
 export function is_matrix(a: tndarray): boolean {
@@ -144,32 +144,44 @@ export function householder_qr(A: tndarray) {
   const [m, n] = A.shape;
   let Q = tndarray.eye(m);
   let R = tndarray.copy(A, 'float64');
+  if (m === 1 && n === 1) {
+    return [Q, R];
+  }
   for (let j = 0; j < n; j++) {
     // Calculate the vector to reflect around.
     const lower_column = R.slice([j, null], [j, j + 1]);
     // @ts-ignore
     const norm = l2(lower_column);
-    const pivot: number = R.g(j, j);
-    const s: number     = pivot >= 0 ? 1 : -1;
-    const u1: number    = pivot + s * norm;
-    const normalized: tndarray = lower_column.div(u1);
-    normalized.s(1, 0);
-    const tau: number = s * u1 / norm;
-    const tauw = normalized.mult(tau);
+    // If the norm is already very close to zero, the column is already
+    if (norm < 1e-14) {
+      continue
+    } else {
+      const pivot: number = R.g(j, j);
+      const s: number     = pivot >= 0 ? 1 : -1;
+      const u1: number    = pivot + s * norm;
+      console.log(u1);
+      console.log(s);
+      console.log(lower_column);
+      const normalized: tndarray = lower_column.div(u1);
+      normalized.s(1, 0);
+      const tau: number = s * u1 / norm;
+      const tauw = normalized.mult(tau);
 
-    // Update R
-    const r_block = R.slice([j, null], null);
-    const temp1 = tndarray.matmul_2d(normalized.transpose(), r_block);
-    const temp2 = tndarray.matmul_2d(tauw, temp1);
-    const r_diff = r_block.sub(temp2);
-    R.s(r_diff, [j, null], null);
+      // Update R
+      const r_block = R.slice([j, null], null);
+      const temp1 = tndarray.matmul_2d(normalized.transpose(), r_block);
+      const temp2 = tndarray.matmul_2d(tauw, temp1);
+      const r_diff = r_block.sub(temp2);
+      R.s(r_diff, [j, null], null);
 
-    // Update Q
-    const q_block = Q.slice(null, [j, null]);
-    const matmul = tndarray.matmul_2d(q_block, normalized);
-    const temp3 = tndarray.matmul_2d(matmul, tauw.transpose());
-    const q_diff = q_block.sub(temp3);
-    Q.s(q_diff, null, [j, null]);
+      // Update Q
+      const q_block = Q.slice(null, [j, null]);
+      const matmul = tndarray.matmul_2d(q_block, normalized);
+      const temp3 = tndarray.matmul_2d(matmul, tauw.transpose());
+      const q_diff = q_block.sub(temp3);
+      Q.s(q_diff, null, [j, null]);
+    }
+    
   }
   return [Q, R];
 }
@@ -196,7 +208,7 @@ export function givens_qr(A: tndarray): [tndarray, tndarray] {
     Q = tndarray.eye(m);
   }
 
-  return [Q, R];
+  return [Q.transpose(), R];
 }
 
 /**

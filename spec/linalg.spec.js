@@ -67,7 +67,7 @@ describe("Decompositions.", function() {
           expect(numts.isclose(inv_prod, expected).all()).toBe(true);
 
           // Check that the product is correct
-          const qr_prod = tndarray.matmul_2d(t, r);
+          const qr_prod = tndarray.matmul_2d(q, r);
           expect(numts.isclose(qr_prod, a).all()).toBe(true);
         }
         helpers.check_matrix(f, 'thin');
@@ -76,7 +76,7 @@ describe("Decompositions.", function() {
     });
 
     describe('Householder QR', function() {
-      fit('Basic test.', function() {
+      it('Basic test.', function() {
         const a = numts.from_nested_array([
           [1, 6,  11],
           [2, 7, 12],
@@ -86,17 +86,31 @@ describe("Decompositions.", function() {
         ])
         const [m, ] = a.shape;
         const [q, r] = linalg.householder_qr(a);
-        const prod = tndarray.matmul_2d(q.transpose(), r);
+        const prod = tndarray.matmul_2d(q, r);
 
         const inv_prod = tndarray.matmul_2d(q, q.transpose());
         const expected = tndarray.eye(m);
         expect(numts.isclose(inv_prod, expected).all()).toBe(true);
-        // console.log(inv_prod)
-        // console.log([...q._iorder_value_iterator()])
-        // console.log([...r._iorder_value_iterator()])
-        console.log(a)
-        console.log(prod);
-        // expect(numts.isclose(a, prod).all()).toBe(true);
+        expect(numts.isclose(a, prod).all()).toBe(true);
+      });
+
+      fit('Property based test.', function() {
+        function f(a) {
+          const [m, ] = a.shape;
+          const [q, r] = linalg.householder_qr(a);
+
+          // Check that q is orthogonal
+          const t = q.transpose();
+          const inv_prod = tndarray.matmul_2d(q, t);
+          const expected = tndarray.eye(m);
+          expect(numts.isclose(inv_prod, expected).all()).toBe(true);
+
+          // Check that the product is correct
+          const qr_prod = tndarray.matmul_2d(t, r);
+          expect(numts.isclose(qr_prod, a).all()).toBe(true);
+        }
+        helpers.check_matrix(f, 'thin');
+        
       });
 
     });

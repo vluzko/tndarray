@@ -1,5 +1,5 @@
-import {utils} from "./utils";
-import {indexing} from "./indexing";
+import {utils} from './utils';
+import {indexing} from './indexing';
 import new_shape_from_axis = indexing.new_shape_from_axis;
 
 type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array| Int32Array | Uint32Array | Float32Array | Float64Array;
@@ -24,17 +24,17 @@ interface ArrayOptions {
 namespace errors {
   export class MismatchedSizes extends Error {
     constructor() {
-      super("Array sizes do not match.")
+      super('Array sizes do not match.')
     }
   }
   export class MismatchedShapes extends Error {
     constructor() {
-      super("Array shapes do not match.")
+      super('Array shapes do not match.')
     }
   }
   export class BadData extends Error {
     constructor() {
-      super("Bad data.");
+      super('Bad data.');
     }
   }
   export class DataNotArrayError extends Error {}
@@ -94,7 +94,7 @@ export class tndarray {
       this.dtype = dtype;
     } else {
       this.data = data;
-      this.dtype = "float64";
+      this.dtype = 'float64';
     }
     this.initial_offset = initial_offset === undefined ? 0 : initial_offset;
     this.is_view = is_view === undefined ? false : is_view;
@@ -1119,8 +1119,7 @@ export class tndarray {
    * @return {Broadcastable}  - Quotient array.
    */
   static _div(a: Broadcastable, b: Broadcastable): tndarray {
-    debugger;
-    return tndarray._binary_broadcast(a, b, (x, y) => x / y, "float64");
+    return tndarray._binary_broadcast(a, b, (x, y) => x / y, 'float64');
   }
   
   /**
@@ -1131,7 +1130,7 @@ export class tndarray {
    * @private
    */
   static _power(a: Broadcastable, b: Broadcastable): tndarray {
-    return tndarray._binary_broadcast(a, b, (x, y) => Math.pow(x, y), "float64");
+    return tndarray._binary_broadcast(a, b, (x, y) => Math.pow(x, y), 'float64');
   }
   
   /**
@@ -1170,7 +1169,7 @@ export class tndarray {
    * @param {tndarray} b
    */
   static _lt(a: tndarray, b: tndarray) {
-    return tndarray._binary_broadcast(a, b, (x, y) => +(x < y), "uint8");
+    return tndarray._binary_broadcast(a, b, (x, y) => +(x < y), 'uint8');
   }
   
   /**
@@ -1179,7 +1178,7 @@ export class tndarray {
    * @param {tndarray} b
    */
   static _gt(a: Broadcastable, b: Broadcastable) {
-    return tndarray._binary_broadcast(a, b, (x, y) => +(x > y), "uint8");
+    return tndarray._binary_broadcast(a, b, (x, y) => +(x > y), 'uint8');
   }
   
   /**
@@ -1188,7 +1187,7 @@ export class tndarray {
    * @param {Broadcastable} b
    */
   static _le(a: Broadcastable, b: Broadcastable) {
-    return tndarray._binary_broadcast(a, b, (x, y) => +(x <= y), "uint8");
+    return tndarray._binary_broadcast(a, b, (x, y) => +(x <= y), 'uint8');
   }
   
   /**
@@ -1197,7 +1196,7 @@ export class tndarray {
    * @param {Broadcastable} b
    */
   static _ge(a: Broadcastable, b: Broadcastable) {
-    return tndarray._binary_broadcast(a, b, (x, y) => +(x >= y), "uint8");
+    return tndarray._binary_broadcast(a, b, (x, y) => +(x >= y), 'uint8');
   }
   
   /**
@@ -1206,7 +1205,7 @@ export class tndarray {
    * @param {Broadcastable} b
    */
   static _ne(a: Broadcastable, b: Broadcastable) {
-    return tndarray._binary_broadcast(a, b, (x, y) => +(x !== y), "uint8");
+    return tndarray._binary_broadcast(a, b, (x, y) => +(x !== y), 'uint8');
   }
   
   /**
@@ -1215,7 +1214,7 @@ export class tndarray {
    * @param {Broadcastable} b
    */
   static _eq(a: Broadcastable, b: Broadcastable) {
-    return tndarray._binary_broadcast(a, b, (x, y) => +(x === y), "uint8");
+    return tndarray._binary_broadcast(a, b, (x, y) => +(x === y), 'uint8');
   }
 
   /** #endregion END OPERATIONS */
