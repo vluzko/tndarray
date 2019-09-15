@@ -28,7 +28,7 @@ function array_arbitrary(dim_size_min, dim_size_max, min_dims, max_dims) {
 const matrix = array_arbitrary(1, 100, 2, 2);
 const small_matrix = array_arbitrary(1, 10, 2, 2);
 
-const thin_matrix = fc.integer(1, 10).chain(n => fc.tuple(fc.constant(n), fc.integer(n, 11))).chain(shape => {
+const thin_matrix = fc.integer(2, 10).chain(n => fc.tuple(fc.constant(n), fc.integer(1, n))).chain(shape => {
   const size = shape.reduce((a, b) => a * b, 1);
   return fc.tuple(fc.array(fc.float(), size, size), fc.constant(shape))
 });

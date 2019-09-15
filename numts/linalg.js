@@ -155,9 +155,6 @@ function householder_qr(A) {
             const pivot = R.g(j, j);
             const s = pivot >= 0 ? 1 : -1;
             const u1 = pivot + s * norm;
-            console.log(u1);
-            console.log(s);
-            console.log(lower_column);
             const normalized = lower_column.div(u1);
             normalized.s(1, 0);
             const tau = s * u1 / norm;

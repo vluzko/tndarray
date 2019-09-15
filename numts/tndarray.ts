@@ -354,7 +354,7 @@ export class tndarray {
    * @return {number}
    */
   sum(axis?: number): number | tndarray {
-    return this.reduce((a, e) => {console.log(e);return a + e}, 0, axis);
+    return this.reduce((a, e) => a + e, 0, axis);
   }
   
   /** END AGGREGATION */
