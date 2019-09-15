@@ -764,6 +764,15 @@ describe('Aggregation.', function () {
       expect(expected_array.equals(y)).toBe(true);
     });
   });
+
+  describe('reduce', function() {
+    it('on slice.', function() {
+      const a = numts.arange(30).reshape(5, 6);
+      const b = a.slice([2, 4]);
+      const res = b.reduce((x, y) => x + y);
+      expect(res).toBe(210);
+    })
+  });
 });
 
 describe('Method constructors.', function() {
