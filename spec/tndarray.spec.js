@@ -409,83 +409,9 @@ describe('Unary methods.', function () {
 
   describe('Methods along axes.', function () {
 
-    let array = numts.arange(30).reshape([3, 2, 5]);
+    
 
-    describe('min.', function () {
-      it('min over all.', function () {
-        expect(array.min()).toBe(0);
-      });
 
-      it('min over 0.', function () {
-        const expected = numts.from_nested_array([
-          [0, 1, 2, 3, 4],
-          [5, 6, 7, 8, 9]
-        ], 'int32');
-        expect(array.min(0).equals(expected)).toBe(true);
-      });
-    });
-
-    describe('max.', function () {
-      it('max over all.', function () {
-        expect(array.max()).toBe(29);
-      });
-
-      it('max over 0.', function () {
-        const expected = numts.from_nested_array([
-          [20, 21, 22, 23, 24],
-          [25, 26, 27, 28, 29]
-        ], 'int32');
-        expect(array.max(0).equals(expected)).toBe(true);
-      });
-    });
-
-    describe('mean.', function () {
-
-    });
-
-    describe('cumsum.', function () {
-      it('No axes.', function () {
-        const input = numts.arange(12).reshape([3, 4]);
-        const x = input.cumsum();
-        const expected = tndarray.from_iterable([0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66], [12], 'int32');
-        expect(x.equals(expected)).toBe(true);
-      });
-
-      it('2d, axis 1.', function () {
-        const input = numts.arange(12).reshape([3, 4]);
-        const result = input.cumsum(1);
-        const expected = numts.from_nested_array([
-          [0, 1, 3, 6],
-          [4, 9, 15, 22],
-          [8, 17, 27, 38]
-        ], 'int32');
-        expect(result.equals(expected)).toBe(true);
-      });
-    });
-
-    describe('cumprod.', function () {
-      it('No axes.', function () {
-        const input = numts.arange(1, 13).reshape([3, 4]);
-        const x = input.cumprod();
-        const expected = tndarray.from_iterable([1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600], [12], 'int32');
-        expect(x.equals(expected)).toBe(true);
-      });
-
-      it('2d, axis 1.', function () {
-        const input = numts.arange(1, 13).reshape([3, 4]);
-        const result = input.cumprod(1);
-        const expected = numts.from_nested_array([
-          [1, 2, 6, 24],
-          [5, 30, 210, 1680],
-          [9, 90, 990, 11880]
-        ], 'int32');
-        expect(result.equals(expected)).toBe(true);
-      });
-    });
-
-    describe('all.', function() {
-      
-    });
   });
 
 });
@@ -701,6 +627,36 @@ describe('Math.', function () {
 
 describe('Aggregation.', function () {
 
+  let array = numts.arange(30).reshape([3, 2, 5]);
+
+    describe('min.', function () {
+      it('min over all.', function () {
+        expect(array.min()).toBe(0);
+      });
+
+      it('min over 0.', function () {
+        const expected = numts.from_nested_array([
+          [0, 1, 2, 3, 4],
+          [5, 6, 7, 8, 9]
+        ], 'int32');
+        expect(array.min(0).equals(expected)).toBe(true);
+      });
+    });
+
+    describe('max.', function () {
+      it('max over all.', function () {
+        expect(array.max()).toBe(29);
+      });
+
+      it('max over 0.', function () {
+        const expected = numts.from_nested_array([
+          [20, 21, 22, 23, 24],
+          [25, 26, 27, 28, 29]
+        ], 'int32');
+        expect(array.max(0).equals(expected)).toBe(true);
+      });
+    });
+
   describe('all.', function() {
 
     it('No axis.', function() {
@@ -731,8 +687,50 @@ describe('Aggregation.', function () {
     });
   });
 
-  describe('variance.', function() {
+  describe('cumsum.', function () {
+    it('No axes.', function () {
+      const input = numts.arange(12).reshape([3, 4]);
+      const x = input.cumsum();
+      const expected = tndarray.from_iterable([0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66], [12], 'int32');
+      expect(x.equals(expected)).toBe(true);
+    });
 
+    it('2d, axis 1.', function () {
+      const input = numts.arange(12).reshape([3, 4]);
+      const result = input.cumsum(1);
+      const expected = numts.from_nested_array([
+        [0, 1, 3, 6],
+        [4, 9, 15, 22],
+        [8, 17, 27, 38]
+      ], 'int32');
+      expect(result.equals(expected)).toBe(true);
+    });
+  });
+
+  describe('cumprod.', function () {
+    it('No axes.', function () {
+      const input = numts.arange(1, 13).reshape([3, 4]);
+      const x = input.cumprod();
+      const expected = tndarray.from_iterable([1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600], [12], 'int32');
+      expect(x.equals(expected)).toBe(true);
+    });
+
+    it('2d, axis 1.', function () {
+      const input = numts.arange(1, 13).reshape([3, 4]);
+      const result = input.cumprod(1);
+      const expected = numts.from_nested_array([
+        [1, 2, 6, 24],
+        [5, 30, 210, 1680],
+        [9, 90, 990, 11880]
+      ], 'int32');
+      expect(result.equals(expected)).toBe(true);
+    });
+  });
+
+  describe('variance.', function() {
+    it('Basic.', function() {
+      
+    })
   });
 
   describe('mean.', function () {
