@@ -13,6 +13,8 @@ describe("Matrix norms.", function() {
       const b = linalg.l2(a);
       expect(b).toBe(70);
     });
+
+    
   });
 });
 
@@ -74,7 +76,7 @@ describe("Decompositions.", function() {
     });
 
     describe('Householder QR', function() {
-      it('Basic test.', function() {
+      fit('Basic test.', function() {
         const a = numts.from_nested_array([
           [1   , 6 ,  11],
           [2    ,7  , 12],

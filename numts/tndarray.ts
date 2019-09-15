@@ -681,7 +681,25 @@ export class tndarray {
   reduce(f: (accum: number, e: number, i?: number, array?) => number, initial?: number, axis?: number, dtype?: string): number | tndarray {
     dtype = dtype === undefined ? this.dtype : dtype;
     if (axis === undefined) {
-      return initial === undefined ? this.data.reduce(f) : this.data.reduce(f, initial);
+      const iter = this._iorder_value_iterator()[Symbol.iterator]();
+      // Deal with initial value
+      let {done, value} = iter.next();
+      // If it's an empty array, return.
+      let accum;
+      if (done) {
+        return this;
+      } else {
+        accum = initial === undefined ? value : f(initial, value);
+        while (true) {
+          let {done, value}= iter.next();
+          if (done) {
+            break;
+          } else {
+            accum = f(accum, value);
+          }
+        }
+        return accum;
+      }
     } else {
       const new_shape = indexing.new_shape_from_axis(this.shape, axis);
       let new_array = tndarray.zeros(new_shape, dtype);

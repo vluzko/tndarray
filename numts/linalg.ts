@@ -147,15 +147,15 @@ export function householder_qr(A: tndarray) {
   for (let j = 0; j < n; j++) {
     // console.log([...R._iorder_data_iterator()]);
     // console.log(R);
-    const lower_column = R.slice([j, -1], [j, j + 1]);
-    console.log(j)
-    console.log(lower_column.shape);
-    console.log([...lower_column._iorder_value_iterator()]);
+    const lower_column = R.slice([j, null], [j, j + 1]);
     // @ts-ignore
     const norm = l2(lower_column);
     const pivot: number = R.g(j, j);
     const s: number     = pivot >= 0 ? 1 : -1;
     const u1: number    = pivot + s * norm;
+    console.log(lower_column);
+    console.log(norm);
+    console.log(u1);
     const normalized: tndarray = lower_column.div(u1);
     normalized.s(1, 0);
     const tau: number = s * u1 / norm;
@@ -165,7 +165,7 @@ export function householder_qr(A: tndarray) {
     const tauw = normalized.mult(tau);
 
     // Update R
-    const r_block = R.slice([j, -1], null);
+    const r_block = R.slice([j, null], null);
     const temp1 = tndarray.matmul_2d(normalized.transpose(), r_block);
     const temp2 = tndarray.matmul_2d(tauw, temp1);
     const r_diff = r_block.sub(temp2);
@@ -175,15 +175,15 @@ export function householder_qr(A: tndarray) {
     // console.log(temp1.shape);
     // console.log(r_diff)
 
-    R.s(r_diff, [j, -1], null);
+    R.s(r_diff, [j, null], null);
 
     // Update Q
-    const q_block = Q.slice(null, [j, -1]);
+    const q_block = Q.slice(null, [j, null]);
     const matmul = tndarray.matmul_2d(q_block, normalized);
     const temp3 = tndarray.matmul_2d(matmul, tauw.transpose());
 
     const q_diff = q_block.sub(temp3);
-    Q.s(q_diff, null, [j, -1]);
+    Q.s(q_diff, null, [j, null]);
     break;
   }
   return [Q, R];

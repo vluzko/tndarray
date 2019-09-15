@@ -309,7 +309,7 @@ describe('Slicing.', function () {
         expect([...second_slice._iorder_value_iterator()]).toEqual([4, 5, 6, 7]);
       });
 
-      fit('3: qr decomposition', function(){
+      it('3: qr decomposition', function(){
         // RESOLVED. No change required. Spec misunderstanding.
         const a = numts.arange(15).reshape(5, 3);
         const b = a.slice([0, null], [0, 1]);
@@ -484,10 +484,7 @@ describe('Unary methods.', function () {
     });
 
     describe('all.', function() {
-      it('No axis.', function() {
-        const a = numts.arange(5).add(1);
-        expect(a.all()).toBe(true);
-      });
+      
     });
   });
 
@@ -705,6 +702,12 @@ describe('Math.', function () {
 describe('Aggregation.', function () {
 
   describe('all.', function() {
+
+    it('No axis.', function() {
+      const a = numts.arange(5).add(1);
+      expect(a.all()).toBe(true);
+    });
+
     it('Basic.', function() {
       const a = numts.from_nested_array([
         [0, 0, 1],
@@ -750,7 +753,7 @@ describe('Aggregation.', function () {
   });
 
   describe("sum.", function () {
-    fit("Simple.", function () {
+    it("Simple.", function () {
       let x = numts.arange(30).reshape([3, 2, 5]);
       let y = x.sum(1);
       const expected_data = [
@@ -759,9 +762,7 @@ describe('Aggregation.', function () {
         [45, 47, 49, 51, 53]
       ];
   
-      console.log(y);
       const expected_array = numts.from_nested_array(expected_data, 'int32');
-      console.log(expected_array)
       expect(expected_array.equals(y)).toBe(true);
     });
   });
@@ -826,6 +827,4 @@ describe('Method constructors.', function() {
       expect(b.equals(expected)).toBe(true);
     });
   });
-
-  
 })
