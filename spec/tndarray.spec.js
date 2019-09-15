@@ -293,8 +293,8 @@ describe('Slicing.', function () {
       expect([...slice._iorder_value_iterator()]).toEqual([1, 5, 9, 13, 17, 21]);
     });
 
-    describe('previous breaks.', function () {
-      it('broadcast_matmul break.', function () {
+    describe('From failures.', function () {
+      it('1: broadcast_matmul break.', function () {
         const a = numts.arange(24).reshape(2, 3, 4);
         const slice = a.slice(...[1]);
         expect([...slice._iorder_value_iterator()]).toEqual([
@@ -302,11 +302,18 @@ describe('Slicing.', function () {
         ]);
       });
 
-      it('successive slice break.', function(){
+      it('2: successive slice break.', function(){
         const a = numts.arange(24).reshape(2, 3, 4);
         const first_slice = a.slice(0);
         const second_slice = first_slice.slice(1);
         expect([...second_slice._iorder_value_iterator()]).toEqual([4, 5, 6, 7]);
+      });
+
+      fit('3: qr decomposition', function(){
+        // RESOLVED. No change required. Spec misunderstanding.
+        const a = numts.arange(15).reshape(5, 3);
+        const b = a.slice([0, null], [0, 1]);
+        expect(b.shape).toEqual(new Uint32Array([5, 1]));
       });
 
     });
@@ -741,6 +748,23 @@ describe('Aggregation.', function () {
       expect(stdev).toBeCloseTo(7.211);
     });
   });
+
+  describe("sum.", function () {
+    fit("Simple.", function () {
+      let x = numts.arange(30).reshape([3, 2, 5]);
+      let y = x.sum(1);
+      const expected_data = [
+        [5, 7, 9, 11, 13],
+        [25, 27, 29, 31, 33],
+        [45, 47, 49, 51, 53]
+      ];
+  
+      console.log(y);
+      const expected_array = numts.from_nested_array(expected_data, 'int32');
+      console.log(expected_array)
+      expect(expected_array.equals(y)).toBe(true);
+    });
+  });
 });
 
 describe('Method constructors.', function() {
@@ -802,4 +826,6 @@ describe('Method constructors.', function() {
       expect(b.equals(expected)).toBe(true);
     });
   });
+
+  
 })

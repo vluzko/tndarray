@@ -354,7 +354,7 @@ export class tndarray {
    * @return {number}
    */
   sum(axis?: number): number | tndarray {
-    return this.reduce((a, e) => a + e, axis);
+    return this.reduce((a, e) => {console.log(e);return a + e}, 0, axis);
   }
   
   /** END AGGREGATION */
@@ -687,7 +687,7 @@ export class tndarray {
       let new_array = tndarray.zeros(new_shape, dtype);
       const step_along_axis = this.stride[axis];
       for (let [old_index, new_index] of this.map_old_indices_to_new(axis)) {
-        let accum = initial === undefined ? this.data[old_index] : initial;
+        let accum = initial === undefined ? this.data[old_index] : f(initial, this.data[old_index]);
         for (let i = 1; i < this.shape[axis]; i++) {
           accum = f(accum, this.data[old_index + i * step_along_axis]);
         }

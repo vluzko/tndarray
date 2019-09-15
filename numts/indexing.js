@@ -144,8 +144,15 @@ var indexing;
                 new_indices[i] = index < 0 ? shape[i] + index : index;
             }
             else if (Array.isArray(index) || ArrayBuffer.isView(index)) {
-                const second_index = index[1] < 0 ? shape[i] + index[1] : index[1];
+                const fix_null = index.map(e => e === null ? shape[i] : e);
+                const first_index = fix_null[0] < 0 ? shape[i] + fix_null[0] : fix_null[0];
+                const second_index = fix_null[1] < 0 ? shape[i] + fix_null[1] : fix_null[1];
+                index[0] = first_index;
                 index[1] = second_index;
+                // In the case of reverse indices, make the decrement explicit.
+                if (index[1] < index[0] && index[2] === undefined) {
+                    index[2] = -1;
+                }
             }
             i += 1;
         }

@@ -162,21 +162,6 @@ describe("Unary methods.", function () {
 
 });
 
-describe("Broadcasting", function () {
-  it("Broadcast on axis", function () {
-    let x = numts.arange(30).reshape([3, 2, 5]);
-    let y = x.sum(1);
-    const expected_data = [
-      [5, 7, 9, 11, 13],
-      [25, 27, 29, 31, 33],
-      [45, 47, 49, 51, 53]
-    ];
-
-    const expected_array = numts.from_nested_array(expected_data, 'int32');
-    expect(expected_array.equals(y)).toBe(true);
-  });
-});
-
 describe('Utilities.', function() {
   describe('isclose.', function() {
     it('Exact match.', function() {
