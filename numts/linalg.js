@@ -31,6 +31,10 @@ function is_vector(a) {
     return a.shape.length === 1;
 }
 exports.is_vector = is_vector;
+function is_flat(a) {
+    return (a.shape.length === 1) || (a.shape.reduce((x, y) => y === 1 ? x : x + 1, 0) === 1);
+}
+exports.is_flat = is_flat;
 function is_matrix(a) {
     return a.shape.length === 2;
 }
@@ -41,7 +45,7 @@ function is_square(a) {
 exports.is_square = is_square;
 function l1(a) {
     if (is_vector(a)) {
-        return a.data.reduce((x, y) => x + Math.abs(y), 0);
+        return a.reduce((x, y) => x + Math.abs(y), 0);
     }
     else if (is_matrix(a)) {
         let max = Number.MIN_VALUE;
@@ -56,8 +60,19 @@ function l1(a) {
     }
 }
 exports.l1 = l1;
+/**
+ * Calculate the L2 norm of the tensor.
+ * @param a - A tensor.
+ */
 function l2(a) {
     // Calculate sigma_1 of a.
+    if (is_flat(a)) {
+        // @ts-ignore
+        return Math.sqrt(a.reduce((x, y) => x + Math.pow(y, 2), 0));
+    }
+    else {
+        throw new Error('Not implemented');
+    }
 }
 exports.l2 = l2;
 function linf(a) {
@@ -86,7 +101,7 @@ exports.svd = svd;
  */
 function lu(a) {
     if (!is_square(a)) {
-        throw new Error("LU decomposition is only valid for square matrices.");
+        throw new Error('LU decomposition is only valid for square matrices.');
     }
     const n = a.shape[0];
     let lower = numts_1.zeros(a.shape);
@@ -128,8 +143,11 @@ function householder_qr(A) {
         // console.log([...R._iorder_data_iterator()]);
         // console.log(R);
         const lower_column = R.slice([j, -1], [j, j + 1]);
+        console.log(j);
+        console.log(lower_column.shape);
+        console.log([...lower_column._iorder_value_iterator()]);
         // @ts-ignore
-        const norm = Math.sqrt(lower_column.reduce((a, b) => a + Math.pow(b, 2), 0));
+        const norm = l2(lower_column);
         const pivot = R.g(j, j);
         const s = pivot >= 0 ? 1 : -1;
         const u1 = pivot + s * norm;
@@ -157,6 +175,7 @@ function householder_qr(A) {
         const temp3 = tndarray_1.tndarray.matmul_2d(matmul, tauw.transpose());
         const q_diff = q_block.sub(temp3);
         Q.s(q_diff, null, [j, -1]);
+        break;
     }
     return [Q, R];
 }

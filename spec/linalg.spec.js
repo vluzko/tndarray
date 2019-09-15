@@ -7,6 +7,13 @@ const helpers = require('./helpers');
 
 describe("Matrix norms.", function() {
   
+  describe('l2.', function() {
+    it('Simple.', function() {
+      const a = numts.arange(25);
+      const b = linalg.l2(a);
+      expect(b).toBe(70);
+    });
+  });
 });
 
 describe("Decompositions.", function() {
@@ -67,8 +74,14 @@ describe("Decompositions.", function() {
     });
 
     describe('Householder QR', function() {
-      fit('Basic test.', function() {
-        const a = numts.arange(15).reshape(5, 3);
+      it('Basic test.', function() {
+        const a = numts.from_nested_array([
+          [1   , 6 ,  11],
+          [2    ,7  , 12],
+          [3  ,  8   ,13],
+          [4,    9   ,14],
+          [5 ,  10   ,15]
+        ])
         const [m, ] = a.shape;
         const [q, r] = linalg.householder_qr(a);
         const prod = tndarray.matmul_2d(q.transpose(), r);
@@ -77,10 +90,10 @@ describe("Decompositions.", function() {
         const expected = tndarray.eye(m);
         // expect(numts.isclose(inv_prod, expected).all()).toBe(true);
         // console.log(inv_prod)
-        // console.log(q)
-        // console.log(r)
-        console.log(a)
-        console.log(prod);
+        // console.log([...q._iorder_value_iterator()])
+        // console.log([...r._iorder_value_iterator()])
+        // console.log(a)
+        // console.log(prod);
         // expect(numts.isclose(a, prod).all()).toBe(true);
       });
 

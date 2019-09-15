@@ -30,6 +30,10 @@ export function is_vector(a: tndarray): boolean {
   return a.shape.length === 1;
 }
 
+export function is_flat(a: tndarray): boolean {
+  return (a.shape.length === 1) || (a.shape.reduce((x, y) => y === 1 ? x : x + 1, 0) === 1);
+}
+
 export function is_matrix(a: tndarray): boolean {
   return a.shape.length === 2;
 }
@@ -40,7 +44,7 @@ export function is_square(a: tndarray): boolean {
 
 export function l1(a: tndarray) {
   if (is_vector(a)) {
-    return a.data.reduce((x, y) => x + Math.abs(y), 0);
+    return a.reduce((x, y) => x + Math.abs(y), 0);
   } else if (is_matrix(a)) {
     let max = Number.MIN_VALUE;
     for (let column of column_iterator(a)) {
@@ -54,8 +58,18 @@ export function l1(a: tndarray) {
   }
 }
 
-export function l2(a: tndarray) {
+/**
+ * Calculate the L2 norm of the tensor.
+ * @param a - A tensor.
+ */
+export function l2(a: tndarray): number {
   // Calculate sigma_1 of a.
+  if (is_flat(a)) {
+    // @ts-ignore
+    return Math.sqrt(a.reduce((x, y) => x + Math.pow(y, 2), 0));
+  } else {
+    throw new Error('Not implemented');
+  }
 }
 
 export function linf(a: tndarray) {
@@ -87,7 +101,7 @@ export function svd(a: tndarray): [tndarray, tndarray, tndarray] {
  */
 export function lu(a: tndarray): [tndarray, tndarray] {
   if (!is_square(a)) {
-    throw new Error("LU decomposition is only valid for square matrices.");
+    throw new Error('LU decomposition is only valid for square matrices.');
   }
   const n = a.shape[0];
   let lower = zeros(a.shape);
@@ -134,8 +148,11 @@ export function householder_qr(A: tndarray) {
     // console.log([...R._iorder_data_iterator()]);
     // console.log(R);
     const lower_column = R.slice([j, -1], [j, j + 1]);
+    console.log(j)
+    console.log(lower_column.shape);
+    console.log([...lower_column._iorder_value_iterator()]);
     // @ts-ignore
-    const norm: number  = Math.sqrt(lower_column.reduce((a, b) => a + Math.pow(b, 2), 0));
+    const norm = l2(lower_column);
     const pivot: number = R.g(j, j);
     const s: number     = pivot >= 0 ? 1 : -1;
     const u1: number    = pivot + s * norm;
@@ -167,6 +184,7 @@ export function householder_qr(A: tndarray) {
 
     const q_diff = q_block.sub(temp3);
     Q.s(q_diff, null, [j, -1]);
+    break;
   }
   return [Q, R];
 }
