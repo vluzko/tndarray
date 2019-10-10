@@ -778,7 +778,13 @@ describe('Aggregation.', function () {
 describe('Method constructors.', function() {
 
   describe('flatten.', function() {
-
+    it('Simple test.', function() {
+      let a = numts.arange(30).reshape(2, 3, 5);
+      let b = a.flatten();
+      let expected = numts.arange(30);
+      expect(b.equals(expected)).toBe(true);
+    })
+    
   });
 
   describe('transpose.', function() {

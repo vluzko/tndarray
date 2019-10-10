@@ -141,7 +141,7 @@ class tndarray {
         }
         return this;
     }
-    /** BEGIN METHOD CONSTRUCTORS */
+    //#region METHOD CONSTRUCTORS
     /**
      * Create a copy of this with a different shape.
      * @param {Uint32Array} new_shape - The shape to make the new array.
@@ -168,8 +168,13 @@ class tndarray {
         let value_iter = this._iorder_value_iterator();
         return tndarray.from_iterable(value_iter, shape, this.dtype);
     }
-    flatten(axis) {
-        throw new Error();
+    /**
+     * Flatten an array. Elements will be in iteration order.
+     * @returns - The flattened array
+     */
+    flatten() {
+        const shape = new Uint32Array([this.length]);
+        return tndarray.from_iterable(this._iorder_value_iterator(), shape, this.dtype);
     }
     /**
      * Return the transpose of this array.
@@ -212,8 +217,8 @@ class tndarray {
         });
         return tndarray.from_iterable(iter, this.shape, this.dtype);
     }
-    /** END METHOD CONSTRUCTORS */
-    /** BEGIN AGGREGATION */
+    //#endregion METHOD CONSTRUCTORS
+    // #region AGGREGATION
     /**
      * Return true if all elements are true.
      */
@@ -312,7 +317,7 @@ class tndarray {
     sum(axis) {
         return this.reduce((a, e) => a + e, 0, axis);
     }
-    /** END AGGREGATION */
+    // #endregion AGGREGATION
     /**
      * Returns the indices of the nonzero elements of the array.
      */
@@ -686,13 +691,13 @@ class tndarray {
         return indexing_1.indexing.iorder_data_iterator(bounds[0], bounds[1], bounds[2], this.stride, this.initial_offset);
     }
     /**
-    * Create an iterator over the indices of the elements of the tensor, in index order.
-    * Just a convenience wrapper around `indexing.iorder_index_iterator`.
-    * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
-    * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
-    * @param steps - The size of the steps to take along each axis.
-    * @return {Iterable<number>}
-    */
+     * Create an iterator over the indices of the elements of the tensor, in index order.
+     * Just a convenience wrapper around `indexing.iorder_index_iterator`.
+     * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
+     * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
+     * @param steps - The size of the steps to take along each axis.
+     * @return {Iterable<number>}
+     */
     _iorder_index_iterator(lower_or_upper, upper_bounds, steps) {
         const bounds = this._calculate_slice_bounds(lower_or_upper, upper_bounds, steps);
         return indexing_1.indexing.iorder_index_iterator(...bounds);
@@ -717,25 +722,25 @@ class tndarray {
         return iter;
     }
     /**
-    * Create an iterator over the data indices of the elements of the tensor, in data order.
-    * Just a convenience wrapper around `indexing.dorder_data_iterator`.
-    * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
-    * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
-    * @param steps - The size of the steps to take along each axis.
-    * @return {Iterable<number>}
-    */
+     * Create an iterator over the data indices of the elements of the tensor, in data order.
+     * Just a convenience wrapper around `indexing.dorder_data_iterator`.
+     * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
+     * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
+     * @param steps - The size of the steps to take along each axis.
+     * @return {Iterable<number>}
+     */
     _dorder_data_iterator(lower_or_upper, upper_bounds, steps) {
         const bounds = this._calculate_slice_bounds(lower_or_upper, upper_bounds, steps);
         return indexing_1.indexing.dorder_data_iterator(bounds[0], bounds[1], bounds[2], this.stride, this.initial_offset);
     }
     /**
-    * Create an iterator over the indices of the elements of the tensor, in data order.
-    * Just a convenience wrapper around `indexing.dorder_index_iterator`.
-    * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
-    * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
-    * @param steps - The size of the steps to take along each axis.
-    * @return {Iterable<number>}
-    */
+     * Create an iterator over the indices of the elements of the tensor, in data order.
+     * Just a convenience wrapper around `indexing.dorder_index_iterator`.
+     * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
+     * @param upper_bounds - The upper bounds of the slice. Defaults to the shape of the tensor.
+     * @param steps - The size of the steps to take along each axis.
+     * @return {Iterable<number>}
+     */
     _dorder_index_iterator(lower_or_upper, upper_bounds, steps) {
         const bounds = this._calculate_slice_bounds(lower_or_upper, upper_bounds, steps);
         return indexing_1.indexing.dorder_index_iterator(...bounds);

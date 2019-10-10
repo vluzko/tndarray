@@ -172,7 +172,7 @@ export class tndarray {
     return this;
   }
 
-  /** BEGIN METHOD CONSTRUCTORS */
+  //#region METHOD CONSTRUCTORS
 
   /**
    * Create a copy of this with a different shape.
@@ -202,8 +202,13 @@ export class tndarray {
     return tndarray.from_iterable(value_iter, shape, this.dtype);
   }
   
-  flatten(axis?: number): tndarray {
-    throw new Error();
+  /**
+   * Flatten an array. Elements will be in iteration order.
+   * @returns - The flattened array
+   */
+  flatten(): tndarray {
+    const shape = new Uint32Array([this.length]);
+    return tndarray.from_iterable(this._iorder_value_iterator(), shape, this.dtype);
   }
 
   /**
@@ -250,9 +255,9 @@ export class tndarray {
     return tndarray.from_iterable(iter, this.shape, this.dtype);
   }
 
-  /** END METHOD CONSTRUCTORS */
+  //#endregion METHOD CONSTRUCTORS
 
-  /** BEGIN AGGREGATION */
+  // #region AGGREGATION
 
   /**
    * Return true if all elements are true.
@@ -357,7 +362,7 @@ export class tndarray {
     return this.reduce((a, e) => a + e, 0, axis);
   }
   
-  /** END AGGREGATION */
+  // #endregion AGGREGATION
   
   /**
    * Returns the indices of the nonzero elements of the array.
@@ -779,7 +784,7 @@ export class tndarray {
     return indexing.iorder_data_iterator(bounds[0], bounds[1], bounds[2], this.stride, this.initial_offset);
   }
 
-   /**
+  /**
    * Create an iterator over the indices of the elements of the tensor, in index order.
    * Just a convenience wrapper around `indexing.iorder_index_iterator`.
    * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
@@ -814,7 +819,7 @@ export class tndarray {
     return iter;
   }
 
-   /**
+  /**
    * Create an iterator over the data indices of the elements of the tensor, in data order.
    * Just a convenience wrapper around `indexing.dorder_data_iterator`.
    * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
@@ -827,7 +832,7 @@ export class tndarray {
     return indexing.dorder_data_iterator(bounds[0], bounds[1], bounds[2], this.stride, this.initial_offset);
   }
 
-   /**
+  /**
    * Create an iterator over the indices of the elements of the tensor, in data order.
    * Just a convenience wrapper around `indexing.dorder_index_iterator`.
    * @param lower_or_upper - The lower bounds of the slice if upper_bounds is defined. Otherwise this is the upper_bounds, and the lower bounds are the offset of the tensor.
