@@ -1303,4 +1303,4 @@ class tensor {
     }
 }
 exports.tensor = tensor;
-//# sourceMappingURL=tndarray.js.map
+//# sourceMappingURL=tensor.js.map

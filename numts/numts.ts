@@ -1,4 +1,4 @@
-import {tndarray} from "./tndarray";
+import {tensor} from "./tensor";
 import {indexing} from "./indexing";
 import {utils} from "./utils";
 import {Shape} from "./types";
@@ -20,67 +20,67 @@ export function where(condition, a, b?) {
  * @param rel_tol - The maximum relative error.
  * @param abs_tol - The maximum absolute error.
  */
-export function isclose(a: tndarray, b: tndarray, rel_tol: number = 1e-5, abs_tol: number = 1e-8): tndarray {
+export function isclose(a: tensor, b: tensor, rel_tol: number = 1e-5, abs_tol: number = 1e-8): tensor {
     const compare = (x: number, y: number): number => {
         return +(Math.abs(x - y) <= abs_tol + (rel_tol * Math.abs(y)));
     }
-    return tndarray._binary_broadcast(a, b, compare);
+    return tensor._binary_broadcast(a, b, compare);
 }
 
-// TODO: Allow non-tndarray arrays
+// TODO: Allow non-tensor arrays
 // TODO: Type upcasting.
 /**
  * Compute the sum of two arrays.
  * output[i] = a[i] + [i].
  * @param a
  * @param b
- * @return {number | tndarray}
+ * @return {number | tensor}
  */
 export function add(a, b) {
-  return tndarray._add(a, b);
+  return tensor._add(a, b);
 }
 
 export function div(a, b) {
-  return tndarray._div(a, b);
+  return tensor._div(a, b);
 }
 
 export function mult(a, b) {
-  return tndarray._mult(a, b);
+  return tensor._mult(a, b);
 }
 
 export function sub(a, b) {
-  return tndarray._sub(a, b);
+  return tensor._sub(a, b);
 }
 
 /**
- * Wrapper around tndarray.zeros
+ * Wrapper around tensor.zeros
  * @param {number[] | Uint32Array} shape
  * @param {string} dtype
- * @return {tndarray}
+ * @return {tensor}
  */
-export function zeros(shape: number[] | Uint32Array, dtype?: string): tndarray {
-  return tndarray.zeros(shape, dtype);
+export function zeros(shape: number[] | Uint32Array, dtype?: string): tensor {
+  return tensor.zeros(shape, dtype);
 }
 
 /**
  * Return an array of the specified size filled with ones.
  * @param {number} shape
  * @param {string} dtype
- * @return {tndarray}
+ * @return {tensor}
  */
-export function ones(shape: number[] | Uint32Array, dtype?: string): tndarray {
-  return tndarray.filled(1, shape, dtype);
+export function ones(shape: number[] | Uint32Array, dtype?: string): tensor {
+  return tensor.filled(1, shape, dtype);
 }
 
 /**
- * Create a tndarray containing a range of integers.
+ * Create a tensor containing a range of integers.
  * @param {number} start_or_stop  - If no other arguments are passed, the upper bound of the range (with lower bound zero). Otherwise this is the lower bound.
  * @param {number} stop           - The upper bound of the range.
  * @param {number} step           - The step size between elements in the range.
  * @param {Shape} shape           - The shape to return.
- * @return {tndarray}             - A one-dimensional array containing the range.
+ * @return {tensor}             - A one-dimensional array containing the range.
  */
-export function arange(start_or_stop: number, stop?: number, step?: number, shape?: Shape): tndarray {
+export function arange(start_or_stop: number, stop?: number, step?: number, shape?: Shape): tensor {
   if (step === undefined) {
     step = 1;
   }
@@ -115,7 +115,7 @@ export function arange(start_or_stop: number, stop?: number, step?: number, shap
   
   let real_stop = stop < start ? -stop : stop;
   
-  return tndarray.from_iterable(iter, shape, "int32");
+  return tensor.from_iterable(iter, shape, "int32");
 }
 
 /**
@@ -157,16 +157,16 @@ export function _nested_array_value_from_index(nested_array: any[], indices: Uin
 }
 
 /**
- * Create a tndarray from a nested array of values.
+ * Create a tensor from a nested array of values.
  * @param {any[]} array - An array of arrays (nested to arbitrary depth). Each level must have the same dimension.
- * The final level must contain valid data for a tndarray.
+ * The final level must contain valid data for a tensor.
  * @param {string} dtype  - The type to use for the underlying array.
  *
- * @return {tndarray}
+ * @return {tensor}
  */
-export function from_nested_array(array: any[], dtype?: string): tndarray {
+export function from_nested_array(array: any[], dtype?: string): tensor {
   if (array.length === 0) {
-    return tndarray.array([]);
+    return tensor.array([]);
   }
 
   const dimensions = _nested_array_shape(array);
@@ -176,7 +176,7 @@ export function from_nested_array(array: any[], dtype?: string): tndarray {
   const array_type = utils.dtype_map(dtype);
   const data = new array_type(size);
 
-  let ndarray = tndarray.array(data, dimensions, {dtype: dtype, disable_checks: true});
+  let ndarray = tensor.array(data, dimensions, {dtype: dtype, disable_checks: true});
 
   for (let indices of slice_iter) {
     const real_index = ndarray._compute_real_index(indices);
@@ -186,4 +186,4 @@ export function from_nested_array(array: any[], dtype?: string): tndarray {
   return ndarray;
 }
 
-export {tndarray as tndarray};
+export {tensor as tensor};

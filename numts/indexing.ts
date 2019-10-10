@@ -1,6 +1,6 @@
 import {utils} from "./utils";
 import {Broadcastable, Shape, USlice, ISlice} from "./types";
-import {errors, tndarray} from "./tndarray";
+import {errors, tensor} from "./tensor";
 
 
 export namespace indexing {
@@ -159,8 +159,8 @@ export namespace indexing {
 
   /**
    * Calculate the shape from broadcasting two arrays together.
-   * @param {tndarray} a    - First array.
-   * @param {tndarray} b    - Second array.
+   * @param {tensor} a    - First array.
+   * @param {tensor} b    - Second array.
    * @return {Uint32Array}  - Shape of the broadcast array.
    * @private
    */

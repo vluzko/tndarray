@@ -1,4 +1,4 @@
-import {tndarray} from "./tndarray";
+import {tensor} from "./tensor";
 import {indexing} from "./indexing";
 import {Shape} from "./types";
 
@@ -8,7 +8,7 @@ import {Shape} from "./types";
  * @param upper - The upper bound of the distribution. Defaults to 1.
  * @param shape - The shape of the array to generate. Defaults to [1].
  */
-export function randint(lower: number = 0.0, upper: number = 1.0, shape: Shape = [1]): tndarray {
+export function randint(lower: number = 0.0, upper: number = 1.0, shape: Shape = [1]): tensor {
   const scale_factor = upper - lower;
   const size = indexing.compute_size(shape);
 
@@ -20,7 +20,7 @@ export function randint(lower: number = 0.0, upper: number = 1.0, shape: Shape =
     }
   };
 
-  return tndarray.from_iterable(iter, shape, "int32");
+  return tensor.from_iterable(iter, shape, "int32");
 }
 
 /**
@@ -29,7 +29,7 @@ export function randint(lower: number = 0.0, upper: number = 1.0, shape: Shape =
  * @param upper - The upper bound of the distribution. Defaults to 1.
  * @param shape - The shape of the array to generate. Defaults to [1].
  */
-export function uniform(lower: number = 0.0, upper: number = 1.0, shape: Shape = [1]): tndarray {
+export function uniform(lower: number = 0.0, upper: number = 1.0, shape: Shape = [1]): tensor {
 
   const scale_factor = upper - lower;
   const size = indexing.compute_size(shape);
@@ -42,7 +42,7 @@ export function uniform(lower: number = 0.0, upper: number = 1.0, shape: Shape =
     }
   };
 
-  return tndarray.from_iterable(iter, shape, "float64");
+  return tensor.from_iterable(iter, shape, "float64");
 }
 
 /**
@@ -52,7 +52,7 @@ export function uniform(lower: number = 0.0, upper: number = 1.0, shape: Shape =
  * @param stdev - The standard deviation of the distribution. Defaults to 1.
  * @param shape - The shape of the array to generate. Defaults to [1].
  */
-export function normal(mean: number = 0.0, stdev: number = 1.0, shape: Shape = [1]): tndarray {
+export function normal(mean: number = 0.0, stdev: number = 1.0, shape: Shape = [1]): tensor {
   const size = indexing.compute_size(shape);
 
   let iter = {
@@ -63,7 +63,7 @@ export function normal(mean: number = 0.0, stdev: number = 1.0, shape: Shape = [
     }
   };
 
-  return tndarray.from_iterable(iter, shape, "float64");
+  return tensor.from_iterable(iter, shape, "float64");
 }
 
 

@@ -1,5 +1,5 @@
 const fc = require('fast-check');
-const tndarray = require('../numts/tndarray').tndarray;
+const tensor = require('../numts/tensor').tensor;
 
 function random_shape(max_size, upper) {
   if (max_size === undefined) {
@@ -50,7 +50,7 @@ const large_dimensions = fc.array(fc.integer(100, 10000), 1, 2).chain(shape => {
 
 function check_random_array(f) {
   const check = ([data, shape]) => {
-    const a = tndarray.from_iterable(data, shape);
+    const a = tensor.from_iterable(data, shape);
     return f(a);
   }
   const params = {
@@ -72,7 +72,7 @@ function check_matrix(f, filter = '') {
   };
 
   const check = ([data, shape]) => {
-    const a = tndarray.from_iterable(data, shape);
+    const a = tensor.from_iterable(data, shape);
     return f(a);
   }
 

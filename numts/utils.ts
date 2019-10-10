@@ -6,7 +6,7 @@ type Shape = number[] | Uint32Array;
 
 export namespace utils {
   /**
-   * TODO: Move to a static function in tndarray
+   * TODO: Move to a static function in tensor
    * @param array1
    * @param array2
    * @return {number}

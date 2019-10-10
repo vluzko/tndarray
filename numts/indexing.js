@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("./utils");
-const tndarray_1 = require("./tndarray");
+const tensor_1 = require("./tensor");
 var indexing;
 (function (indexing) {
     /**
@@ -161,8 +161,8 @@ var indexing;
     indexing.convert_negative_indices = convert_negative_indices;
     /**
      * Calculate the shape from broadcasting two arrays together.
-     * @param {tndarray} a    - First array.
-     * @param {tndarray} b    - Second array.
+     * @param {tensor} a    - First array.
+     * @param {tensor} b    - Second array.
      * @return {Uint32Array}  - Shape of the broadcast array.
      * @private
      */
@@ -192,7 +192,7 @@ var indexing;
                 dimension = a_axis_size;
             }
             else {
-                throw new tndarray_1.errors.BadShape(`Unbroadcastable shapes. a: ${a}. b: ${b}. Failed on axis: ${j}. Computed axes are: ${a_axis_size}, ${b_axis_size}`);
+                throw new tensor_1.errors.BadShape(`Unbroadcastable shapes. a: ${a}. b: ${b}. Failed on axis: ${j}. Computed axes are: ${a_axis_size}, ${b_axis_size}`);
             }
             new_dimensions[number_of_dimensions - j] = dimension;
         }

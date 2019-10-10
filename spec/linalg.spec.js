@@ -1,5 +1,5 @@
 const fc = require('fast-check');
-const tndarray = require("../numts/tndarray").tndarray;
+const tensor = require("../numts/tensor").tensor;
 const numts = require("../numts/numts");
 const linalg = require("../numts/linalg");
 
@@ -50,7 +50,7 @@ describe("Decompositions.", function() {
       it('Basic test.', function() {
         const a = numts.arange(15).reshape(5, 3);
         const [q, r] = linalg.givens_qr(a);
-        const prod = tndarray.matmul_2d(q, r);
+        const prod = tensor.matmul_2d(q, r);
         
         expect(numts.isclose(a, prod).all()).toBe(true);
       });
@@ -62,12 +62,12 @@ describe("Decompositions.", function() {
 
           // Check that q is orthogonal
           const t = q.transpose();
-          const inv_prod = tndarray.matmul_2d(q, t);
-          const expected = tndarray.eye(m);
+          const inv_prod = tensor.matmul_2d(q, t);
+          const expected = tensor.eye(m);
           expect(numts.isclose(inv_prod, expected).all()).toBe(true);
 
           // Check that the product is correct
-          const qr_prod = tndarray.matmul_2d(q, r);
+          const qr_prod = tensor.matmul_2d(q, r);
           expect(numts.isclose(qr_prod, a).all()).toBe(true);
         }
         helpers.check_matrix(f, 'thin');
@@ -86,10 +86,10 @@ describe("Decompositions.", function() {
         ])
         const [m, ] = a.shape;
         const [q, r] = linalg.householder_qr(a);
-        const prod = tndarray.matmul_2d(q, r);
+        const prod = tensor.matmul_2d(q, r);
 
-        const inv_prod = tndarray.matmul_2d(q, q.transpose());
-        const expected = tndarray.eye(m);
+        const inv_prod = tensor.matmul_2d(q, q.transpose());
+        const expected = tensor.eye(m);
         expect(numts.isclose(inv_prod, expected).all()).toBe(true);
         expect(numts.isclose(a, prod).all()).toBe(true);
       });
@@ -101,12 +101,12 @@ describe("Decompositions.", function() {
 
           // Check that q is orthogonal
           const t = q.transpose();
-          const inv_prod = tndarray.matmul_2d(q, t);
-          const expected = tndarray.eye(m);
+          const inv_prod = tensor.matmul_2d(q, t);
+          const expected = tensor.eye(m);
           if (!numts.isclose(inv_prod, expected).all()) throw new Error('Inverse prod not identity')
 
           // Check that the product is correct
-          const qr_prod = tndarray.matmul_2d(q, r);
+          const qr_prod = tensor.matmul_2d(q, r);
           if (!numts.isclose(qr_prod, a).all()) throw new Error('qr not original.')
         }
         helpers.check_matrix(f, 'thin');
@@ -122,9 +122,9 @@ describe("Decompositions.", function() {
           ]);
           const [q, r] = linalg.householder_qr(a);
           
-          const inv_prod = tndarray.matmul_2d(q, q.transpose());
-          expect(numts.isclose(inv_prod, tndarray.eye(2)).all()).toBe(true);
-          const qr_prod = tndarray.matmul_2d(q, r);
+          const inv_prod = tensor.matmul_2d(q, q.transpose());
+          expect(numts.isclose(inv_prod, tensor.eye(2)).all()).toBe(true);
+          const qr_prod = tensor.matmul_2d(q, r);
           expect(numts.isclose(qr_prod, a).all()).toBe(true);
         });
 
@@ -137,9 +137,9 @@ describe("Decompositions.", function() {
           ]);
           const [q, r] = linalg.householder_qr(a);
           
-          const inv_prod = tndarray.matmul_2d(q, q.transpose());
-          expect(numts.isclose(inv_prod, tndarray.eye(3)).all()).toBe(true);
-          const qr_prod = tndarray.matmul_2d(q, r);
+          const inv_prod = tensor.matmul_2d(q, q.transpose());
+          expect(numts.isclose(inv_prod, tensor.eye(3)).all()).toBe(true);
+          const qr_prod = tensor.matmul_2d(q, r);
           expect(numts.isclose(qr_prod, a).all()).toBe(true);
         });
       });

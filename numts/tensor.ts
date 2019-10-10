@@ -4,7 +4,7 @@ import new_shape_from_axis = indexing.new_shape_from_axis;
 
 type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array| Int32Array | Uint32Array | Float32Array | Float64Array;
 type Numeric = TypedArray | number[];
-type Broadcastable = number | TypedArray | tndarray | number[];
+type Broadcastable = number | TypedArray | tensor | number[];
 type Shape = number[] | Uint32Array;
 
 interface NumericalArray {
@@ -45,7 +45,7 @@ namespace errors {
   export class NestedArrayHasInconsistentDimensions extends Error {}
 }
 
-export class tndarray {
+export class tensor {
   
   public data;
   readonly offset: Uint32Array;
@@ -104,8 +104,8 @@ export class tndarray {
    * 
    * @param b - The value to add to the array.
    */
-  add(b: Broadcastable): tndarray {
-    return tndarray._add(this, b);
+  add(b: Broadcastable): tensor {
+    return tensor._add(this, b);
   }
   
   argmax() {}
@@ -123,7 +123,7 @@ export class tndarray {
    * @param lower - The lower bound of the range.
    * @param upper - The upper bound of the range.
    */
-  clip(lower: number, upper: number): tndarray {
+  clip(lower: number, upper: number): tensor {
     return this.map(e => {
       if (e < lower) {
         return lower;
@@ -139,9 +139,9 @@ export class tndarray {
    * The cumulative product along the given axis.
    * @param {number} axis
    * @param {string} dtype
-   * @return {number | tndarray}
+   * @return {number | tensor}
    */
-  cumprod(axis?: number, dtype?: string): number | tndarray {
+  cumprod(axis?: number, dtype?: string): number | tensor {
     return this.accum_map((acc, b) => acc * b, axis, 1, dtype);
   }
   
@@ -150,20 +150,20 @@ export class tndarray {
    * @param {number} axis
    * @param {string} dtype
    */
-  cumsum(axis?: number, dtype?: string): number | tndarray {
+  cumsum(axis?: number, dtype?: string): number | tensor {
     return this.accum_map((acc, b) => acc + b, axis, undefined, dtype);
   }
   
   diagonal() {}
   
-  dot(b: tndarray) {
-    return tndarray.dot(this, b);
+  dot(b: tensor) {
+    return tensor.dot(this, b);
   }
   
   /**
    * Fill the array with the given value, in-place.
    * @param {number} value  - The value to fill the array with
-   * @return {tndarray}     - The filled array.
+   * @return {tensor}     - The filled array.
    */
   fill(value: number) {
     for (let i = 0; i < this.data.length; i++) {
@@ -177,9 +177,9 @@ export class tndarray {
   /**
    * Create a copy of this with a different shape.
    * @param {Uint32Array} new_shape - The shape to make the new array.
-   * @return {tndarray}             - The reshaped array.
+   * @return {tensor}             - The reshaped array.
    */
-  reshape(...new_shape: Array<Uint32Array | number[] | number>): tndarray {
+  reshape(...new_shape: Array<Uint32Array | number[] | number>): tensor {
     let shape: Uint32Array | number[];
     if (utils.is_numeric_array(new_shape[0])) {
       // @ts-ignore
@@ -199,24 +199,24 @@ export class tndarray {
       throw new errors.BadShape(`Array cannot be reshaped because sizes do not match. Size of underlying array: ${size}. Size of reshaped array: ${shape}`);
     }
     let value_iter = this._iorder_value_iterator();
-    return tndarray.from_iterable(value_iter, shape, this.dtype);
+    return tensor.from_iterable(value_iter, shape, this.dtype);
   }
   
   /**
    * Flatten an array. Elements will be in iteration order.
    * @returns - The flattened array
    */
-  flatten(): tndarray {
+  flatten(): tensor {
     const shape = new Uint32Array([this.length]);
-    return tndarray.from_iterable(this._iorder_value_iterator(), shape, this.dtype);
+    return tensor.from_iterable(this._iorder_value_iterator(), shape, this.dtype);
   }
 
   /**
    * Return the transpose of this array.
    */
-  transpose(): tndarray {
+  transpose(): tensor {
     const new_shape = this.shape.slice(0).reverse();
-    let new_array = tndarray.zeros(new_shape, this.dtype);
+    let new_array = tensor.zeros(new_shape, this.dtype);
     for (let index of this._iorder_index_iterator()) {
       const value = this.g(...index);
       const new_index = index.reverse();
@@ -228,7 +228,7 @@ export class tndarray {
   /**
    * Extract the upper triangle of this tensor.
    */
-  triu(): tndarray {
+  triu(): tensor {
     const iter = utils.imap(this._iorder_index_iterator(), i => {
 
       if (i[i.length - 2] <= i[i.length - 1]) {
@@ -237,13 +237,13 @@ export class tndarray {
         return 0;
       }
     });
-    return tndarray.from_iterable(iter, this.shape, this.dtype);
+    return tensor.from_iterable(iter, this.shape, this.dtype);
   }
 
   /**
    * Extract the lower triangle of this tensor.
    */
-  tril(): tndarray {
+  tril(): tensor {
     const iter = utils.imap(this._iorder_index_iterator(), i => {
 
       if (i[i.length - 2] >= i[i.length - 1]) {
@@ -252,7 +252,7 @@ export class tndarray {
         return 0;
       }
     });
-    return tndarray.from_iterable(iter, this.shape, this.dtype);
+    return tensor.from_iterable(iter, this.shape, this.dtype);
   }
 
   //#endregion METHOD CONSTRUCTORS
@@ -262,7 +262,7 @@ export class tndarray {
   /**
    * Return true if all elements are true.
    */
-  all(axis?: number): number | tndarray {
+  all(axis?: number): number | tensor {
     const f = data => {
       for (let value of data) {
         if (!value) {
@@ -277,7 +277,7 @@ export class tndarray {
   /**
    * Return true if any element is true.
    */
-  any(axis?: number): number | tndarray {
+  any(axis?: number): number | tensor {
     const f = data => {
       for (let value of data) {
         if (value) {
@@ -294,7 +294,7 @@ export class tndarray {
    * @param {number} axis
    * @return {number}
    */
-  max(axis?: number): tndarray | number {
+  max(axis?: number): tensor | number {
     return this.apply_to_axis(e => Math.max(...e), axis);
   }
 
@@ -303,7 +303,7 @@ export class tndarray {
    * @param {number} axis
    * @return {number}
    */
-  min(axis?: number): tndarray | number {
+  min(axis?: number): tensor | number {
     return this.apply_to_axis(e => Math.min(...e), axis);
   }
 
@@ -311,11 +311,11 @@ export class tndarray {
    * Calculate the mean of the array.
    * @param {number} axis
    */
-  mean(axis?: number): tndarray | number {
+  mean(axis?: number): tensor | number {
     if (axis === undefined) {
       return <number> this.sum() / this.length;
     } else {
-      return tndarray._div(this.sum(axis), this.shape[axis]);
+      return tensor._div(this.sum(axis), this.shape[axis]);
     }
   }
 
@@ -324,13 +324,13 @@ export class tndarray {
    * @param {number} axis
    * @return {number}
    */
-  stdev(axis?: number): tndarray | number {
+  stdev(axis?: number): tensor | number {
     const mean = this.mean(axis);
     const squared_values = this.power(2);
     const mean_of_squares = squared_values.mean(axis);
-    const squared_mean = tndarray._power(mean, 2);
-    const difference = tndarray._sub(mean_of_squares, squared_mean);
-    const result = tndarray._power(difference, 0.5);
+    const squared_mean = tensor._power(mean, 2);
+    const difference = tensor._sub(mean_of_squares, squared_mean);
+    const result = tensor._power(difference, 0.5);
     if (axis === undefined) {
       return result.data[0];
     } else {
@@ -341,11 +341,11 @@ export class tndarray {
   /**
    * Return the variance along the specified axis.
    * @param {number} axis
-   * @return {tndarray | number}
+   * @return {tensor | number}
    */
-  variance(axis?: number): tndarray | number {
+  variance(axis?: number): tensor | number {
     const std = this.stdev(axis);
-    const result = tndarray._power(std, 0.5);
+    const result = tensor._power(std, 0.5);
     if (axis === undefined) {
       return result.data[0];
     } else {
@@ -358,7 +358,7 @@ export class tndarray {
    * @param {number} axis
    * @return {number}
    */
-  sum(axis?: number): number | tndarray {
+  sum(axis?: number): number | tensor {
     return this.reduce((a, e) => a + e, 0, axis);
   }
   
@@ -370,11 +370,11 @@ export class tndarray {
    * Map the array.
    * @param f
    * @param {number} axis
-   * @return {tndarray}
+   * @return {tensor}
    */
-  map(f, axis?: number): tndarray {
+  map(f, axis?: number): tensor {
     const new_data = this.data.map(f);
-    return tndarray.array(new_data, this.shape, {disable_checks: true, dtype: this.dtype})
+    return tensor.array(new_data, this.shape, {disable_checks: true, dtype: this.dtype})
   }
   
 
@@ -386,15 +386,15 @@ export class tndarray {
    * @param {number} axis - Axis to map over.
    * @param {number} start  - Initial value.
    * @param {string} dtype  - Dtype of the result array.
-   * @return {tndarray | number}
+   * @return {tensor | number}
    */
-  accum_map(f, axis?: number, start?: number, dtype?: string): tndarray | number {
+  accum_map(f, axis?: number, start?: number, dtype?: string): tensor | number {
     dtype = dtype === undefined ? this.dtype : dtype;
     let new_array;
     if (axis === undefined) {
       // TODO: Views: Use size of view.
 
-      new_array = tndarray.zeros(this.length, dtype);
+      new_array = tensor.zeros(this.length, dtype);
       let first_value;
 
       if (start !== undefined) {
@@ -411,7 +411,7 @@ export class tndarray {
 
     } else {
       const [lower, upper, steps] = this._slice_for_axis(axis);
-      new_array = tndarray.zeros(this.shape, dtype);
+      new_array = tensor.zeros(this.shape, dtype);
       const step_along_axis = this.stride[axis];
       
       for (let index of this._iorder_data_iterator(lower, upper, steps)) {
@@ -440,15 +440,15 @@ export class tndarray {
    * @param {(a: (TypedArray | number[])) => any} f
    * @param {number} axis
    * @param {string} dtype
-   * @return {tndarray | number}
+   * @return {tensor | number}
    */
-  apply_to_axis(f: (a: TypedArray | number[]) => any, axis?: number, dtype?: string): tndarray | number {
+  apply_to_axis(f: (a: TypedArray | number[]) => any, axis?: number, dtype?: string): tensor | number {
     dtype = dtype === undefined ? this.dtype : dtype;
     if (axis === undefined) {
       return f(this.data);
     } else {
       const new_shape = indexing.new_shape_from_axis(this.shape, axis);
-      let new_array = tndarray.zeros(new_shape, dtype);
+      let new_array = tensor.zeros(new_shape, dtype);
       const step_along_axis = this.stride[axis];
       for (let [old_index, new_index] of this.map_old_indices_to_new(axis)) {
         let axis_values = [];
@@ -469,7 +469,7 @@ export class tndarray {
    * @param {number} axis
    * @param {string} dtype
    */
-  reduce(f: (accum: number, e: number, i?: number, array?) => number, initial?: number, axis?: number, dtype?: string): number | tndarray {
+  reduce(f: (accum: number, e: number, i?: number, array?) => number, initial?: number, axis?: number, dtype?: string): number | tensor {
     dtype = dtype === undefined ? this.dtype : dtype;
     if (axis === undefined) {
       const iter = this._iorder_value_iterator()[Symbol.iterator]();
@@ -493,7 +493,7 @@ export class tndarray {
       }
     } else {
       const new_shape = indexing.new_shape_from_axis(this.shape, axis);
-      let new_array = tndarray.zeros(new_shape, dtype);
+      let new_array = tensor.zeros(new_shape, dtype);
       const step_along_axis = this.stride[axis];
       for (let [old_index, new_index] of this.map_old_indices_to_new(axis)) {
         let accum = initial === undefined ? this.data[old_index] : f(initial, this.data[old_index]);
@@ -546,9 +546,9 @@ export class tndarray {
 
   /**
    * Drop any dimensions that equal 1.
-   * @return {tndarray}
+   * @return {tensor}
    */
-  drop_unit_dimensions(): tndarray {
+  drop_unit_dimensions(): tensor {
     // Drop extra dimensions.
     let flattened_shape = [];
     let flattened_stride = [];
@@ -565,7 +565,7 @@ export class tndarray {
     const new_offset = new Uint32Array(flattened_offset);
     const new_stride = new Uint32Array(flattened_stride);
 
-    const view = new tndarray(this.data, new_shape, new_offset, new_stride, new_stride, size, this.dtype, true);
+    const view = new tensor(this.data, new_shape, new_offset, new_stride, new_stride, size, this.dtype, true);
 
     return view;
   }
@@ -591,7 +591,7 @@ export class tndarray {
    *    let b = numts.arange(24).reshape(2, 3, 4).slice(2, 3); // b is the [2, 3, :] slice.
    *   
    */
-  slice(...indices: Array<number | number[]>): tndarray {
+  slice(...indices: Array<number | number[]>): tensor {
 
     // Handle empty inputs.
     // @ts-ignore
@@ -639,7 +639,7 @@ export class tndarray {
 
     const new_stride = stride.filter(filt);
     const new_dstride = this.dstride.filter(filt);
-    const view = new tndarray(this.data,
+    const view = new tensor(this.data,
       new_shape.filter(filt),
       offset.filter(filt),
       new_stride, new_dstride, size, this.dtype, true, initial_offset);
@@ -679,7 +679,7 @@ export class tndarray {
 
     const view = this.slice(...indices);
 
-    let b_array = tndarray._upcast_to_tndarray(values);
+    let b_array = tensor._upcast_to_tensor(values);
 
     // Check that shapes are compatible.
     const difference = view.shape.length - b_array.shape.length;
@@ -703,35 +703,35 @@ export class tndarray {
   /**
    * Returns the negation of this array.
    */
-  neg(): tndarray {
+  neg(): tensor {
     const new_data = this.data.map(x => -x);
-    return tndarray.array(new_data, this.shape, {disable_checks: true, dtype: this.dtype});
+    return tensor.array(new_data, this.shape, {disable_checks: true, dtype: this.dtype});
   }
   
   /**
    * Subtract a broadcastable value from this.
    * @param {Broadcastable} b - Value to subtract.
-   * @return {number | tndarray}
+   * @return {number | tensor}
    */
   sub(b: Broadcastable) {
-    return tndarray._sub(this, b);
+    return tensor._sub(this, b);
   }
   
   mult(b: Broadcastable) {
-    return tndarray._mult(this, b);
+    return tensor._mult(this, b);
   }
 
   div(b: Broadcastable) {
-    return tndarray._div(this, b);
+    return tensor._div(this, b);
   }
   
   /**
    * Return true if this array equals the passed array, false otherwise.
-   * @param {tndarray} a  - The array to compare against.
+   * @param {tensor} a  - The array to compare against.
    * @return {boolean}
    */
-  equals(a: tndarray) {
-    return tndarray.equals(this, a);
+  equals(a: tensor) {
+    return tensor.equals(this, a);
   }
   
   /**
@@ -766,7 +766,7 @@ export class tndarray {
    */
   private map_old_indices_to_new(axis: number): Iterable<number[]> {
     const new_shape = indexing.new_shape_from_axis(this.shape, axis);
-    let new_array = tndarray.zeros(new_shape, this.dtype);
+    let new_array = tensor.zeros(new_shape, this.dtype);
     
     let [lower, upper, steps] = this._slice_for_axis(axis);
   
@@ -900,17 +900,17 @@ export class tndarray {
   //#region OPERATIONS
   
   /**
-   * Convert a broadcastable value to a tndarray.
-   * @param {Broadcastable} value - The value to convert. Numbers will be converted to 1x1 tndarrays, TypedArrays will be 1xn, and tndarrays will be left alone.
-   * @return {tndarray}           - The resulting tndarray.
+   * Convert a broadcastable value to a tensor.
+   * @param {Broadcastable} value - The value to convert. Numbers will be converted to 1x1 tensors, TypedArrays will be 1xn, and tensors will be left alone.
+   * @return {tensor}           - The resulting tensor.
    * @private
    */
-  private static _upcast_to_tndarray(value: Broadcastable): tndarray {
+  private static _upcast_to_tensor(value: Broadcastable): tensor {
     let a_array;
     if (utils.is_numeric(value)) {
-      a_array = tndarray.array(new Float64Array([value]), new Uint32Array([1]), {disable_checks: true});
+      a_array = tensor.array(new Float64Array([value]), new Uint32Array([1]), {disable_checks: true});
     } else if (utils.is_typed_array(value)) {
-      a_array = tndarray.array(value, new Uint32Array([value.length]), {disable_checks: true});
+      a_array = tensor.array(value, new Uint32Array([value.length]), {disable_checks: true});
     } else {
       a_array = value;
     }
@@ -927,8 +927,8 @@ export class tndarray {
    */
   private static _broadcast_by_index(a: Broadcastable, b: Broadcastable): [IterableIterator<[number, number, Uint32Array]>, Uint32Array, string] {
 
-    let a_array = tndarray._upcast_to_tndarray(a);
-    let b_array = tndarray._upcast_to_tndarray(b);
+    let a_array = tensor._upcast_to_tensor(a);
+    let b_array = tensor._upcast_to_tensor(b);
 
     const new_dimensions = indexing.calculate_broadcast_dimensions(a_array.shape, b_array.shape);
     const new_dtype = utils._dtype_join(a_array.dtype, b_array.dtype);
@@ -954,17 +954,17 @@ export class tndarray {
    * @param {Broadcastable} b - The second argument to f.
    * @param {(a: number, b: number) => number} f  - The function to apply.
    * @param {string} dtype  - Optional forced data type.
-   * @return {tndarray}  - The result of applying f to a and b.
+   * @return {tensor}  - The result of applying f to a and b.
    * @private
    */
-  static _binary_broadcast(a: Broadcastable, b: Broadcastable, f: (a: number, b: number) => number, dtype?: string): tndarray {
-    let [iter, shape, new_dtype] = tndarray._broadcast_by_index(a, b);
+  static _binary_broadcast(a: Broadcastable, b: Broadcastable, f: (a: number, b: number) => number, dtype?: string): tensor {
+    let [iter, shape, new_dtype] = tensor._broadcast_by_index(a, b);
 
     if (dtype === undefined) {
       dtype = new_dtype
     }
 
-    let new_array = tndarray.filled(0, shape, dtype);
+    let new_array = tensor.filled(0, shape, dtype);
 
     for (let [a_val, b_val, index] of iter) {
       const new_val = f(a_val, b_val);
@@ -978,11 +978,11 @@ export class tndarray {
    * 
    * @param {Broadcastable} a -
    * @param {Broadcastable} b -
-   * @returns {tndarray}      -
+   * @returns {tensor}      -
    */
-  static broadcast_matmul(a: Broadcastable, b: Broadcastable): tndarray {
-    let a_array = tndarray._upcast_to_tndarray(a);
-    let b_array = tndarray._upcast_to_tndarray(b);
+  static broadcast_matmul(a: Broadcastable, b: Broadcastable): tensor {
+    let a_array = tensor._upcast_to_tensor(a);
+    let b_array = tensor._upcast_to_tensor(b);
 
     const a_shape: Uint32Array = a_array.shape;
     const b_shape: Uint32Array = b_array.shape;
@@ -999,10 +999,10 @@ export class tndarray {
     ]);
 
     if (new_dimensions.length === 2) {
-      return tndarray.matmul_2d(a_array, b_array);
+      return tensor.matmul_2d(a_array, b_array);
     } else {
       const new_dtype = utils._dtype_join(a_array.dtype, b_array.dtype);
-      let array = tndarray.zeros(new_dimensions, new_dtype);
+      let array = tensor.zeros(new_dimensions, new_dtype);
 
       const index_iter = indexing.iorder_index_iterator(new_dimensions.slice(0, -2));
       const a_iter = indexing.iorder_index_iterator(a_shape.slice(0, -2));
@@ -1013,7 +1013,7 @@ export class tndarray {
 
         const b1 = b_array.slice(...b_index);
         const a1 = a_array.slice(...a_index);
-        const subarray = tndarray.matmul_2d(a1, b1);
+        const subarray = tensor.matmul_2d(a1, b1);
 
         array.s(subarray, ...slice);
       }
@@ -1024,11 +1024,11 @@ export class tndarray {
   /**
    * Multiply two 2D matrices.
    * Computes a x b.
-   * @param {tndarray} a  - The first array. Must be m x n.
-   * @param {tndarray} b  - The second array. Must be n x p.
-   * @returns {tndarray}  - The matrix product.
+   * @param {tensor} a  - The first array. Must be m x n.
+   * @param {tensor} b  - The second array. Must be n x p.
+   * @returns {tensor}  - The matrix product.
    */
-  static matmul_2d(a: tndarray, b: tndarray): tndarray {
+  static matmul_2d(a: tensor, b: tensor): tensor {
     const new_shape = new Uint32Array([a.shape[0], b.shape[1]]);
 
     let iter = {
@@ -1037,25 +1037,25 @@ export class tndarray {
           for (let j = 0; j < new_shape[1]; j++) {
             const a_vec = a.slice(i);
             const b_vec = b.slice(null, j);
-            let x = tndarray.dot(a_vec, b_vec);
+            let x = tensor.dot(a_vec, b_vec);
             yield x;
           }
         }
       }
     };
 
-    return tndarray.from_iterable(iter, new_shape);
+    return tensor.from_iterable(iter, new_shape);
   }
 
   // TODO: Generalize to an inner product.
   // TODO: This is numerically unstable.
   /**
    * Compute the dot product of two arrays.
-   * @param {tndarray} a
-   * @param {tndarray} b
+   * @param {tensor} a
+   * @param {tensor} b
    * @return {number}
    */
-  static dot(a: tndarray, b: tndarray): number {
+  static dot(a: tensor, b: tensor): number {
     let acc = 0;
     let a_iter = a._iorder_value_iterator();
     let b_iter = b._iorder_value_iterator();
@@ -1068,23 +1068,23 @@ export class tndarray {
   /**
    * Create an array containing the element-wise max of the inputs.
    * Inputs must be the same shape.
-   * @param {tndarray} a  - First array.
-   * @param {tndarray} b  - Second array.
-   * @return {tndarray}   - An array with the same shape as a and b. Its entries are the max of the corresponding entries of a and b.
+   * @param {tensor} a  - First array.
+   * @param {tensor} b  - Second array.
+   * @return {tensor}   - An array with the same shape as a and b. Its entries are the max of the corresponding entries of a and b.
    */
-  static take_max(a: tndarray, b: tndarray) {
-    return tndarray._binary_broadcast(a, b, (x, y) => Math.max(x, y));
+  static take_max(a: tensor, b: tensor) {
+    return tensor._binary_broadcast(a, b, (x, y) => Math.max(x, y));
   }
 
   /**
    * Create an array containing the element-wise min of the inputs.
    * Inputs must be the same shape.
-   * @param {tndarray} a  - First array.
-   * @param {tndarray} b  - Second array.
-   * @return {tndarray}   - An array with the same shape as a and b. Its entries are the min of the corresponding entries of a and b.
+   * @param {tensor} a  - First array.
+   * @param {tensor} b  - Second array.
+   * @return {tensor}   - An array with the same shape as a and b. Its entries are the min of the corresponding entries of a and b.
    */
-  static take_min(a: tndarray, b: tndarray) {
-    return tndarray._binary_broadcast(a, b, (x, y) => Math.min(x, y));
+  static take_min(a: tensor, b: tensor) {
+    return tensor._binary_broadcast(a, b, (x, y) => Math.min(x, y));
   }
 
   /**
@@ -1092,10 +1092,10 @@ export class tndarray {
    * output[i] = a[i] + [i].
    * @param a
    * @param b
-   * @return {number | tndarray}
+   * @return {number | tensor}
    */
   static _add(a: Broadcastable, b: Broadcastable) {
-    return tndarray._binary_broadcast(a, b, (x, y) => x + y);
+    return tensor._binary_broadcast(a, b, (x, y) => x + y);
   }
   
   /**
@@ -1105,8 +1105,8 @@ export class tndarray {
    * @param {Broadcastable} b - The subtrahend.
    * @return {Broadcastable} - The element-wise difference.
    */
-  static _sub(a: Broadcastable, b: Broadcastable): tndarray {
-    return tndarray._binary_broadcast(a, b, (x, y) => x - y);
+  static _sub(a: Broadcastable, b: Broadcastable): tensor {
+    return tensor._binary_broadcast(a, b, (x, y) => x - y);
   }
   
   /**
@@ -1116,8 +1116,8 @@ export class tndarray {
    * @param {Broadcastable} b - Second factor.
    * @return {Broadcastable} - The element-wise product of the two inputs.
    */
-  static _mult(a: Broadcastable, b: Broadcastable): tndarray {
-     return tndarray._binary_broadcast(a, b, (x, y) => x * y);
+  static _mult(a: Broadcastable, b: Broadcastable): tensor {
+     return tensor._binary_broadcast(a, b, (x, y) => x * y);
   }
   
   /**
@@ -1127,19 +1127,19 @@ export class tndarray {
    * @param {Broadcastable} b - Divisor array.
    * @return {Broadcastable}  - Quotient array.
    */
-  static _div(a: Broadcastable, b: Broadcastable): tndarray {
-    return tndarray._binary_broadcast(a, b, (x, y) => x / y, 'float64');
+  static _div(a: Broadcastable, b: Broadcastable): tensor {
+    return tensor._binary_broadcast(a, b, (x, y) => x / y, 'float64');
   }
   
   /**
    * Compute the element-wise power of two inputs
    * @param {Broadcastable} a - Base array.
    * @param {Broadcastable} b - Exponent array.
-   * @return {tndarray}       - Result array.
+   * @return {tensor}       - Result array.
    * @private
    */
-  static _power(a: Broadcastable, b: Broadcastable): tndarray {
-    return tndarray._binary_broadcast(a, b, (x, y) => Math.pow(x, y), 'float64');
+  static _power(a: Broadcastable, b: Broadcastable): tensor {
+    return tensor._binary_broadcast(a, b, (x, y) => Math.pow(x, y), 'float64');
   }
   
   /**
@@ -1148,46 +1148,46 @@ export class tndarray {
    * @param {Broadcastable} b - Divisor array.
    * @return {Broadcastable}  - Quotient array.
    */
-  static _cdiv(a: Broadcastable, b: Broadcastable): tndarray {
-    return tndarray._binary_broadcast(a, b, (x, y) => Math.ceil(x / y));
+  static _cdiv(a: Broadcastable, b: Broadcastable): tensor {
+    return tensor._binary_broadcast(a, b, (x, y) => Math.ceil(x / y));
   }
   
   /**
    * Compute the element-wise quotient of two arrays, rounding values down to the nearest integer.
    * @param {Broadcastable} a - Dividend array.
    * @param {Broadcastable} b - Divisor array.
-   * @return {tndarray}       - Quotient array.
+   * @return {tensor}       - Quotient array.
    */
-  static _fdiv(a: Broadcastable, b: Broadcastable): tndarray {
-    return tndarray._binary_broadcast(a, b, (x, y) => Math.floor(x / y));
+  static _fdiv(a: Broadcastable, b: Broadcastable): tensor {
+    return tensor._binary_broadcast(a, b, (x, y) => Math.floor(x / y));
   }
   
   /**
    * Compute element-wise modulus of two arrays.
    * @param {Broadcastable} a - First array.
    * @param {Broadcastable} b - Second array.
-   * @return {tndarray}       - Modulus array.
+   * @return {tensor}       - Modulus array.
    */
-  static _mod(a: Broadcastable, b: Broadcastable): tndarray {
-    return tndarray._binary_broadcast(a, b, (x, y) => x % y);
+  static _mod(a: Broadcastable, b: Broadcastable): tensor {
+    return tensor._binary_broadcast(a, b, (x, y) => x % y);
   }
   
   /**
    * Compute element-wise less than.
-   * @param {tndarray} a
-   * @param {tndarray} b
+   * @param {tensor} a
+   * @param {tensor} b
    */
-  static _lt(a: tndarray, b: tndarray) {
-    return tndarray._binary_broadcast(a, b, (x, y) => +(x < y), 'uint8');
+  static _lt(a: tensor, b: tensor) {
+    return tensor._binary_broadcast(a, b, (x, y) => +(x < y), 'uint8');
   }
   
   /**
    * Compute element-wise greater than.
-   * @param {tndarray} a
-   * @param {tndarray} b
+   * @param {tensor} a
+   * @param {tensor} b
    */
   static _gt(a: Broadcastable, b: Broadcastable) {
-    return tndarray._binary_broadcast(a, b, (x, y) => +(x > y), 'uint8');
+    return tensor._binary_broadcast(a, b, (x, y) => +(x > y), 'uint8');
   }
   
   /**
@@ -1196,7 +1196,7 @@ export class tndarray {
    * @param {Broadcastable} b
    */
   static _le(a: Broadcastable, b: Broadcastable) {
-    return tndarray._binary_broadcast(a, b, (x, y) => +(x <= y), 'uint8');
+    return tensor._binary_broadcast(a, b, (x, y) => +(x <= y), 'uint8');
   }
   
   /**
@@ -1205,7 +1205,7 @@ export class tndarray {
    * @param {Broadcastable} b
    */
   static _ge(a: Broadcastable, b: Broadcastable) {
-    return tndarray._binary_broadcast(a, b, (x, y) => +(x >= y), 'uint8');
+    return tensor._binary_broadcast(a, b, (x, y) => +(x >= y), 'uint8');
   }
   
   /**
@@ -1214,7 +1214,7 @@ export class tndarray {
    * @param {Broadcastable} b
    */
   static _ne(a: Broadcastable, b: Broadcastable) {
-    return tndarray._binary_broadcast(a, b, (x, y) => +(x !== y), 'uint8');
+    return tensor._binary_broadcast(a, b, (x, y) => +(x !== y), 'uint8');
   }
   
   /**
@@ -1223,27 +1223,27 @@ export class tndarray {
    * @param {Broadcastable} b
    */
   static _eq(a: Broadcastable, b: Broadcastable) {
-    return tndarray._binary_broadcast(a, b, (x, y) => +(x === y), 'uint8');
+    return tensor._binary_broadcast(a, b, (x, y) => +(x === y), 'uint8');
   }
 
   //#endregion OPERATIONS
 
   /**
    * Check if two n-dimensional arrays are equal.
-   * @param {tndarray} array1
-   * @param {tndarray} array2
+   * @param {tensor} array1
+   * @param {tensor} array2
    * @return {boolean}
    */
-  static equals(array1: tndarray, array2: tndarray): boolean {
+  static equals(array1: tensor, array2: tensor): boolean {
     return (
       (array1.length === array2.length) &&
-      (tndarray._equal_data(array1.shape, array2.shape)) &&
-      (tndarray._equal_data(array1.offset, array2.offset)) &&
-      (tndarray._equal_data(array1.stride, array2.stride)) &&
-      (tndarray._equal_data(array1.dstride, array2.dstride)) &&
+      (tensor._equal_data(array1.shape, array2.shape)) &&
+      (tensor._equal_data(array1.offset, array2.offset)) &&
+      (tensor._equal_data(array1.stride, array2.stride)) &&
+      (tensor._equal_data(array1.dstride, array2.dstride)) &&
       (array1.initial_offset === array2.initial_offset) &&
       (array1.dtype === array2.dtype) &&
-      (tndarray._equal_data(array1, array2))
+      (tensor._equal_data(array1, array2))
     );
   }
   
@@ -1255,11 +1255,11 @@ export class tndarray {
    * @private
    */
   static _equal_data(array1, array2): boolean {
-    if (array1 instanceof tndarray) {
+    if (array1 instanceof tensor) {
       array1 = array1.data;
     }
     
-    if (array2 instanceof tndarray) {
+    if (array2 instanceof tensor) {
       array2 = array2.data;
     }
     
@@ -1271,10 +1271,10 @@ export class tndarray {
   
   /**
    * Return a copy of a.
-   * @param {tndarray} a  - tndarray to copy.
-   * @return {tndarray}   - The copy.
+   * @param {tensor} a  - tensor to copy.
+   * @return {tensor}   - The copy.
    */
-  static copy(a: tndarray, dtype?: string): tndarray {
+  static copy(a: tensor, dtype?: string): tensor {
     let new_type;
     if (dtype === undefined) {
       new_type = a.dtype;
@@ -1283,7 +1283,7 @@ export class tndarray {
     }
     const array_type = utils.dtype_map(dtype);
     const new_data = new array_type(a.data.slice(0));
-    return new tndarray(new_data, a.shape.slice(0), a.offset.slice(0), a.stride.slice(0), a.dstride.slice(0), a.length, new_type);
+    return new tensor(new_data, a.shape.slice(0), a.offset.slice(0), a.stride.slice(0), a.dstride.slice(0), a.length, new_type);
   }
 
   // BEGIN CONSTRUCTORS
@@ -1322,21 +1322,21 @@ export class tndarray {
    * Create a tensor from JSON.
    * @param json - The JSON representation of the array.
    */
-  static from_json(json: any): tndarray {
-    return tndarray.from_nested_array(json.data, json.dtype);
+  static from_json(json: any): tensor {
+    return tensor.from_nested_array(json.data, json.dtype);
   }
 
   /**
-   * Create a tndarray from a nested array of values.
+   * Create a tensor from a nested array of values.
    * @param {any[]} array - An array of arrays (nested to arbitrary depth). Each level must have the same dimension.
-   * The final level must contain valid data for a tndarray.
+   * The final level must contain valid data for a tensor.
    * @param {string} dtype  - The type to use for the underlying array.
    *
-   * @return {tndarray}
+   * @return {tensor}
    */
-  static from_nested_array(array: any[], dtype?: string): tndarray {
+  static from_nested_array(array: any[], dtype?: string): tensor {
     if (array.length === 0) {
-      return tndarray.array([]);
+      return tensor.array([]);
     }
 
     const dimensions = utils._nested_array_shape(array);
@@ -1346,7 +1346,7 @@ export class tndarray {
     const array_type = utils.dtype_map(dtype);
     const data = new array_type(size);
 
-    let ndarray = tndarray.array(data, dimensions, {dtype: dtype, disable_checks: true});
+    let ndarray = tensor.array(data, dimensions, {dtype: dtype, disable_checks: true});
 
     for (let indices of slice_iter) {
       const real_index = ndarray._compute_real_index(indices);
@@ -1361,7 +1361,7 @@ export class tndarray {
    * @param iterable
    * @param shape
    * @param {string} dtype
-   * @return {tndarray}
+   * @return {tensor}
    */
   static from_iterable(iterable: Iterable<number>, shape: Shape, dtype?: string) {
     const final_shape = indexing.compute_shape(shape);
@@ -1384,7 +1384,7 @@ export class tndarray {
       throw new errors.MismatchedShapeSize(`Iterable passed has size ${data.length}. Size expected from shape was: ${size}`);
     }
     
-    return tndarray.array(data, final_shape, {disable_checks: true, dtype: dtype});
+    return tensor.array(data, final_shape, {disable_checks: true, dtype: dtype});
   }
   
   /**
@@ -1392,24 +1392,24 @@ export class tndarray {
    * @param {number} value                - The value to fill in.
    * @param shape - A numerical array or a number. If this is a number a one-dimensional array of that length is produced.
    * @param {string} dtype                - The data type to use for the array. float64 by default.
-   * @return {tndarray}
+   * @return {tensor}
    */
-  static filled(value: number, shape, dtype?: string): tndarray {
+  static filled(value: number, shape, dtype?: string): tensor {
     const final_shape = indexing.compute_shape(shape);
     
     const size = indexing.compute_size(final_shape);
     const array_type = utils.dtype_map(dtype);
     const data = new array_type(size).fill(value);
     
-    return tndarray.array(data, final_shape, {disable_checks: true, dtype: dtype});
+    return tensor.array(data, final_shape, {disable_checks: true, dtype: dtype});
   }
   
   /**
    * Return an array of the specified size filled with zeroes.
-   * Equivalent to `tndarray.filled`, but slightly faster.
+   * Equivalent to `tensor.filled`, but slightly faster.
    * @param {number} shape
    * @param {string} dtype
-   * @return {tndarray}
+   * @return {tensor}
    */
   static zeros(shape, dtype?: string) {
     const final_shape = indexing.compute_shape(shape);
@@ -1417,7 +1417,7 @@ export class tndarray {
     const array_type = utils.dtype_map(dtype);
     const data = new array_type(size);
 
-    return tndarray.array(data, final_shape, {disable_checks: true, dtype: dtype});
+    return tensor.array(data, final_shape, {disable_checks: true, dtype: dtype});
   }
 
   /**
@@ -1425,8 +1425,8 @@ export class tndarray {
    * @param m - The size of the identity matrix.
    * @param dtype - The dtype for the identity matrix.
    */
-  static eye(m: number, dtype?: string): tndarray {
-    let array = tndarray.zeros([m, m], dtype);
+  static eye(m: number, dtype?: string): tensor {
+    let array = tensor.zeros([m, m], dtype);
     for (let i = 0; i < m; i++) {
       array.s(1, i, i);
     }
@@ -1434,13 +1434,13 @@ export class tndarray {
   }
 
   /**
-   * Create a tndarray containing the specified data
+   * Create a tensor containing the specified data
    * @param data
    * @param shape
    * @param options
-   * @return {tndarray}
+   * @return {tensor}
    */
-  static array(data, shape?, options?: ArrayOptions): tndarray {
+  static array(data, shape?, options?: ArrayOptions): tensor {
     let final_shape;
     let size;
     let dtype;
@@ -1479,7 +1479,7 @@ export class tndarray {
     const offset = new Uint32Array(final_shape.length);
     const dstride = stride.slice();
     
-    return new tndarray(data, final_shape, offset, stride, dstride, size, dtype);
+    return new tensor(data, final_shape, offset, stride, dstride, size, dtype);
   }
 
   // END CONSTRUCTORS

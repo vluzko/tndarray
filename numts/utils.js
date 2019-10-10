@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var utils;
 (function (utils) {
     /**
-     * TODO: Move to a static function in tndarray
+     * TODO: Move to a static function in tensor
      * @param array1
      * @param array2
      * @return {number}

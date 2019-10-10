@@ -1,9 +1,7 @@
-let z = require('../numts/tndarray');
+let z = require('../numts/tensor');
 let numts = require('../numts/numts');
-let tndarray = numts.tndarray;
+let tensor = numts.tensor;
 
-
-// TODO: MAX_INT tests
 describe('Constructors and factories.', function () {
   describe('Shapes.', function () {
 
@@ -33,7 +31,7 @@ describe('Constructors and factories.', function () {
 
     passing_samples.forEach((sample, n) => {
       it(`Testing pass sample ${n}.`, function () {
-        const array = tndarray.array(sample.input_array, sample.input_shape);
+        const array = tensor.array(sample.input_array, sample.input_shape);
         for (let prop in sample.expected) {
           expect(array[prop]).toEqual(sample.expected[prop]);
         }
@@ -42,34 +40,34 @@ describe('Constructors and factories.', function () {
 
     describe('Failing tests.', function () {
       it('Data not an array.', function () {
-        expect(() => tndarray.array(1)).toThrow(new z.errors.BadData());
+        expect(() => tensor.array(1)).toThrow(new z.errors.BadData());
       });
 
       it('Data not numeric.', function () {
-        expect(() => tndarray.array(['asd'])).toThrow(new z.errors.BadData());
+        expect(() => tensor.array(['asd'])).toThrow(new z.errors.BadData());
       });
 
       it('Wrong shape type.', function () {
-        expect(() => tndarray.array([], 'asdf')).toThrow(new Error('Shape must be an int, an array of numbers, or a Uint32Array.'));
+        expect(() => tensor.array([], 'asdf')).toThrow(new Error('Shape must be an int, an array of numbers, or a Uint32Array.'));
       });
 
       it('No shape parameter.', function () {
-        const array = tndarray.array([1, 2, 3, 4]);
+        const array = tensor.array([1, 2, 3, 4]);
         expect(array.shape).toEqual(new Uint32Array([4]));
         expect(array.length).toBe(4);
       });
 
       describe('Wrong dimensions.', function () {
         it('Wrong length.', function () {
-          expect(() => tndarray.array([1, 2, 3], [2, 2])).toThrow(new z.errors.MismatchedShapeSize());
+          expect(() => tensor.array([1, 2, 3], [2, 2])).toThrow(new z.errors.MismatchedShapeSize());
         });
 
         it('Null shape', function () {
-          expect(() => tndarray.array([1, 2, 3], [null])).toThrow(new Error('Shape array must be numeric.'));
+          expect(() => tensor.array([1, 2, 3], [null])).toThrow(new Error('Shape array must be numeric.'));
         });
 
         it('Empty shape.', function () {
-          expect(() => tndarray.array([1, 2, 3], [])).toThrow(new z.errors.MismatchedShapeSize());
+          expect(() => tensor.array([1, 2, 3], [])).toThrow(new z.errors.MismatchedShapeSize());
         });
       });
     });
@@ -81,7 +79,7 @@ describe('Constructors and factories.', function () {
 
   describe('eye.', function() {
     it('Two-dimensional', function() {
-      const a = tndarray.eye(10);
+      const a = tensor.eye(10);
       for (let [i, j] of a._iorder_index_iterator()) {
         if (i === j) {
           expect(a.g(i, j)).toBe(1);
@@ -110,6 +108,14 @@ describe('Constructors and factories.', function () {
         [5, 6, 7, 8, 9]
       ]);
     });
+  });
+
+  describe('to_json.', function() {
+
+  });
+
+  describe('from_json', function() {
+
   });
 
 });
@@ -204,7 +210,7 @@ describe('Iterators.', function () {
   });
 
   it('_iorder_value_iterator.', function () {
-    let array = tndarray.array([1, 2, 3, 4]);
+    let array = tensor.array([1, 2, 3, 4]);
     const expected = [1, 2, 3, 4];
     const actual = Array.from(array._iorder_value_iterator());
     expect(actual).toEqual(expected);
@@ -231,7 +237,7 @@ describe('Slicing.', function () {
         [5, 6]
       ], 'int32');
 
-      const actual = tndarray.from_iterable(slice._iorder_value_iterator(), slice.shape, 'int32');
+      const actual = tensor.from_iterable(slice._iorder_value_iterator(), slice.shape, 'int32');
       expect(expected.equals(actual)).toBe(true);
       expect(slice.data).toEqual(base_array.data);
     });
@@ -241,7 +247,7 @@ describe('Slicing.', function () {
       const slice = base_array.slice(0);
       const expected = numts.arange(4);
 
-      const actual = tndarray.from_iterable(slice._iorder_value_iterator(), slice.shape, 'int32');
+      const actual = tensor.from_iterable(slice._iorder_value_iterator(), slice.shape, 'int32');
       expect(expected.equals(actual)).toBe(true);
       expect(slice.data).toEqual(base_array.data);
     });
@@ -254,7 +260,7 @@ describe('Slicing.', function () {
 
       const expected = numts.arange(1, 3);
 
-      const actual = tndarray.from_iterable(second_slice._iorder_value_iterator(), second_slice.shape, 'int32');
+      const actual = tensor.from_iterable(second_slice._iorder_value_iterator(), second_slice.shape, 'int32');
       expect(expected.equals(actual)).toBe(true);
     });
 
@@ -266,7 +272,7 @@ describe('Slicing.', function () {
         [1, 2],
         [9, 10]
       ], 'int32');
-      const actual = tndarray.from_iterable(slice._iorder_value_iterator(), slice.shape, 'int32');
+      const actual = tensor.from_iterable(slice._iorder_value_iterator(), slice.shape, 'int32');
 
       expect(expected.equals(actual)).toBe(true);
 
@@ -282,7 +288,7 @@ describe('Slicing.', function () {
       ], 'int32');
 
 
-      const actual = tndarray.from_iterable(first._iorder_value_iterator(), first.shape, 'int32');
+      const actual = tensor.from_iterable(first._iorder_value_iterator(), first.shape, 'int32');
       expect(expected).toEqual(actual);
     });
 
@@ -299,7 +305,7 @@ describe('Slicing.', function () {
         [[66, 69]]
       ], 'int32');
 
-      const actual = tndarray.from_iterable(second._iorder_value_iterator(), second.shape, 'int32');
+      const actual = tensor.from_iterable(second._iorder_value_iterator(), second.shape, 'int32');
       expect(expected.equals(actual)).toBe(true);
     });
 
@@ -456,7 +462,7 @@ describe('Broadcasting.', function () {
       let b = numts.arange(1);
       let f = (a, b) => a;
 
-      let broadcasted = tndarray._binary_broadcast(a, b, f);
+      let broadcasted = tensor._binary_broadcast(a, b, f);
       expect(broadcasted.equals(a)).toBe(true);
     });
 
@@ -465,7 +471,7 @@ describe('Broadcasting.', function () {
       let b = numts.arange(0, 10);
       let f = (a, b) => b;
 
-      let broadcasted = tndarray._binary_broadcast(a, b, f);
+      let broadcasted = tensor._binary_broadcast(a, b, f);
       expect(broadcasted.equals(b)).toBe(true);
     });
 
@@ -483,7 +489,7 @@ describe('Broadcasting.', function () {
         let a = numts.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], 'int32');
         let b = numts.arange(5);
 
-        let sub = tndarray._sub(a, b);
+        let sub = tensor._sub(a, b);
         let expected = numts.from_nested_array([[0, 0, 0, 0, 0], [5, 5, 5, 5, 5]], 'int32');
         expect(sub.equals(expected)).toBe(true);
       });
@@ -492,7 +498,7 @@ describe('Broadcasting.', function () {
         let a = numts.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], 'int32');
         let b = numts.arange(5);
 
-        let product = tndarray._mult(a, b);
+        let product = tensor._mult(a, b);
         let expected = numts.from_nested_array([[0, 1, 4, 9, 16], [0, 6, 14, 24, 36]], 'int32');
         expect(product.equals(expected)).toBe(true);
       });
@@ -501,7 +507,7 @@ describe('Broadcasting.', function () {
         let a = numts.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], 'int32');
         let b = numts.arange(1, 6);
 
-        let product = tndarray._div(a, b);
+        let product = tensor._div(a, b);
         let expected = numts.from_nested_array([
           [0, 1 / 2, 2 / 3, 3 / 4, 4 / 5],
           [5, 6 / 2, 7 / 3, 8 / 4, 9 / 5]], 'float64');
@@ -512,7 +518,7 @@ describe('Broadcasting.', function () {
         let a = numts.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], 'int32');
         let b = numts.arange(1, 6);
 
-        let product = tndarray._mod(a, b);
+        let product = tensor._mod(a, b);
         let expected = numts.from_nested_array([[0, 1, 2, 3, 4], [0, 0, 1, 0, 4]], 'int32');
         expect(product.equals(expected)).toBe(true);
       });
@@ -521,7 +527,7 @@ describe('Broadcasting.', function () {
         let a = numts.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], 'int32');
         let b = numts.arange(1, 6);
 
-        let product = tndarray._fdiv(a, b);
+        let product = tensor._fdiv(a, b);
         let expected = numts.from_nested_array([[0, 0, 0, 0, 0], [5, 3, 2, 2, 1]], 'int32');
         expect(product.equals(expected)).toBe(true);
       });
@@ -530,7 +536,7 @@ describe('Broadcasting.', function () {
         let a = numts.from_nested_array([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]], 'int32');
         let b = numts.arange(1, 6);
 
-        let product = tndarray._cdiv(a, b);
+        let product = tensor._cdiv(a, b);
         let expected = numts.from_nested_array([[0, 1, 1, 1, 1], [5, 3, 3, 2, 2]], 'int32');
         expect(product.equals(expected)).toBe(true);
       });
@@ -539,14 +545,14 @@ describe('Broadcasting.', function () {
     it('take_max', function () {
       const a = numts.arange(30).reshape(5, 6);
       const b = numts.arange(30, 60).reshape(5, 6);
-      const c = tndarray.take_max(a, b);
+      const c = tensor.take_max(a, b);
       expect(b.equals(c)).toBe(true);
     });
 
     it('take_min', function () {
       const a = numts.arange(30).reshape(5, 6);
       const b = numts.arange(30, 60).reshape(5, 6);
-      const c = tndarray.take_min(a, b);
+      const c = tensor.take_min(a, b);
       expect(a.equals(c)).toBe(true);
     });
   });
@@ -557,7 +563,7 @@ describe('Math.', function () {
     it('scalar.', function () {
       let a = numts.arange(1, 2).reshape([1, 1]);
       let b = numts.arange(10, 11).reshape([1, 1]);
-      let x = tndarray.matmul_2d(a, b);
+      let x = tensor.matmul_2d(a, b);
       const expected = numts.from_nested_array([[10]]);
       expect(expected.equals(x)).toBe(true);
     });
@@ -570,7 +576,7 @@ describe('Math.', function () {
         [26, 31]
       ]);
 
-      const actual = tndarray.matmul_2d(a, b);
+      const actual = tensor.matmul_2d(a, b);
       expect(actual.equals(expected)).toBe(true);
 
     });
@@ -585,7 +591,7 @@ describe('Math.', function () {
           [248, 286, 324, 362]
         ]);
   
-        const actual = tndarray.matmul_2d(a, b);
+        const actual = tensor.matmul_2d(a, b);
         expect(expected.equals(actual)).toBe(true);
       });
       
@@ -597,7 +603,7 @@ describe('Math.', function () {
     it('scalar.', function () {
       let a = numts.arange(1, 2).reshape([1, 1]);
       let b = numts.arange(10, 11).reshape([1, 1]);
-      let x = tndarray.broadcast_matmul(a, b);
+      let x = tensor.broadcast_matmul(a, b);
       const expected = numts.from_nested_array([[10]]);
       expect(expected.equals(x)).toBe(true);
     });
@@ -606,7 +612,7 @@ describe('Math.', function () {
       let a = numts.arange(15).reshape([5, 3]);
       let b = numts.arange(12).reshape(3, 4);
 
-      let x = tndarray.broadcast_matmul(a, b);
+      let x = tensor.broadcast_matmul(a, b);
       const expected = numts.from_nested_array([
 
       ]);
@@ -617,7 +623,7 @@ describe('Math.', function () {
       let a = numts.arange(24).reshape([2, 3, 4]);
       let b = numts.arange(16).reshape(4, 4);
 
-      let x = tndarray.broadcast_matmul(a, b);
+      let x = tensor.broadcast_matmul(a, b);
       const expected = numts.from_nested_array([
         [[56, 62, 68, 74],
         [152, 174, 196, 218],
@@ -635,7 +641,7 @@ describe('Math.', function () {
     it('simple.', function () {
       const a = numts.arange(10, 20);
       const b = numts.arange(20, 30);
-      const dot = tndarray.dot(a, b);
+      const dot = tensor.dot(a, b);
       expect(dot).toBe(3635)
     });
   });
@@ -707,7 +713,7 @@ describe('Aggregation.', function () {
     it('No axes.', function () {
       const input = numts.arange(12).reshape([3, 4]);
       const x = input.cumsum();
-      const expected = tndarray.from_iterable([0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66], [12], 'int32');
+      const expected = tensor.from_iterable([0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66], [12], 'int32');
       expect(x.equals(expected)).toBe(true);
     });
 
@@ -727,7 +733,7 @@ describe('Aggregation.', function () {
     it('No axes.', function () {
       const input = numts.arange(1, 13).reshape([3, 4]);
       const x = input.cumprod();
-      const expected = tndarray.from_iterable([1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600], [12], 'int32');
+      const expected = tensor.from_iterable([1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600], [12], 'int32');
       expect(x.equals(expected)).toBe(true);
     });
 

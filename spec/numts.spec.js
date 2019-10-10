@@ -1,4 +1,4 @@
-let tndarray = require("../numts/tndarray");
+let tensor = require("../numts/tensor");
 let numts = require("../numts/numts");
 let _ = require("lodash");
 
@@ -34,7 +34,7 @@ describe("Constructors and factories.", function () {
 
     passing_samples.forEach((sample, n) => {
       it(`Testing pass sample ${n}.`, function () {
-        const array = numts.tndarray.array(sample.input_array, sample.input_shape);
+        const array = numts.tensor.array(sample.input_array, sample.input_shape);
         for (let prop in sample.expected) {
           expect(array[prop]).toEqual(sample.expected[prop]);
         }
@@ -55,8 +55,8 @@ describe("Constructors and factories.", function () {
     });
 
     it("filled.", function () {
-      expect(numts.tndarray.filled(-1, [2, 2]).data).toEqual(new Float64Array([-1, -1, -1, -1]));
-      expect(numts.tndarray.filled(10, 4).data).toEqual(new Float64Array([10, 10, 10, 10]));
+      expect(numts.tensor.filled(-1, [2, 2]).data).toEqual(new Float64Array([-1, -1, -1, -1]));
+      expect(numts.tensor.filled(10, 4).data).toEqual(new Float64Array([10, 10, 10, 10]));
     });
 
     describe("from_nested_array.", function () {

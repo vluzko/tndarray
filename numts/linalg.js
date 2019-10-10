@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const tndarray_1 = require("./tndarray");
+const tensor_1 = require("./tensor");
 const numts_1 = require("./numts");
 /**
  *
@@ -108,7 +108,7 @@ function lu(a) {
     let upper = numts_1.zeros(a.shape);
     for (let i = 0; i < n; i++) {
         for (let k = i; k < n; k++) {
-            const sum = tndarray_1.tndarray.dot(lower.slice(i), upper.slice(null, k));
+            const sum = tensor_1.tensor.dot(lower.slice(i), upper.slice(null, k));
             const diff = a.g(i, k) - sum;
             upper.s(diff, i, k);
         }
@@ -117,7 +117,7 @@ function lu(a) {
                 lower.s(1, i, i);
             }
             else {
-                const sum = tndarray_1.tndarray.dot(lower.slice(k), upper.slice(null, i));
+                const sum = tensor_1.tensor.dot(lower.slice(k), upper.slice(null, i));
                 const diff = (a.g(k, i) - sum) / upper.g(i, i);
                 lower.s(diff, k, i);
             }
@@ -137,8 +137,8 @@ function rank(a) {
 exports.rank = rank;
 function householder_qr(A) {
     const [m, n] = A.shape;
-    let Q = tndarray_1.tndarray.eye(m);
-    let R = tndarray_1.tndarray.copy(A, 'float64');
+    let Q = tensor_1.tensor.eye(m);
+    let R = tensor_1.tensor.copy(A, 'float64');
     if (m === 1 && n === 1) {
         return [Q, R];
     }
@@ -161,14 +161,14 @@ function householder_qr(A) {
             const tauw = normalized.mult(tau);
             // Update R
             const r_block = R.slice([j, null], null);
-            const temp1 = tndarray_1.tndarray.matmul_2d(normalized.transpose(), r_block);
-            const temp2 = tndarray_1.tndarray.matmul_2d(tauw, temp1);
+            const temp1 = tensor_1.tensor.matmul_2d(normalized.transpose(), r_block);
+            const temp2 = tensor_1.tensor.matmul_2d(tauw, temp1);
             const r_diff = r_block.sub(temp2);
             R.s(r_diff, [j, null], null);
             // Update Q
             const q_block = Q.slice(null, [j, null]);
-            const matmul = tndarray_1.tndarray.matmul_2d(q_block, normalized);
-            const temp3 = tndarray_1.tndarray.matmul_2d(matmul, tauw.transpose());
+            const matmul = tensor_1.tensor.matmul_2d(q_block, normalized);
+            const temp3 = tensor_1.tensor.matmul_2d(matmul, tauw.transpose());
             const q_diff = q_block.sub(temp3);
             Q.s(q_diff, null, [j, null]);
         }
@@ -189,13 +189,13 @@ function givens_qr(A) {
                 Q = G;
             }
             else {
-                Q = tndarray_1.tndarray.matmul_2d(G, Q);
+                Q = tensor_1.tensor.matmul_2d(G, Q);
             }
         }
     }
     // Handle one-dimensional arrays.
     if (Q === null) {
-        Q = tndarray_1.tndarray.eye(m);
+        Q = tensor_1.tensor.eye(m);
     }
     return [Q.transpose(), R];
 }
@@ -213,12 +213,12 @@ function givens_rotation_up(A, i, j) {
     const s = bottom_val / r;
     const c = top_val / r;
     const [m, n] = A.shape;
-    let G = tndarray_1.tndarray.eye(m);
+    let G = tensor_1.tensor.eye(m);
     G.s(c, i, i);
     G.s(c, j, j);
     G.s(s, i, j);
     G.s(-s, j, i);
-    const R = tndarray_1.tndarray.matmul_2d(G, A);
+    const R = tensor_1.tensor.matmul_2d(G, A);
     return [G, R];
 }
 /**

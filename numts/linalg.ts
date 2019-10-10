@@ -1,11 +1,11 @@
-import {tndarray} from "./tndarray";
+import {tensor} from "./tensor";
 import {zeros} from "./numts";
 
 /**
  * 
  * @param a - The array.
  */
-export function column_iterator(a: tndarray) {
+export function column_iterator(a: tensor) {
   const step = a.shape[0];
   let iter = {
     [Symbol.iterator]: function*() {
@@ -26,23 +26,23 @@ export function column_iterator(a: tndarray) {
   return iter;
 }
 
-export function is_vector(a: tndarray): boolean {
+export function is_vector(a: tensor): boolean {
   return a.shape.length === 1;
 }
 
-export function is_flat(a: tndarray): boolean {
+export function is_flat(a: tensor): boolean {
   return (a.shape.length === 1) || (a.shape.reduce((x, y) => y === 1 ? x : x + 1, 0) <= 1);
 }
 
-export function is_matrix(a: tndarray): boolean {
+export function is_matrix(a: tensor): boolean {
   return a.shape.length === 2;
 }
 
-export function is_square(a: tndarray): boolean {
+export function is_square(a: tensor): boolean {
   return a.shape.length === 2 && a.shape[0] === a.shape[1];
 }
 
-export function l1(a: tndarray) {
+export function l1(a: tensor) {
   if (is_vector(a)) {
     return a.reduce((x, y) => x + Math.abs(y), 0);
   } else if (is_matrix(a)) {
@@ -62,7 +62,7 @@ export function l1(a: tndarray) {
  * Calculate the L2 norm of the tensor.
  * @param a - A tensor.
  */
-export function l2(a: tndarray): number {
+export function l2(a: tensor): number {
   // Calculate sigma_1 of a.
   if (is_flat(a)) {
     // @ts-ignore
@@ -72,23 +72,23 @@ export function l2(a: tndarray): number {
   }
 }
 
-export function linf(a: tndarray) {
+export function linf(a: tensor) {
 
 }
 
-export function fnorm(a: tndarray) {
+export function fnorm(a: tensor) {
 
 }
 
-export function pnorm(a: tndarray) {
+export function pnorm(a: tensor) {
 
 }
 
-export function inv(a: tndarray): tndarray {
+export function inv(a: tensor): tensor {
   throw new Error();
 }
 
-export function svd(a: tndarray): [tndarray, tndarray, tndarray] {
+export function svd(a: tensor): [tensor, tensor, tensor] {
   throw new Error();
 }
 
@@ -99,7 +99,7 @@ export function svd(a: tndarray): [tndarray, tndarray, tndarray] {
  * 
  * @returns - A tuple containing the L and U matrices.
  */
-export function lu(a: tndarray): [tndarray, tndarray] {
+export function lu(a: tensor): [tensor, tensor] {
   if (!is_square(a)) {
     throw new Error('LU decomposition is only valid for square matrices.');
   }
@@ -108,7 +108,7 @@ export function lu(a: tndarray): [tndarray, tndarray] {
   let upper = zeros(a.shape);
   for (let i = 0; i < n; i++) {
     for (let k = i; k < n; k++) {
-      const sum = tndarray.dot(lower.slice(i), upper.slice(null, k));
+      const sum = tensor.dot(lower.slice(i), upper.slice(null, k));
       const diff = a.g(i, k) - sum;
       upper.s(diff, i, k);
     }
@@ -117,7 +117,7 @@ export function lu(a: tndarray): [tndarray, tndarray] {
       if (i === k) {
         lower.s(1, i, i);
       } else {
-        const sum = tndarray.dot(lower.slice(k), upper.slice(null, i));
+        const sum = tensor.dot(lower.slice(k), upper.slice(null, i));
         const diff = (a.g(k, i) - sum) / upper.g(i, i);
         
         lower.s(diff, k, i);
@@ -128,22 +128,22 @@ export function lu(a: tndarray): [tndarray, tndarray] {
   return [lower, upper];
 }
 
-export function qr(a: tndarray) {
+export function qr(a: tensor) {
 
 }
 
-export function chol(a: tndarray) {
+export function chol(a: tensor) {
 
 }
 
-export function rank(a: tndarray) {
+export function rank(a: tensor) {
     
 }
 
-export function householder_qr(A: tndarray) {
+export function householder_qr(A: tensor) {
   const [m, n] = A.shape;
-  let Q = tndarray.eye(m);
-  let R = tndarray.copy(A, 'float64');
+  let Q = tensor.eye(m);
+  let R = tensor.copy(A, 'float64');
   if (m === 1 && n === 1) {
     return [Q, R];
   }
@@ -159,22 +159,22 @@ export function householder_qr(A: tndarray) {
       const pivot: number = R.g(j, j);
       const s: number     = pivot >= 0 ? 1 : -1;
       const u1: number    = pivot + s * norm;
-      const normalized: tndarray = lower_column.div(u1);
+      const normalized: tensor = lower_column.div(u1);
       normalized.s(1, 0);
       const tau: number = s * u1 / norm;
       const tauw = normalized.mult(tau);
 
       // Update R
       const r_block = R.slice([j, null], null);
-      const temp1 = tndarray.matmul_2d(normalized.transpose(), r_block);
-      const temp2 = tndarray.matmul_2d(tauw, temp1);
+      const temp1 = tensor.matmul_2d(normalized.transpose(), r_block);
+      const temp2 = tensor.matmul_2d(tauw, temp1);
       const r_diff = r_block.sub(temp2);
       R.s(r_diff, [j, null], null);
 
       // Update Q
       const q_block = Q.slice(null, [j, null]);
-      const matmul = tndarray.matmul_2d(q_block, normalized);
-      const temp3 = tndarray.matmul_2d(matmul, tauw.transpose());
+      const matmul = tensor.matmul_2d(q_block, normalized);
+      const temp3 = tensor.matmul_2d(matmul, tauw.transpose());
       const q_diff = q_block.sub(temp3);
       Q.s(q_diff, null, [j, null]);
     }
@@ -183,7 +183,7 @@ export function householder_qr(A: tndarray) {
   return [Q, R];
 }
 
-export function givens_qr(A: tndarray): [tndarray, tndarray] {
+export function givens_qr(A: tensor): [tensor, tensor] {
   const [m, n] = A.shape;
   let Q = null;
   let R = A;
@@ -195,14 +195,14 @@ export function givens_qr(A: tndarray): [tndarray, tndarray] {
       if (Q === null) {
         Q = G;
       } else {
-        Q = tndarray.matmul_2d(G, Q);
+        Q = tensor.matmul_2d(G, Q);
       }
     }
   }
 
   // Handle one-dimensional arrays.
   if (Q === null) {
-    Q = tndarray.eye(m);
+    Q = tensor.eye(m);
   }
 
   return [Q.transpose(), R];
@@ -214,20 +214,20 @@ export function givens_qr(A: tndarray): [tndarray, tndarray] {
  * @param i - The row to rotate to.
  * @param j - The row to rotate from, and the column.
  */
-function givens_rotation_up(A: tndarray, i: number, j: number): [tndarray, tndarray] {
+function givens_rotation_up(A: tensor, i: number, j: number): [tensor, tensor] {
   const bottom_val = A.g(j, i);
   const top_val = A.g(i, i);
   const r = Math.sqrt(Math.pow(bottom_val, 2) + Math.pow(top_val, 2));
   const s = bottom_val / r;
   const c = top_val /r;
   const [m, n] = A.shape;
-  let G = tndarray.eye(m);
+  let G = tensor.eye(m);
   G.s(c, i, i);
   G.s(c, j, j);
   G.s(s, i, j);
   G.s(-s, j, i);
 
-  const R = tndarray.matmul_2d(G, A);
+  const R = tensor.matmul_2d(G, A);
   return [G, R];
 }
 
@@ -236,6 +236,6 @@ function givens_rotation_up(A: tndarray, i: number, j: number): [tndarray, tndar
  * @param G - The compressed representation of the Givens rotation.
  * @param A - The matrix being transformed.
  */
-function compressed_givens_mult(G: Float64Array, A: tndarray): tndarray {
+function compressed_givens_mult(G: Float64Array, A: tensor): tensor {
   throw new Error();
 }

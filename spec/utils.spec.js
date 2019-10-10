@@ -1,5 +1,5 @@
 let utils = require("../numts/utils").utils;
-let tndarray = require("../numts/tndarray");
+let tensor = require("../numts/tensor");
 let numts = require("../numts/numts");
 
 describe("utils.", function () {

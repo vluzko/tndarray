@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const tndarray_1 = require("./tndarray");
+const tensor_1 = require("./tensor");
 const indexing_1 = require("./indexing");
 /**
  *
@@ -18,7 +18,7 @@ function randint(lower = 0.0, upper = 1.0, shape = [1]) {
             }
         }
     };
-    return tndarray_1.tndarray.from_iterable(iter, shape, "int32");
+    return tensor_1.tensor.from_iterable(iter, shape, "int32");
 }
 exports.randint = randint;
 /**
@@ -37,7 +37,7 @@ function uniform(lower = 0.0, upper = 1.0, shape = [1]) {
             }
         }
     };
-    return tndarray_1.tndarray.from_iterable(iter, shape, "float64");
+    return tensor_1.tensor.from_iterable(iter, shape, "float64");
 }
 exports.uniform = uniform;
 /**
@@ -56,7 +56,7 @@ function normal(mean = 0.0, stdev = 1.0, shape = [1]) {
             }
         }
     };
-    return tndarray_1.tndarray.from_iterable(iter, shape, "float64");
+    return tensor_1.tensor.from_iterable(iter, shape, "float64");
 }
 exports.normal = normal;
 /**
