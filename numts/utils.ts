@@ -266,4 +266,42 @@ export namespace utils {
     };
     return new_iter;
   }
+
+  /**
+ * Compute the dimensions of a nested array.
+ * @param {any[]} nested_array  - Arrays nested arbitrarily deeply. Each array of the same depth must have the same length.
+ *                                This is *not* checked.
+ * @return {Uint32Array}        - The dimensions of each subarray.
+ * @private
+ */
+export function _nested_array_shape(nested_array: any[]): Uint32Array {
+  let dims: number[] = [];
+  let current = nested_array;
+  let at_bottom = false;
+  while (!at_bottom) {
+    dims.push(current.length);
+    if (Array.isArray(current[0])) {
+      current = current[0];
+    } else {
+      at_bottom = true;
+    }
+  }
+
+  return new Uint32Array(dims);
+}
+
+/**
+ *
+ * @param {any[]} nested_array
+ * @param {Uint32Array} indices
+ * @return {any[]}
+ * @private
+ */
+export function _nested_array_value_from_index(nested_array: any[], indices: Uint32Array) {
+  let current_subarray = nested_array;
+  for (let index of indices) {
+    current_subarray = current_subarray[index];
+  }
+  return current_subarray;
+}
 }

@@ -264,5 +264,43 @@ var utils;
         return new_iter;
     }
     utils.imap = imap;
+    /**
+   * Compute the dimensions of a nested array.
+   * @param {any[]} nested_array  - Arrays nested arbitrarily deeply. Each array of the same depth must have the same length.
+   *                                This is *not* checked.
+   * @return {Uint32Array}        - The dimensions of each subarray.
+   * @private
+   */
+    function _nested_array_shape(nested_array) {
+        let dims = [];
+        let current = nested_array;
+        let at_bottom = false;
+        while (!at_bottom) {
+            dims.push(current.length);
+            if (Array.isArray(current[0])) {
+                current = current[0];
+            }
+            else {
+                at_bottom = true;
+            }
+        }
+        return new Uint32Array(dims);
+    }
+    utils._nested_array_shape = _nested_array_shape;
+    /**
+     *
+     * @param {any[]} nested_array
+     * @param {Uint32Array} indices
+     * @return {any[]}
+     * @private
+     */
+    function _nested_array_value_from_index(nested_array, indices) {
+        let current_subarray = nested_array;
+        for (let index of indices) {
+            current_subarray = current_subarray[index];
+        }
+        return current_subarray;
+    }
+    utils._nested_array_value_from_index = _nested_array_value_from_index;
 })(utils = exports.utils || (exports.utils = {}));
 //# sourceMappingURL=utils.js.map

@@ -1132,7 +1132,7 @@ class tndarray {
         const new_data = new array_type(a.data.slice(0));
         return new tndarray(new_data, a.shape.slice(0), a.offset.slice(0), a.stride.slice(0), a.dstride.slice(0), a.length, new_type);
     }
-    //#region CONSTRUCTORS
+    // BEGIN CONSTRUCTORS
     /**
      * Convert the tensor to a nested JS array.
      */
@@ -1149,6 +1149,48 @@ class tndarray {
             subarray[index[index.length - 1]] = this.g(...index);
         }
         return array;
+    }
+    /**
+     * Convert the tensor to JSON.
+     */
+    to_json() {
+        let json = {
+            data: this.to_nested_array(),
+            shape: Array.from(this.shape),
+            dtype: this.dtype
+        };
+        return json;
+    }
+    /**
+     * Create a tensor from JSON.
+     * @param json - The JSON representation of the array.
+     */
+    static from_json(json) {
+        return tndarray.from_nested_array(json.data, json.dtype);
+    }
+    /**
+     * Create a tndarray from a nested array of values.
+     * @param {any[]} array - An array of arrays (nested to arbitrary depth). Each level must have the same dimension.
+     * The final level must contain valid data for a tndarray.
+     * @param {string} dtype  - The type to use for the underlying array.
+     *
+     * @return {tndarray}
+     */
+    static from_nested_array(array, dtype) {
+        if (array.length === 0) {
+            return tndarray.array([]);
+        }
+        const dimensions = utils_1.utils._nested_array_shape(array);
+        let slice_iter = indexing_1.indexing.iorder_index_iterator(dimensions);
+        const size = indexing_1.indexing.compute_size(dimensions);
+        const array_type = utils_1.utils.dtype_map(dtype);
+        const data = new array_type(size);
+        let ndarray = tndarray.array(data, dimensions, { dtype: dtype, disable_checks: true });
+        for (let indices of slice_iter) {
+            const real_index = ndarray._compute_real_index(indices);
+            ndarray.data[real_index] = utils_1.utils._nested_array_value_from_index(array, indices);
+        }
+        return ndarray;
     }
     /**
      * Create an n-dimensional array from an iterable.
