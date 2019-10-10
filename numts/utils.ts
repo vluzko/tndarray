@@ -59,7 +59,7 @@ export namespace utils {
    * @return {boolean}
    * @private
    */
-  export function is_numeric_array(array): boolean {
+  export function is_numeric_array(array: any): boolean {
     if (!Array.isArray(array) && !ArrayBuffer.isView(array)) {
       return false;
     } else if (ArrayBuffer.isView(array)) {

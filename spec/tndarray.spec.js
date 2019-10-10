@@ -75,6 +75,10 @@ describe('Constructors and factories.', function () {
     });
   });
 
+  describe('zeros.', function() {
+
+  });
+
   describe('eye.', function() {
     it('Two-dimensional', function() {
       const a = tndarray.eye(10);
@@ -88,14 +92,26 @@ describe('Constructors and factories.', function () {
     });
   });
 
-  describe('Filled.', function() {
+  describe('filled.', function() {
     it('Column vector.', function() {
       const a = numts.arange(4).reshape(4, 1);
       expect(a.stride).toEqual(new Uint32Array([1, 4]));
       const arr = [...a._iorder_data_iterator()];
       expect(arr).toEqual([0, 1, 2, 3]);
     });
-  })
+  });
+
+  describe('to_nested_array.', function() {
+    it('Basic.', function() {
+      let x = numts.arange(10).reshape(2, 5);
+      let y = x.to_nested_array();
+      expect(y).toEqual([
+        [0, 1, 2, 3, 4],
+        [5, 6, 7, 8, 9]
+      ]);
+    });
+  });
+
 });
 
 describe('Indices.', function () {
