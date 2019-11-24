@@ -1,14 +1,20 @@
-import {cwd} from 'process';
-import {PythonShell} from 'python-shell';
+import {execSync} from 'child_process';
 import {tensor} from '../numts/tensor';
 
-const DIR = cwd();
-console.log(DIR)
-const FILE = './numpy_test.py';
+const FILE = `${__dirname}/numpy_tests.py`;
 
-export function compare_tensors(command: string, args: Array<string>, expected: tensor): boolean {
-  const options = {
-    args: args
-  };
-  const result = PythonShell.run(command, )
+export function call_python(function_name: string, args: Array<string>, kwargs: Map<string, string>): any {
+  const arg_string = args.join(' ');
+  let kwarg_array = [];
+  kwargs.forEach((v, k) => {
+    const joined = `${k}=${v}`;
+    kwarg_array.push(joined);
+  });
+  const kwarg_string = kwarg_array.join(' ');
+
+  const command = `python ${FILE} ${function_name} ${arg_string} ${kwarg_string}`;
+  const res = execSync(command);
+  console.log(res.toString());
 }
+
+call_python('hello', [], new Map());

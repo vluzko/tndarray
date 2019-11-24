@@ -1,15 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const process_1 = require("process");
-const python_shell_1 = require("python-shell");
-const DIR = process_1.cwd();
-console.log(DIR);
-const FILE = './numpy_test.py';
-function compare_tensors(command, args, expected) {
-    const options = {
-        args: args
-    };
-    const result = python_shell_1.PythonShell.run(command);
+const child_process_1 = require("child_process");
+const FILE = `${__dirname}/numpy_tests.py`;
+function call_python(function_name, args, kwargs) {
+    const arg_string = args.join(' ');
+    let kwarg_array = [];
+    kwargs.forEach((v, k) => {
+        const joined = `${k}=${v}`;
+        kwarg_array.push(joined);
+    });
+    const kwarg_string = kwarg_array.join(' ');
+    const command = `python ${FILE} ${function_name} ${arg_string} ${kwarg_string}`;
+    const res = child_process_1.execSync(command);
+    console.log(res.toString());
 }
-exports.compare_tensors = compare_tensors;
+exports.call_python = call_python;
+call_python('hello', [], new Map());
 //# sourceMappingURL=call_python.js.map
