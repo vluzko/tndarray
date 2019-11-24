@@ -119,44 +119,6 @@ export function arange(start_or_stop: number, stop?: number, step?: number, shap
 }
 
 /**
- * Compute the dimensions of a nested array.
- * @param {any[]} nested_array  - Arrays nested arbitrarily deeply. Each array of the same depth must have the same length.
- *                                This is *not* checked.
- * @return {Uint32Array}        - The dimensions of each subarray.
- * @private
- */
-export function _nested_array_shape(nested_array: any[]): Uint32Array {
-  let dims: number[] = [];
-  let current = nested_array;
-  let at_bottom = false;
-  while (!at_bottom) {
-    dims.push(current.length);
-    if (Array.isArray(current[0])) {
-      current = current[0];
-    } else {
-      at_bottom = true;
-    }
-  }
-
-  return new Uint32Array(dims);
-}
-
-/**
- *
- * @param {any[]} nested_array
- * @param {Uint32Array} indices
- * @return {any[]}
- * @private
- */
-export function _nested_array_value_from_index(nested_array: any[], indices: Uint32Array) {
-  let current_subarray = nested_array;
-  for (let index of indices) {
-    current_subarray = current_subarray[index];
-  }
-  return current_subarray;
-}
-
-/**
  * Create a tensor from a nested array of values.
  * @param {any[]} array - An array of arrays (nested to arbitrary depth). Each level must have the same dimension.
  * The final level must contain valid data for a tensor.
@@ -165,25 +127,7 @@ export function _nested_array_value_from_index(nested_array: any[], indices: Uin
  * @return {tensor}
  */
 export function from_nested_array(array: any[], dtype?: string): tensor {
-  if (array.length === 0) {
-    return tensor.array([]);
-  }
-
-  const dimensions = _nested_array_shape(array);
-  let slice_iter = indexing.iorder_index_iterator(dimensions);
-
-  const size = indexing.compute_size(dimensions);
-  const array_type = utils.dtype_map(dtype);
-  const data = new array_type(size);
-
-  let ndarray = tensor.array(data, dimensions, {dtype: dtype, disable_checks: true});
-
-  for (let indices of slice_iter) {
-    const real_index = ndarray._compute_real_index(indices);
-    ndarray.data[real_index] = _nested_array_value_from_index(array, indices);
-  }
-
-  return ndarray;
+  return tensor.from_nested_array(array, dtype); 
 }
 
 export {tensor as tensor};

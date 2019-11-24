@@ -11,7 +11,9 @@
     "suppressImplicitAnyIndexErrors": true
   },
   "include": [
-    "numts/*.ts"
+    "numts/*.ts",
+    "prop_spec/*.ts",
+    "spec/*.ts"
   ],
   "exclude": [
     "node_modules/"

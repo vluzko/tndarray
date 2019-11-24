@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Typed n-dimensional arrays",
   "scripts": {
+    "prop": "jest prop_spec --config prop_spec/jest_config.json",
     "test": "jest",
     "debug": "node --inspect-brk $(which jest) --runInBand"
   },
@@ -25,8 +26,10 @@
     "typescript": "^3.5.3"
   },
   "devDependencies": {
+    "@types/node": "^12.7.12",
     "fast-check": "^1.16.0",
-    "jest": "^23.6.0"
+    "jest": "^23.6.0",
+    "python-shell": "^1.0.8"
   },
   "jest": {
     "verbose": false

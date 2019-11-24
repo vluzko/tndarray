@@ -99,6 +99,49 @@ describe('Constructors and factories.', function () {
     });
   });
 
+  describe("from_nested_array.", function () {
+
+    it("hand array.", function () {
+      let nested = [[[0, 1], [2, 3]], [[4, 5], [6, 7]]];
+      let tensor = numts.from_nested_array(nested);
+      expect(tensor.shape).toEqual(new Uint32Array([2, 2, 2]));
+      expect(tensor.g(0, 0, 0)).toBe(0);
+      expect(tensor.g(0, 0, 1)).toBe(1);
+      expect(tensor.g(0, 1, 0)).toBe(2);
+      expect(tensor.g(0, 1, 1)).toBe(3);
+      expect(tensor.g(1, 0, 0)).toBe(4);
+      expect(tensor.g(1, 0, 1)).toBe(5);
+      expect(tensor.g(1, 1, 0)).toBe(6);
+      expect(tensor.g(1, 1, 1)).toBe(7);
+
+    });
+
+    it("larger array", function () {
+      // Create nested array with dimensions 3 x 2 x 3 x 5
+      let nested = [1, 2, 3].map(
+        x => [x, x+1].map(
+          y => [y, y+1, y+2, y+3].map(
+            z => [y + 2, y+3, y+4, y+5, y+6]
+          ),
+        ),
+      );
+
+      let good_nested = numts.from_nested_array(nested);
+      expect(good_nested.shape).toEqual(new Uint32Array([3, 2, 4, 5]));
+      for (let indices of good_nested._iorder_index_iterator()) {
+        let expected = numts._nested_array_value_from_index(nested, indices);
+        let actual = good_nested.g(...indices);
+        expect(actual).toBe(expected, `index: ${indices}`);
+
+        expected = nested[indices[0]][indices[1]][indices[2]][indices[3]];
+        actual = good_nested.g(...indices);
+        expect(actual).toBe(expected, `index: ${indices}`);
+      }
+      expect(nested[0][0][0][0]).toBe(good_nested.g(0, 0, 0, 0));
+      expect(nested[2][0][0][0]).toBe(good_nested.g(2, 0, 0, 0));
+    });
+  });
+
   describe('to_nested_array.', function() {
     it('Basic.', function() {
       let x = numts.arange(10).reshape(2, 5);
