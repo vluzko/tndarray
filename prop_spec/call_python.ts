@@ -16,7 +16,7 @@ export function call_python(function_name: string, args: Array<string>, kwargs: 
 
   const command = `python ${FILE} ${function_name} ${arg_string} ${kwarg_string}`;
   const res = execSync(command);
-  console.log(res.toString());
+  return res;
 }
 
 // call_python('hello', [], new Map());

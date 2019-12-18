@@ -16,7 +16,9 @@ describe('Basic operations.', () => {
 
       const a_string = JSON.stringify(a.to_json());
       const b_string = JSON.stringify(b.to_json());
-      return numts_value !== undefined;
+      const py_str = call_python.call_python(op, [a_string, b_string])
+      const py_value = tensor.from_json(JSON.parse(py_str))
+      return numts.isclose(numts_value, py_value)
     };
     return f;
   }

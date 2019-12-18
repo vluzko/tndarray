@@ -14,7 +14,7 @@ function call_python(function_name, args, kwargs) {
     const kwarg_string = kwarg_array.join(' ');
     const command = `python ${FILE} ${function_name} ${arg_string} ${kwarg_string}`;
     const res = child_process_1.execSync(command);
-    console.log(res.toString());
+    return res;
 }
 exports.call_python = call_python;
 // call_python('hello', [], new Map());
