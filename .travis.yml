@@ -1,8 +1,9 @@
 notifications:
   email: false
 language: nodejs
+node_js:
+  - 13
 before_script:
-  - npm install
   - tsc
 script:
   - npm run test
