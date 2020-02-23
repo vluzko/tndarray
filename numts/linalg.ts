@@ -154,9 +154,13 @@ export function lu(a: tensor): [tensor, tensor] {
 /**
  * Calculate the QR decomposition of a matrix.
  * @param a - A matrix.
- * @param param1 - Options.
+ * @param options - Options.
  */
-export function qr(a: tensor , {just_r, algorithm} = {just_r: false, algorithm: 'givens'}) {
+export function qr(a: tensor , options = {just_r: false, algorithm: 'givens'}) {
+
+  const just_r = options.just_r === undefined ? false : options.just_r;
+  const algorithm = options.algorithm === undefined ? 'givens': options.algorithm;
+
   if (algorithm === 'givens') {
     return givens_qr(a);
   } else if (algorithm === 'householder') {

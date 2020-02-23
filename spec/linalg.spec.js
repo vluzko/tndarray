@@ -49,7 +49,7 @@ describe("Decompositions.", function() {
     describe('Givens QR.' ,function() {
       it('Basic test.', function() {
         const a = numts.arange(15).reshape(5, 3);
-        const [q, r] = linalg.givens_qr(a);
+        const [q, r] = linalg.qr(a);
         const prod = tensor.matmul_2d(q, r);
         
         expect(numts.isclose(a, prod).all()).toBe(true);
@@ -58,7 +58,7 @@ describe("Decompositions.", function() {
       it('Property based test.', function() {
         function f(a) {
           const [m, ] = a.shape;
-          const [q, r] = linalg.givens_qr(a);
+          const [q, r] = linalg.qr(a);
 
           // Check that q is orthogonal
           const t = q.transpose();
@@ -85,7 +85,7 @@ describe("Decompositions.", function() {
           [5, 10, 15]
         ])
         const [m, ] = a.shape;
-        const [q, r] = linalg.householder_qr(a);
+        const [q, r] = linalg.qr(a, {algorithm: 'householder'});
         const prod = tensor.matmul_2d(q, r);
 
         const inv_prod = tensor.matmul_2d(q, q.transpose());
@@ -97,7 +97,7 @@ describe("Decompositions.", function() {
       it('Property based test.', function() {
         function f(a) {
           const [m, ] = a.shape;
-          const [q, r] = linalg.householder_qr(a);
+          const [q, r] = linalg.qr(a, {algorithm: 'householder'});
 
           // Check that q is orthogonal
           const t = q.transpose();
@@ -120,7 +120,7 @@ describe("Decompositions.", function() {
             [0, 0.03880476951599121],
             [0.9937839508056641, 0.5671613216400146]
           ]);
-          const [q, r] = linalg.householder_qr(a);
+          const [q, r] = linalg.qr(a, {algorithm: 'householder'});
           
           const inv_prod = tensor.matmul_2d(q, q.transpose());
           expect(numts.isclose(inv_prod, tensor.eye(2)).all()).toBe(true);
@@ -135,7 +135,7 @@ describe("Decompositions.", function() {
             [0.7647293210029602, 0.32188379764556885],
             [0.3959425091743469, 0.7986384630203247]
           ]);
-          const [q, r] = linalg.householder_qr(a);
+          const [q, r] = linalg.qr(a, {algorithm: 'householder'});
           
           const inv_prod = tensor.matmul_2d(q, q.transpose());
           expect(numts.isclose(inv_prod, tensor.eye(3)).all()).toBe(true);
