@@ -105,7 +105,14 @@ export function inv(a: tensor): tensor {
  * @param a - A matrix.
  */
 export function svd(a: tensor): [tensor, tensor, tensor] {
-  throw new Error();
+  if (! is_matrix(a)) {
+    throw new Error(`Can only calculate SVD for square matrices.`);
+  } else {
+    const m = a.shape[0];
+    const n = a.shape[1];
+
+    throw new Error();
+  }
 }
 
 /**
@@ -144,10 +151,25 @@ export function lu(a: tensor): [tensor, tensor] {
   return [lower, upper];
 }
 
-export function qr(a: tensor) {
-
+/**
+ * Calculate the QR decomposition of a matrix.
+ * @param a - A matrix.
+ * @param param1 - Options.
+ */
+export function qr(a: tensor , {just_r, algorithm} = {just_r: false, algorithm: 'givens'}) {
+  if (algorithm === 'givens') {
+    return givens_qr(a);
+  } else if (algorithm === 'householder') {
+    return householder_qr(a);
+  } else {
+    throw new Error(`Unknown algorithm "${algorithm}"`);
+  }
 }
 
+/**
+ * Calculate the Cholesky decomposition of a matrix.
+ * @param a - A matrix.
+ */
 export function chol(a: tensor) {
 
 }
@@ -156,7 +178,7 @@ export function rank(a: tensor) {
     
 }
 
-export function householder_qr(A: tensor) {
+function householder_qr(A: tensor) {
   const [m, n] = A.shape;
   let Q = tensor.eye(m);
   let R = tensor.copy(A, 'float64');
@@ -199,7 +221,7 @@ export function householder_qr(A: tensor) {
   return [Q, R];
 }
 
-export function givens_qr(A: tensor): [tensor, tensor] {
+function givens_qr(A: tensor): [tensor, tensor] {
   const [m, n] = A.shape;
   let Q = null;
   let R = A;
