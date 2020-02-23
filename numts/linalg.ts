@@ -42,6 +42,10 @@ export function is_square(a: tensor): boolean {
   return a.shape.length === 2 && a.shape[0] === a.shape[1];
 }
 
+/**
+ * Calculate the L1 norm of a tensor.
+ * @param a - A tensor.
+ */
 export function l1(a: tensor) {
   if (is_vector(a)) {
     return a.reduce((x, y) => x + Math.abs(y), 0);
@@ -72,10 +76,18 @@ export function l2(a: tensor): number {
   }
 }
 
+/**
+ * Calculate the L_infinity norm of a tensor.
+ * @param a - A tensor
+ */
 export function linf(a: tensor) {
 
 }
 
+/**
+ * Calculate the Frobenius norm of a tensor.
+ * @param a - A tensor.
+ */
 export function fnorm(a: tensor) {
 
 }
@@ -88,6 +100,10 @@ export function inv(a: tensor): tensor {
   throw new Error();
 }
 
+/**
+ * Calculate the singular valud decomposition of a matrix.
+ * @param a - A matrix.
+ */
 export function svd(a: tensor): [tensor, tensor, tensor] {
   throw new Error();
 }
