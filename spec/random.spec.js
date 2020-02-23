@@ -1,5 +1,4 @@
 let random = require("../numts/random");
-let helpers = require("./helpers");
 
 describe("Uniform distribution.", function() {
   describe("Shape tests", function() {
