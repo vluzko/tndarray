@@ -19,11 +19,11 @@ describe('Decompositions.', () => {
                 const t = q.transpose();
                 const inv_prod = tensor.matmul_2d(q, t);
                 const expected = tensor.eye(m);
-                expect(numts.isclose(inv_prod, expected).all()).toBe(true);
+                expect(inv_prod.is_close(expected).all()).toBe(true);
     
                 // Check that the product is correct
                 const qr_prod = tensor.matmul_2d(q, r);
-                expect(numts.isclose(qr_prod, a).all()).toBe(true);
+                expect(qr_prod.is_close(a).all()).toBe(true);
             }
             helpers.check_matrix(f, 'thin');
         });
@@ -39,11 +39,11 @@ describe('Decompositions.', () => {
                 const t = q.transpose();
                 const inv_prod = tensor.matmul_2d(q, t);
                 const expected = tensor.eye(m);
-                if (!numts.isclose(inv_prod, expected).all()) throw new Error('Inverse prod not identity')
+                if (!inv_prod.is_close(expected).all()) throw new Error('Inverse prod not identity')
             
                 // Check that the product is correct
                 const qr_prod = tensor.matmul_2d(q, r);
-                if (!numts.isclose(qr_prod, a).all()) throw new Error('qr not original.')
+                if (!qr_prod.is_close(a).all()) throw new Error('qr not original.')
             }
             helpers.check_matrix(f, 'thin');
         });

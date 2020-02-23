@@ -13,19 +13,19 @@ export function where(condition, a, b?) {
   throw new Error();
 }
 
-/**
- *  Return an array of booleans. Each entry is whether the corresponding entries in a and b are numerically close. The arrays will be broadcasted. 
- * @param a - First array to compare.
- * @param b - Second array to compare. 
- * @param rel_tol - The maximum relative error.
- * @param abs_tol - The maximum absolute error.
- */
-export function isclose(a: tensor, b: tensor, rel_tol: number = 1e-5, abs_tol: number = 1e-8): tensor {
-    const compare = (x: number, y: number): number => {
-        return +(Math.abs(x - y) <= abs_tol + (rel_tol * Math.abs(y)));
-    }
-    return tensor._binary_broadcast(a, b, compare);
-}
+// /**
+//  *  Return an array of booleans. Each entry is whether the corresponding entries in a and b are numerically close. The arrays will be broadcasted. 
+//  * @param a - First array to compare.
+//  * @param b - Second array to compare. 
+//  * @param rel_tol - The maximum relative error.
+//  * @param abs_tol - The maximum absolute error.
+//  */
+// export function isclose(a: tensor, b: tensor, rel_tol: number = 1e-5, abs_tol: number = 1e-8): tensor {
+//     const compare = (x: number, y: number): number => {
+//         return +(Math.abs(x - y) <= abs_tol + (rel_tol * Math.abs(y)));
+//     }
+//     return tensor._binary_broadcast(a, b, compare);
+// }
 
 // TODO: Allow non-tensor arrays
 // TODO: Type upcasting.

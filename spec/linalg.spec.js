@@ -39,8 +39,8 @@ describe('Decompositions.', () =>  {
         [0, 0, -2, 3],
         [0, 0, 0, 9/4]
       ])
-      expect(numts.isclose(exp_l, l));
-      expect(numts.isclose(exp_u, u));
+      expect(exp_l.is_close(l));
+      expect(exp_u.is_close(u));
     });
   });
 
@@ -51,7 +51,7 @@ describe('Decompositions.', () =>  {
         const [q, r] = linalg.qr(a);
         const prod = tensor.matmul_2d(q, r);
         
-        expect(numts.isclose(a, prod).all()).toBe(true);
+        expect(a.is_close(prod).all()).toBe(true);
       });
     });
 
@@ -70,8 +70,8 @@ describe('Decompositions.', () =>  {
 
         const inv_prod = tensor.matmul_2d(q, q.transpose());
         const expected = tensor.eye(m);
-        expect(numts.isclose(inv_prod, expected).all()).toBe(true);
-        expect(numts.isclose(a, prod).all()).toBe(true);
+        expect(inv_prod.is_close(expected).all()).toBe(true);
+        expect(a.is_close(prod).all()).toBe(true);
       });
 
       describe('From failures.', () =>  {
@@ -84,9 +84,9 @@ describe('Decompositions.', () =>  {
           const [q, r] = linalg.qr(a, {algorithm: 'householder'});
           
           const inv_prod = tensor.matmul_2d(q, q.transpose());
-          expect(numts.isclose(inv_prod, tensor.eye(2)).all()).toBe(true);
+          expect(inv_prod.is_close(tensor.eye(2)).all()).toBe(true);
           const qr_prod = tensor.matmul_2d(q, r);
-          expect(numts.isclose(qr_prod, a).all()).toBe(true);
+          expect(qr_prod.is_close(a).all()).toBe(true);
         });
 
         // Failure doesn't repeat.
@@ -99,9 +99,9 @@ describe('Decompositions.', () =>  {
           const [q, r] = linalg.qr(a, {algorithm: 'householder'});
           
           const inv_prod = tensor.matmul_2d(q, q.transpose());
-          expect(numts.isclose(inv_prod, tensor.eye(3)).all()).toBe(true);
+          expect(inv_prod.is_close(tensor.eye(3)).all()).toBe(true);
           const qr_prod = tensor.matmul_2d(q, r);
-          expect(numts.isclose(qr_prod, a).all()).toBe(true);
+          expect(qr_prod.is_close(a).all()).toBe(true);
         });
       });
     });
