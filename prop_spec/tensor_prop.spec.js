@@ -8,6 +8,10 @@ const helpers = require('./helpers');
 //   // const ret = call_python.call_python()
 // });
 
+describe('Constructors.', () => {
+  
+})
+
 describe('Basic operations.', () => {
 
   function check_op(op) {
