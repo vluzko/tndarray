@@ -118,14 +118,3 @@ describe("Unary methods.", function () {
   });
 
 });
-
-describe('Utilities.', function() {
-  describe('isclose.', function() {
-    it('Exact match.', function() {
-      const a = numts.arange(5);
-      const b = numts.arange(5);
-      const close = numts.isclose(a, b);
-      expect(close.all()).toBe(true);
-    })
-  })
-});

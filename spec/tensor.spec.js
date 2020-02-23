@@ -1,6 +1,7 @@
-let z = require('../numts/tensor');
-let numts = require('../numts/numts');
-let tensor = numts.tensor;
+const z = require('../numts/tensor');
+const numts = require('../numts/numts');
+const tensor = numts.tensor;
+const utils = require('../numts/utils').utils;
 
 describe('Constructors and factories.', function () {
   describe('Shapes.', function () {
@@ -129,7 +130,7 @@ describe('Constructors and factories.', function () {
       let good_nested = numts.from_nested_array(nested);
       expect(good_nested.shape).toEqual(new Uint32Array([3, 2, 4, 5]));
       for (let indices of good_nested._iorder_index_iterator()) {
-        let expected = numts._nested_array_value_from_index(nested, indices);
+        let expected = utils._nested_array_value_from_index(nested, indices);
         let actual = good_nested.g(...indices);
         expect(actual).toBe(expected, `index: ${indices}`);
 
