@@ -110,12 +110,12 @@ export function inv(a: tensor): tensor {
 export function svd(a: tensor): [tensor, tensor, tensor] {
     if (!is_matrix(a)) {
         throw new Error(`Can only calculate SVD for square matrices.`);
-    } else {
-        const m = a.shape[0];
-        const n = a.shape[1];
+    } 
+    const m = a.shape[0];
+    const n = a.shape[1];
 
-        throw new Error();
-    }
+    const b = householder_bidiagonal(a);
+    throw new Error();
 }
 
 /**
@@ -243,6 +243,10 @@ function householder_qr(A: tensor) {
 
     }
     return [Q, R];
+}
+
+function householder_bidiagonal(a: tensor) {
+    throw new Error();
 }
 
 function pivoted_householder(a: tensor): [tensor, Uint32Array] {
