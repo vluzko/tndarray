@@ -245,7 +245,7 @@ function householder_qr(A: tensor) {
     return [Q, R];
 }
 
-function pivoted_householder(a: tensor): [tensor, tensor] {
+function pivoted_householder(a: tensor): [tensor, Uint32Array] {
     if (!is_matrix(a)) {
         throw new Error()
     }
@@ -260,8 +260,10 @@ function pivoted_householder(a: tensor): [tensor, tensor] {
     for (let i = 0; i < n; i++) {
         const l = a.slice(null, i);
         c[i] = l.dot(l)
-        tau = c[i] >= tau? c[i] : tau;
-        k = i;
+        if (c[i] >= tau) {
+            tau = c[i];
+            k = i;
+        }
     }
     let r = 0;
     while (tau > 0 && r < n) {
@@ -278,9 +280,20 @@ function pivoted_householder(a: tensor): [tensor, tensor] {
         c[r] = c_k;
 
         const [v, b] = householder_vector(a.slice([r, null], r));
-        
+        const h = construct_householder_matrix(v, b);
+        const vals = tensor.matmul_2d(h, a.slice([r, null], [r, null]));
+        a.s(vals, [r, null], [r, null]);
+        a.s(v.slice([1, m - r + 1]), [r+1, null], r);
+        tau = Number.MIN_VALUE;
+        for (let j = r+1 ; j < n; j++) {
+            c[j] = c[j] - Math.pow(a.g(r, j), 2);
+            if (c[j] > tau) {
+                tau = c[j];
+                k = j;
+            }
+        }
     }
-    throw new Error();
+    return [a, pivot];
 }
 
 /**
