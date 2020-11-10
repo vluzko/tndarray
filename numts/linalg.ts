@@ -114,7 +114,14 @@ export function svd(a: tensor): [tensor, tensor, tensor] {
     const m = a.shape[0];
     const n = a.shape[1];
 
+    // Express A as U_1 x B x V_1
     const b = householder_bidiagonal(a);
+
+    // Convert b to diagonal form U x Sigma x V
+
+    // Express A as U_1 U_k Sigma V_k V_1
+
+    // U_1 U_k and V_k V_1 are U and V respectively
     throw new Error();
 }
 
