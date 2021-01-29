@@ -253,14 +253,16 @@ function householder_qr(A: tensor) {
 }
 
 /**
- * Zero out a column of a using a Householder transformation.
+ * Calculate the vector required to create a Householder transform.
+ * Based on the algorithm given in Burden and Faires, Chapter 9.
+ * Note that only the *non-zero* entries of the w vector are returned, since these
+ * are all that is required to calculate the Householder matrix.
  * @param a - The matrix to transform. Transformation is done in place.
  * @param i - The row index of the pivot.
  * @param j - The column index of the pivot.
  */
-export function householder_col_transform(a: tensor, i: number, j: number): tensor {
-    // Calculate the vector to reflect around.
-    const lower_column = a.slice([i, null], [j, j + 1]);
+export function householder_vector(a: tensor, i: number, j: number): tensor {
+    let lower_column = tensor.copy(a.slice([i, null], [j, j + 1]));
     // @ts-ignore
     const norm = l2(lower_column);
     // If the norm is already very close to zero, the column is already zeroed.
@@ -268,26 +270,13 @@ export function householder_col_transform(a: tensor, i: number, j: number): tens
         throw new Error();
     } else {
         const pivot: number = a.g(i, j);
-        const s: number = pivot >= 0 ? 1 : -1;
-        const u1: number = pivot + s * norm;
-        const normalized: tensor = lower_column.div(u1);
-        normalized.s(1, 0);
-        const tau: number = s * u1 / norm;
-        const tauw = normalized.mult(tau);
+        const sign: number = pivot >= 0 ? 1 : -1;
+        const alpha = -sign * norm;
+        const r = Math.sqrt(0.5 * alpha - 0.5 * pivot * alpha);
+        lower_column.s([0, 0], lower_column.g(0, 0) - alpha);
+        lower_column.s([null, null], lower_column.div(2 * r));
 
-        // Update R
-        const r_block = a.slice([i, null], null);
-        const temp1 = tensor.matmul_2d(normalized.transpose(), r_block);
-        const temp2 = tensor.matmul_2d(tauw, temp1);
-        const r_diff = r_block.sub(temp2);
-        a.s(r_diff, [i, null], null);
-
-        // Update Q
-        // const q_block = Q.slice(null, [j, null]);
-        // const matmul = tensor.matmul_2d(q_block, normalized);
-        // const temp3 = tensor.matmul_2d(matmul, tauw.transpose());
-        // const q_diff = q_block.sub(temp3);
-        return a;
+        return lower_column;
     }
 }
 
@@ -296,54 +285,55 @@ function householder_bidiagonal(a: tensor) {
 }
 
 function pivoted_householder(a: tensor): [tensor, Uint32Array] {
-    if (!is_matrix(a)) {
-        throw new Error()
-    }
-    
-    const [m, n] = a.shape;
-    let c = [];
-    // Stores the permutation matrix.
-    // The final permutation matrix is the identity matrix with row j and row pivot[j] swapped.
-    let pivot = new Uint32Array(m);
-    let tau = Number.MIN_VALUE;
-    let k;
-    for (let i = 0; i < n; i++) {
-        const l = a.slice(null, i);
-        c[i] = l.dot(l)
-        if (c[i] >= tau) {
-            tau = c[i];
-            k = i;
-        }
-    }
-    let r = 0;
-    while (tau > 0 && r < n) {
-        pivot[r] = k;
-        // Swap the chosen columns
-        const col_r = a.slice(null, r);
-        // Set column r to column k
-        a.s(a.slice(null, k), null, r)
-        // Set column k to column
-        a.s(col_r, null, k);
+    throw new Error();
+    // if (!is_matrix(a)) {
+    //     throw new Error()
+    // }
 
-        const c_k = c[k];
-        c[k] = c[r];
-        c[r] = c_k;
+    // const [m, n] = a.shape;
+    // let c = [];
+    // // Stores the permutation matrix.
+    // // The final permutation matrix is the identity matrix with row j and row pivot[j] swapped.
+    // let pivot = new Uint32Array(m);
+    // let tau = Number.MIN_VALUE;
+    // let k;
+    // for (let i = 0; i < n; i++) {
+    //     const l = a.slice(null, i);
+    //     c[i] = l.dot(l)
+    //     if (c[i] >= tau) {
+    //         tau = c[i];
+    //         k = i;
+    //     }
+    // }
+    // let r = 0;
+    // while (tau > 0 && r < n) {
+    //     pivot[r] = k;
+    //     // Swap the chosen columns
+    //     const col_r = a.slice(null, r);
+    //     // Set column r to column k
+    //     a.s(a.slice(null, k), null, r)
+    //     // Set column k to column
+    //     a.s(col_r, null, k);
 
-        const [v, b] = householder_vector(a.slice([r, null], r));
-        const h = construct_householder_matrix(v, b);
-        const vals = tensor.matmul_2d(h, a.slice([r, null], [r, null]));
-        a.s(vals, [r, null], [r, null]);
-        a.s(v.slice([1, m - r + 1]), [r+1, null], r);
-        tau = Number.MIN_VALUE;
-        for (let j = r+1 ; j < n; j++) {
-            c[j] = c[j] - Math.pow(a.g(r, j), 2);
-            if (c[j] > tau) {
-                tau = c[j];
-                k = j;
-            }
-        }
-    }
-    return [a, pivot];
+    //     const c_k = c[k];
+    //     c[k] = c[r];
+    //     c[r] = c_k;
+
+    //     const [v, b] = householder_vector(a.slice([r, null], r));
+    //     const h = construct_householder_matrix(v, b);
+    //     const vals = tensor.matmul_2d(h, a.slice([r, null], [r, null]));
+    //     a.s(vals, [r, null], [r, null]);
+    //     a.s(v.slice([1, m - r + 1]), [r+1, null], r);
+    //     tau = Number.MIN_VALUE;
+    //     for (let j = r+1 ; j < n; j++) {
+    //         c[j] = c[j] - Math.pow(a.g(r, j), 2);
+    //         if (c[j] > tau) {
+    //             tau = c[j];
+    //             k = j;
+    //         }
+    //     }
+    // }
+    // return [a, pivot];
 }
 
 /**
@@ -361,14 +351,6 @@ function construct_householder_matrix(v: tensor, b: number) {
     let scaled = squared.mult(b);
 
     return matrix.sub(scaled);
-}
-
-/**
- * 
- * @param a - The matrix to compute.
- */
-function householder_vector(a: tensor): [tensor, number] {
-    throw new Error();
 }
 
 //#endregion Householder QR
