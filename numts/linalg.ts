@@ -252,6 +252,45 @@ function householder_qr(A: tensor) {
     return [Q, R];
 }
 
+/**
+ * Zero out a column of a using a Householder transformation.
+ * @param a - The matrix to transform. Transformation is done in place.
+ * @param i - The row index of the pivot.
+ * @param j - The column index of the pivot.
+ */
+export function householder_col_transform(a: tensor, i: number, j: number): tensor {
+    // Calculate the vector to reflect around.
+    const lower_column = a.slice([i, null], [j, j + 1]);
+    // @ts-ignore
+    const norm = l2(lower_column);
+    // If the norm is already very close to zero, the column is already zeroed.
+    if (norm < 1e-14) {
+        throw new Error();
+    } else {
+        const pivot: number = a.g(i, j);
+        const s: number = pivot >= 0 ? 1 : -1;
+        const u1: number = pivot + s * norm;
+        const normalized: tensor = lower_column.div(u1);
+        normalized.s(1, 0);
+        const tau: number = s * u1 / norm;
+        const tauw = normalized.mult(tau);
+
+        // Update R
+        const r_block = a.slice([i, null], null);
+        const temp1 = tensor.matmul_2d(normalized.transpose(), r_block);
+        const temp2 = tensor.matmul_2d(tauw, temp1);
+        const r_diff = r_block.sub(temp2);
+        a.s(r_diff, [i, null], null);
+
+        // Update Q
+        // const q_block = Q.slice(null, [j, null]);
+        // const matmul = tensor.matmul_2d(q_block, normalized);
+        // const temp3 = tensor.matmul_2d(matmul, tauw.transpose());
+        // const q_diff = q_block.sub(temp3);
+        return a;
+    }
+}
+
 function householder_bidiagonal(a: tensor) {
     throw new Error();
 }
@@ -330,45 +369,6 @@ function construct_householder_matrix(v: tensor, b: number) {
  */
 function householder_vector(a: tensor): [tensor, number] {
     throw new Error();
-}
-
-/**
- * Transform a column of `a`
- * @param a - The matrix to reflect.
- * @param i - The row index of the pivot.
- * @param j - The column index of the pivot.
- */
-function householder_transform(a: tensor, i:number, j: number) {
-//     // Calculate the vector to reflect around.
-//     const lower_column = a.slice([j, null], [j, j + 1]);
-//     // @ts-ignore
-//     const norm = l2(lower_column);
-//     // If the norm is already very close to zero, the column is already
-//     if (norm < 1e-14) {
-//         throw new Error();
-//     } else {
-//         const pivot: number = R.g(j, j);
-//         const s: number = pivot >= 0 ? 1 : -1;
-//         const u1: number = pivot + s * norm;
-//         const normalized: tensor = lower_column.div(u1);
-//         normalized.s(1, 0);
-//         const tau: number = s * u1 / norm;
-//         const tauw = normalized.mult(tau);
-
-//         // Update R
-//         const r_block = a.slice([j, null], null);
-//         const temp1 = tensor.matmul_2d(normalized.transpose(), r_block);
-//         const temp2 = tensor.matmul_2d(tauw, temp1);
-//         const r_diff = r_block.sub(temp2);
-//         a.s(r_diff, [j, null], null);
-
-//         // Update Q
-//         const q_block = Q.slice(null, [j, null]);
-//         const matmul = tensor.matmul_2d(q_block, normalized);
-//         const temp3 = tensor.matmul_2d(matmul, tauw.transpose());
-//         const q_diff = q_block.sub(temp3);
-        
-//     }
 }
 
 //#endregion Householder QR

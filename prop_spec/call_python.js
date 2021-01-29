@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.call_python = void 0;
 const child_process_1 = require("child_process");
 const FILE = `${__dirname}/numpy_tests.py`;
 function call_python(function_name, args, kwargs) {
