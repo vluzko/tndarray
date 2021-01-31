@@ -907,3 +907,24 @@ describe('Method constructors.', function() {
     });
   });
 })
+
+describe('Static methods.', () => {
+    describe('Copy.', () => {
+
+        describe('Previous breaks.', () => {
+            fit('householder_vector break. 2021-01-30.', () => {
+                // Source: copy doesn't copy the initial offset. Issue #178.
+                const a = numts.from_nested_array([
+                    [1, 6,  11],
+                    [2, 7, 12],
+                    [3, 8, 13],
+                    [4, 9, 14],
+                    [5, 10, 15]
+                ]);
+                const s = a.slice([1, null], [0, 1]);
+                const cp = tensor.copy(s);
+                expect(s.equals(cp)).toBe(true);
+            })
+        })
+    })
+})

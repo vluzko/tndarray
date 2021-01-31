@@ -1312,7 +1312,7 @@ export class tensor {
         }
         const array_type = utils.dtype_map(dtype);
         const new_data = new array_type(a.data.slice(0));
-        return new tensor(new_data, a.shape.slice(0), a.offset.slice(0), a.stride.slice(0), a.dstride.slice(0), a.length, new_type);
+        return new tensor(new_data, a.shape.slice(0), a.offset.slice(0), a.stride.slice(0), a.dstride.slice(0), a.length, new_type, a.is_view, a.initial_offset);
     }
 
     //#region CONSTRUCTORS
