@@ -102,10 +102,10 @@ describe('Decompositions.', () =>  {
                     [4, 9, 14],
                     [5, 10, 15]
                 ]);
-                const [v, b] = linalg.householder_vector(a, 1, 0);
+                const [v, b] = linalg.householder_col_vector(a, 1, 0);
                 expect(v.shape[0]).toBe(4);
                 expect(v.shape[1]).toBe(1)
-                const q = linalg.full_h_column_matrix(v, 5, b);
+                const q = linalg.full_h_col_matrix(v, 5, b);
                 const prod = tensor.matmul_2d(q, a);
                 const close = prod.slice([2, null], 0).is_close(numts.zeros(3));
                 expect(close.all()).toBe(true);
@@ -139,24 +139,25 @@ describe('Decompositions.', () =>  {
                     [5, 10, 15, 20]
                 ]);
                 const [v1, b1] = linalg.householder_row_vector(a, 0, 1);
-                const [v2, b2] = linalg.householder_vector(a.transpose(), 1, 0);
+                const [v2, b2] = linalg.householder_col_vector(a.transpose(), 1, 0);
                 const q1 = linalg.full_h_row_matrix(v1, 4, b1);
-                const q2 = linalg.full_h_column_matrix(v2, 4, b2);
+                const q2 = linalg.full_h_col_matrix(v2, 4, b2);
                 expect(q1.is_close(q2).all()).toBe(true);
             })
         })
 
         describe('Householder bidiagonal', () => {
-            it('Basic test.', () => {
+
+            fit('Basic test.', () => {
                 const a = numts.from_nested_array([
-                    [1, 6,  11],
-                    [2, 7, 12],
-                    [3, 8, 13],
-                    [4, 9, 14],
-                    [5, 10, 15]
+                    [1, 6,  11, 16],
+                    [2, 7, 12, 17],
+                    [3, 8, 13, 0.5],
+                    [4, 9, 14, 0.1],
+                    [5, 10, 15, 100]
                 ]);
                 let [u, s, v] = linalg.householder_bidiagonal(a);
-                console.log(s);
+                console.log(s.to_nested_array())
             })
         })
 
