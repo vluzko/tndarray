@@ -446,6 +446,56 @@ export function householder_bidiagonal(original: tensor): [tensor, tensor, tenso
     return [u, a, v];
 }
 
+/**
+ * Compute a Householder upper diagonalization.
+ */
+export function householder_upper_diag(original: tensor): [tensor, tensor, tensor] {
+    let a = tensor.copy(original);
+    const [m, n] = a.shape;
+    if (m < n) {throw new Error(`SVD needs a tall triangular matrix. Got (${m}, ${n})`);}
+
+    let u = tensor.eye(m);
+    let v = tensor.eye(n);
+
+    for (let col = 0; col < n; col++) {
+
+        // Zero out the column.
+        const [w, beta] = householder_col_vector(a, col, col);
+        // TODO: Optimization: This can be optimized by just iterating over the transpose.
+        const w_square = tensor.matmul_2d(w, w.transpose()).mult(beta);
+        // Householder matrix to zero out col.
+        // TODO: Optimization: Compute the Householder matrix as it's being created.
+        let householder_matrix = tensor.eye(m - col);
+        const householder_slice = householder_matrix.slice([1, null], [1, null]);
+        householder_matrix.s(householder_slice.sub(w_square), [1, null], [1, null])
+        const a_col_slice = a.slice([col, null], [col, null]);
+        const lower_slice = tensor.matmul_2d(householder_matrix, a_col_slice);
+        a.s(lower_slice, [col, null], [col, null]);
+
+        // Update U
+        const u_update = tensor.matmul_2d(householder_matrix, u.slice([col, null], [col, null]));
+        u.s(u_update, [col, null], [col, null]);
+
+        // Zero out the row.
+        if (col <= n - 2) {
+            const [w, beta] = householder_row_vector(a, col, col+1);
+            const w_square = tensor.matmul_2d(w.transpose(), w).mult(beta);
+            let householder_matrix = tensor.eye(n - col);
+            const householder_slice = householder_matrix.slice([1, null], [1, null]);
+            householder_matrix.s(householder_slice.sub(w_square), [1, null], [1, null])
+            const a_col_slice = a.slice([col, null], [col, null]);
+            const lower_slice = tensor.matmul_2d(a_col_slice, householder_matrix);
+            a.s(lower_slice, [col, null], [col, null]);
+
+            // Update V
+            const v_update = tensor.matmul_2d(v.slice([col, null], [col, null]), householder_matrix);
+            v.s(v_update, [col, null], [col, null]);
+        }
+    }
+
+    return [u, a, v];
+}
+
 function pivoted_householder(a: tensor): [tensor, Uint32Array] {
     throw new Error();
     // if (!is_matrix(a)) {
