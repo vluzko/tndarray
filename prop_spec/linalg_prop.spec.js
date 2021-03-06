@@ -56,6 +56,17 @@ describe('Decompositions.', () => {
             helpers.check_matrix(f, 'thin');
         });
 
+        describe('Householder column vectors.', function() {
+            test('Thin matrices.', function() {
+                function f(a) {
+                    const [m, _] = a.shape;
+                    const v = linalg.householder_vector(a, 1, 0);
+                    expect(v.shape[0]).toBe(m-1);
+                    expect(v.shape[1]).toBe(1);
+                }
+            })
+        })
+
         describe('Householder transforms.', () => {
             test('Thin matrices.', function() {
                 function f(a) {

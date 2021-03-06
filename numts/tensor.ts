@@ -107,7 +107,14 @@ export class tensor {
 
     argsort() { }
 
-    as_type(dtype: string) { }
+    /**
+     * Return a copy of the tensor cast to the specified type.
+     */
+    as_type(dtype: string): tensor {
+        const array_type = utils.dtype_map(dtype);
+        const new_data = new array_type(this.data.slice(0));
+        return new tensor(new_data, this.shape.slice(0), this.offset.slice(0), this.stride.slice(0), this.dstride.slice(0), this.length, dtype, this.is_view, this.initial_offset);
+    }
 
     /**
      * Clip all values in the array to be in the specified range.
@@ -1303,16 +1310,9 @@ export class tensor {
      * @param {tensor} a  - tensor to copy.
      * @return {tensor}   - The copy.
      */
-    static copy(a: tensor, dtype?: string): tensor {
-        let new_type;
-        if (dtype === undefined) {
-            new_type = a.dtype;
-        } else {
-            new_type = dtype;
-        }
-        const array_type = utils.dtype_map(dtype);
-        const new_data = new array_type(a.data.slice(0));
-        return new tensor(new_data, a.shape.slice(0), a.offset.slice(0), a.stride.slice(0), a.dstride.slice(0), a.length, new_type, a.is_view, a.initial_offset);
+    static copy(a: tensor): tensor {
+        const new_data = a.data.slice(0);
+        return new tensor(new_data, a.shape.slice(0), a.offset.slice(0), a.stride.slice(0), a.dstride.slice(0), a.length, a.dtype, a.is_view, a.initial_offset);
     }
 
     //#region CONSTRUCTORS

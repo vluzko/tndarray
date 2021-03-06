@@ -75,7 +75,7 @@ describe('Decompositions.', () =>  {
         });
 
         describe('Householder transformations', () => {
-            fit('Basic test.', () => {
+            it('Basic test.', () => {
                 const a = numts.from_nested_array([
                     [1, 6,  11],
                     [2, 7, 12],
@@ -85,6 +85,41 @@ describe('Decompositions.', () =>  {
                 ]);
                 const q = linalg.householder_col_transform(a, 3, 0);
                 console.log(q);
+            });
+
+
+        })
+
+        describe('Householder vector and matrix.', () => {
+            it('Column test.', () => {
+                const a = numts.from_nested_array([
+                    [1, 6,  11],
+                    [2, 7, 12],
+                    [3, 8, 13],
+                    [4, 9, 14],
+                    [5, 10, 15]
+                ]);
+                const [v, b] = linalg.householder_vector(a, 1, 0);
+                expect(v.shape[0]).toBe(4);
+                expect(v.shape[1]).toBe(1)
+                const q = linalg.full_householder_matrix(v, 5, b);
+                const prod = tensor.matmul_2d(q, a);
+                const close = prod.slice([2, null], 0).is_close(numts.zeros(3));
+                expect(close.all()).toBe(true);
+            })
+        })
+
+        describe('Householder bidiagonal', () => {
+            it('Basic test.', () => {
+                const a = numts.from_nested_array([
+                    [1, 6,  11],
+                    [2, 7, 12],
+                    [3, 8, 13],
+                    [4, 9, 14],
+                    [5, 10, 15]
+                ]);
+                let [u, s, v] = linalg.householder_bidiagonal(a);
+                console.log(s);
             })
         })
 

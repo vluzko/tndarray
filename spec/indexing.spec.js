@@ -344,7 +344,7 @@ describe('slice.', function () {
     expect([...slice._iorder_value_iterator()]).toEqual([1, 5, 9, 13, 17, 21]);
   });
 
-  describe('previous breaks.', function () {
+  describe('from failures.', function () {
     it('broadcast_matmul break.', function () {
       const a = numts.arange(24).reshape(2, 3, 4);
       const slice = a.slice(...[1]);

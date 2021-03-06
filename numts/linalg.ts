@@ -212,7 +212,7 @@ export function sym_qr(a: tensor): [tensor, tensor] {
 function householder_qr(A: tensor) {
     const [m, n] = A.shape;
     let Q = tensor.eye(m);
-    let R = tensor.copy(A, 'float64');
+    let R = A.as_type('float64');
     if (m === 1 && n === 1) {
         return [Q, R];
     }
@@ -251,9 +251,113 @@ function householder_qr(A: tensor) {
     }
     return [Q, R];
 }
+// def make_house_vec(x):
+//     n = x.shape[0]
+//     dot_1on = x[1:].dot(x[1:])
+
+//     # v is our return vector; we hack on v[0]
+//     v = np.copy(x)
+//     v[0] = 1.0
+
+//     if dot_1on < np.finfo(float).eps:
+//         beta = 0.0
+//     else:
+//         # apply Parlett's formula (G&vL page 210) for safe v_0 = x_0 - norm(X)
+//         norm_x= np.sqrt(x[0]**2 + dot_1on)
+//         if x[0] <= 0:
+//             v[0] = x[0] - norm_x
+//         else:
+//             v[0] = -dot_1on / (x[0] + norm_x)
+//         beta = 2 * v[0]**2 / (dot_1on + v[0]**2)
+//         v = v / v[0]
+//     return v, beta
 
 /**
  * Calculate the vector required to create a Householder transform.
+ * Note that only the *non-zero* entries of the w vector are returned, since these
+ * are all that is required to calculate the Householder matrix.
+ * Algorithm 5.1.1 in Golub & van Loan, 4th Edition.
+ * @param a - The matrix to transform. Transformation is done in place.
+ * @param i - The row index of the pivot.
+ * @param j - The column index of the pivot.
+ */
+export function householder_vector(a: tensor, i: number, j: number): [tensor, number] {
+    let lower_column = tensor.copy(a.slice([i, null], [j, j + 1]));
+    const pivot: number = a.g(i, j);
+    // We skip the call to the L2 because it's slower.
+    // We subtract pivot^2 at the end because it should be faster to recompute the squared value
+    // than to construct a slice starting at an offset.
+    const sigma = <number>lower_column.reduce((x, y) => x + Math.pow(y, 2), 0) - Math.pow(pivot, 2);
+    // lower_column.s(1.0, 0, 0);
+    let beta: number;
+    // If the norm is already very close to zero, the column is already zeroed.
+    if (sigma < 1e-14) {
+        beta = 0.0;
+    } else {
+        const mu = Math.sqrt(Math.pow(pivot, 2) + sigma);
+        let val: number;
+        if (pivot <= 0) {
+            val = pivot - mu;
+        } else {
+            val = -sigma / (pivot + mu);
+        }
+        const sval = Math.pow(val, 2);
+        lower_column.s(val, 0, 0);
+        beta = 2 * sval / (sigma + sval)
+        lower_column = lower_column.div(val);
+    }
+
+    return [lower_column, beta];
+}
+
+/**
+ * Calculate the full Householder transformation from just the vector.
+ */
+export function full_householder_matrix(w: tensor, m: number, beta: number): tensor {
+    let h = tensor.eye(m);
+    // console.log(h);
+    const [i, _] = w.shape;
+    const col = m - i;
+    const squared = tensor.matmul_2d(w, w.transpose());
+    const w_beta = squared.mult(beta);
+    const diff = h.slice([col, null], [col, null]).sub(w_beta);
+    console.log(diff.to_nested_array());
+    h.s(diff, [col, null], [col, null]);
+
+    return h;
+
+}
+
+
+// def house_bidiag_explicit_UV(A):
+//     m,n = A.shape
+//     assert m >= n
+//     U,Vt = np.eye(m), np.eye(n)
+
+//     for col in xrange(n):
+//         v, beta = make_house_vec(A[col:,col])
+//         A[col:,col:] = (np.eye(m-col) - beta * np.outer(v,v)).dot(A[col:,col:])
+//         Q = full_house(m, col, v, beta)
+//         U = U.dot(Q)
+        
+//         if col <= n-2:
+//             # transpose here, reflection for zeros above diagonal in A
+//             # col+1 keeps us off the super diagonal
+//             v,beta = make_house_vec(A[col,col+1:].T)
+//             A[col:,col+1:] = A[col:, col+1:].dot(np.eye(n-(col+1)) - beta * np.outer(v,v))
+//             P = full_house(n, col+1, v, beta)
+//             Vt = P.dot(Vt)
+//     return U, A, Vt
+
+// def full_house(n, col, v, beta):
+//     ''' for size n, apply a Householder vector v in the lower right corner of
+//         I_n to get a full-sized matrix with a smaller Householder matrix component'''
+//     full = np.eye(n)
+//     full[col:, col:] -= beta * np.outer(v,v)
+//     return full
+
+/**
+ * Calculate the Householder vector to zero out a row.
  * Based on the algorithm given in Burden and Faires, Chapter 9.
  * Note that only the *non-zero* entries of the w vector are returned, since these
  * are all that is required to calculate the Householder matrix.
@@ -261,27 +365,70 @@ function householder_qr(A: tensor) {
  * @param i - The row index of the pivot.
  * @param j - The column index of the pivot.
  */
-export function householder_vector(a: tensor, i: number, j: number): tensor {
-    let lower_column = tensor.copy(a.slice([i, null], [j, j + 1]));
+export function householder_row_vector(a: tensor, i: number, j: number): tensor {
+    let lower_column = tensor.copy(a.slice([i, i + 1], [j, null]));
     // @ts-ignore
     const norm = l2(lower_column);
     // If the norm is already very close to zero, the column is already zeroed.
     if (norm < 1e-14) {
+        // TODO: In this case we should return the zero vector.
         throw new Error();
     } else {
         const pivot: number = a.g(i, j);
         const sign: number = pivot >= 0 ? 1 : -1;
         const alpha = -sign * norm;
-        const r = Math.sqrt(0.5 * alpha - 0.5 * pivot * alpha);
-        lower_column.s([0, 0], lower_column.g(0, 0) - alpha);
-        lower_column.s([null, null], lower_column.div(2 * r));
+        const r = Math.sqrt(0.5 * alpha * (alpha - pivot));
+        lower_column.s(lower_column.g(0, 0) - alpha, 0, 0);
+        lower_column = lower_column.div(2 * r);
 
         return lower_column;
     }
 }
 
-function householder_bidiagonal(a: tensor) {
-    throw new Error();
+/**
+ * Reduce an [m, n] matrix to bidiagonal form using Householder transformations.
+ */
+export function householder_bidiagonal(a: tensor): [tensor, tensor, tensor] {
+
+    const [m, n] = a.shape;
+    if (m < n) {throw new Error(`SVD needs a tall triangular matrix. Got (${m}, ${n})`);}
+
+    let u = tensor.eye(m);
+    let v = tensor.eye(n);
+
+    for (let col = 0; col < n; col++) {
+        const [w, beta] = householder_vector(a, col+1, col);
+        // TODO: This can be optimized by just iterating over the transpose.
+        const w_square = tensor.matmul_2d(w, w.transpose());
+        // Householder matrix to zero out col.
+        const householder_matrix = tensor.eye(m - col).sub(w_square);
+        const a_col_slice = a.slice([col, null], [col, null]);
+        const lower_slice = tensor.matmul_2d(householder_matrix, a_col_slice);
+        a.s(lower_slice, [col, null], [col, null]);
+        // console.log(a);
+
+        let q = tensor.eye(m);
+        const diff = q.slice([col, null], [col, null]).sub(w_square);
+        q.s(diff, [col, null], [col, null]);
+
+        u = tensor.matmul_2d(u, q);
+
+        if (col <= n - 2) {
+            const row_w = householder_row_vector(a, col, col+1);
+            const row_w_square = tensor.matmul_2d(row_w, row_w.transpose());
+            const householder_row_matrix = tensor.eye(n - (col + 1)).sub(row_w_square);
+            const a_row_slice = a.slice([col, null], [col + 1, null]);
+            const row_prod = tensor.matmul_2d(a_row_slice, householder_row_matrix);
+            a.s(row_prod, [col, null], [col + 1, null]);
+
+            let p = tensor.eye(n);
+            const p_diff = p.slice([col + 1, null], [col + 1, null]);
+            p.s(p_diff, [col + 1, null], [col + 1, null]);
+            v = tensor.matmul_2d(p, v)
+        }
+    }
+
+    return [u, a, v];
 }
 
 function pivoted_householder(a: tensor): [tensor, Uint32Array] {
