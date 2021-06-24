@@ -102,8 +102,9 @@ describe('Decompositions.', () =>  {
                     [4, 9, 14],
                     [5, 10, 15]
                 ]);
-                const [v, b] = linalg.householder_col_vector(a, 1, 0);
-                expect(v.shape[0]).toBe(4);
+                const [v, b] = linalg.householder_col_vector(a, 0, 0);
+                console.log(v);
+                expect(v.shape[0]).toBe(5);
                 expect(v.shape[1]).toBe(1)
                 const q = linalg.full_h_col_matrix(v, 5, b);
                 const prod = tensor.matmul_2d(q, a);
@@ -157,7 +158,10 @@ describe('Decompositions.', () =>  {
                     [5, 10, 15, 100]
                 ]);
                 let [u, s, v] = linalg.householder_bidiagonal(a);
-                console.log(s.to_nested_array())
+                const b = tensor.matmul_2d(u, tensor.matmul_2d(s, v.transpose()));
+                expect(a.is_close(b).all()).toBe(true);
+                // TODO: Testing: Check that b is bidiagonal.
+                // TODO: Testing: Check that U and V are proper Householder transforms
             })
         })
 
@@ -192,5 +196,9 @@ describe('Decompositions.', () =>  {
             });
         });
     });
+  });
+
+  describe('Singular value decomposition.', function() {
+
   });
 })

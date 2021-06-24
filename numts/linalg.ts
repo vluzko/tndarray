@@ -311,6 +311,8 @@ export function householder_row_vector(a: tensor, i: number, j: number): [tensor
  * Note that only the *non-zero* entries of the w vector are returned, since these
  * are all that is required to calculate the Householder matrix.
  * Algorithm 5.1.1 in Golub & van Loan, 4th Edition.
+ * TODO: Optimization: Pass sigma in directly so we don't need the first component of the vector
+ * (which always ends up equal to 1)
  */
 function compute_householder(vec: tensor, pivot: number): [tensor, number] {
     const sigma = <number>vec.reduce((x, y) => x + Math.pow(y, 2), 0) - Math.pow(pivot, 2);
@@ -398,6 +400,8 @@ export function full_h_row_matrix(w: tensor, m: number, beta: number): tensor {
 
 /**
  * Reduce an [m, n] matrix to bidiagonal form using Householder transformations.
+ * TODO: Optimization: Use the zeroed entries of the matrix to store the Householder transforms
+ * (as suggested by GVL)
  */
 export function householder_bidiagonal(original: tensor): [tensor, tensor, tensor] {
     let a = tensor.copy(original);
@@ -410,21 +414,28 @@ export function householder_bidiagonal(original: tensor): [tensor, tensor, tenso
     for (let col = 0; col < n; col++) {
 
         // Zero out the column.
-        const [w, beta] = householder_col_vector(a, col+1, col);
+        const [w, beta] = householder_col_vector(a, col, col);
         // TODO: Optimization: This can be optimized by just iterating over the transpose.
+        // TODO: Optimization: The first row and column of this difference are always
+        // just copies of w, since w[0] = 1.0
         const w_square = tensor.matmul_2d(w, w.transpose()).mult(beta);
         // Householder matrix to zero out col.
         // TODO: Optimization: Compute the Householder matrix as it's being created.
         let householder_matrix = tensor.eye(m - col);
-        const householder_slice = householder_matrix.slice([1, null], [1, null]);
-        householder_matrix.s(householder_slice.sub(w_square), [1, null], [1, null])
+        const diff = householder_matrix.sub(w_square);
+        householder_matrix.s(diff, [0, null], [0, null])
         const a_col_slice = a.slice([col, null], [col, null]);
         const lower_slice = tensor.matmul_2d(householder_matrix, a_col_slice);
         a.s(lower_slice, [col, null], [col, null]);
 
         // Update U
-        const u_update = tensor.matmul_2d(householder_matrix, u.slice([col, null], [col, null]));
-        u.s(u_update, [col, null], [col, null]);
+        // TODO: Optimization: The fact that the first (col - 1) rows/columns of the
+        // Householder matrix are just an identity matrix means this can be optimized.
+        // The first (col - 1) columns of u will not be updated by this.
+        // (This may change if doing fat matrices, I'm not sure)
+        let full_house_m = tensor.eye(m);
+        full_house_m.s(householder_matrix, [col, null], [col, null]);
+        u = tensor.matmul_2d(u, full_house_m);
 
         // Zero out the row.
         if (col <= n - 2) {
