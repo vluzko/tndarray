@@ -145,14 +145,21 @@ export function svd(a: tensor): [tensor, tensor, tensor] {
     const n = a.shape[1];
 
     // Express A as U_1 x B x V_1
-    const b = householder_bidiagonal(a);
+    let [u, s, v] = householder_bidiagonal(a);
 
-    // Convert b to diagonal form U x Sigma x V
-
-    // Express A as U_1 U_k Sigma V_k V_1
+    // Use Givens rotations to diagonalize s.
+    let givens: tensor;
+    for (let i = 0; i < m; i++) {
+        // Eliminate right of diagonal
+        [givens, s] = givens_rotation_row(s, i, i+1);
+        v = tensor.matmul_2d(givens, v);
+        // Eliminate new entry under diagonal
+        [givens, s] = givens_rotation_up(s, i, i+1);
+        u = tensor.matmul_2d(u, givens);
+    }
 
     // U_1 U_k and V_k V_1 are U and V respectively
-    throw new Error();
+    return [u, s, v]
 }
 
 /**
@@ -369,38 +376,11 @@ export function full_h_row_matrix(w: tensor, m: number, beta: number): tensor {
 
 }
 
-// /**
-//  * Calculate the Householder vector to zero out a row.
-//  * Based on the formula given in Burden and Faires, Chapter 9 (page 596).
-//  * Note that only the *non-zero* entries of the w vector are returned, since these
-//  * are all that is required to calculate the Householder matrix.
-//  * @param a - The matrix to transform. Transformation is done in place.
-//  * @param i - The row index of the pivot.
-//  * @param j - The column index of the pivot.
-//  */
-// export function householder_col_vector(a: tensor, i: number, j: number): tensor {
-//     let lower_column = tensor.copy(a.slice([i, null], [j, j+1]));
-//     // @ts-ignore
-//     const norm = l2(lower_column);
-//     // If the norm is already very close to zero, the column is already zeroed.
-//     if (norm < 1e-14) {
-//         // TODO: In this case we should return the zero vector.
-//         throw new Error();
-//     } else {
-//         const pivot: number = a.g(i, j);
-//         const sign: number = pivot >= 0 ? 1 : -1;
-//         const alpha = -sign * norm;
-//         const r = Math.sqrt(0.5 * alpha * (alpha - pivot));
-//         lower_column.s(lower_column.g(0, 0) - alpha, 0, 0);
-//         lower_column = lower_column.div(2 * r);
-
-//         return lower_column;
-//     }
-// }
-
 /**
  * Reduce an [m, n] matrix to bidiagonal form using Householder transformations.
+ * This is Golub-Kahan bidiagonalization.
  * TODO: Optimization: Use the zeroed entries of the matrix to store the Householder transforms
+ * TODO: Optimization: Run Lawson-Hanson-Chan insteadif m > 5/3n
  * (as suggested by GVL)
  */
 export function householder_bidiagonal(original: tensor): [tensor, tensor, tensor] {
@@ -436,56 +416,6 @@ export function householder_bidiagonal(original: tensor): [tensor, tensor, tenso
         let full_house_m = tensor.eye(m);
         full_house_m.s(householder_matrix, [col, null], [col, null]);
         u = tensor.matmul_2d(u, full_house_m);
-
-        // Zero out the row.
-        if (col <= n - 2) {
-            const [w, beta] = householder_row_vector(a, col, col+1);
-            const w_square = tensor.matmul_2d(w.transpose(), w).mult(beta);
-            let householder_matrix = tensor.eye(n - col);
-            const householder_slice = householder_matrix.slice([1, null], [1, null]);
-            householder_matrix.s(householder_slice.sub(w_square), [1, null], [1, null])
-            const a_col_slice = a.slice([col, null], [col, null]);
-            const lower_slice = tensor.matmul_2d(a_col_slice, householder_matrix);
-            a.s(lower_slice, [col, null], [col, null]);
-
-            // Update V
-            const v_update = tensor.matmul_2d(v.slice([col, null], [col, null]), householder_matrix);
-            v.s(v_update, [col, null], [col, null]);
-        }
-    }
-
-    return [u, a, v];
-}
-
-/**
- * Compute a Householder upper diagonalization.
- */
-export function householder_upper_diag(original: tensor): [tensor, tensor, tensor] {
-    let a = tensor.copy(original);
-    const [m, n] = a.shape;
-    if (m < n) {throw new Error(`SVD needs a tall triangular matrix. Got (${m}, ${n})`);}
-
-    let u = tensor.eye(m);
-    let v = tensor.eye(n);
-
-    for (let col = 0; col < n; col++) {
-
-        // Zero out the column.
-        const [w, beta] = householder_col_vector(a, col, col);
-        // TODO: Optimization: This can be optimized by just iterating over the transpose.
-        const w_square = tensor.matmul_2d(w, w.transpose()).mult(beta);
-        // Householder matrix to zero out col.
-        // TODO: Optimization: Compute the Householder matrix as it's being created.
-        let householder_matrix = tensor.eye(m - col);
-        const householder_slice = householder_matrix.slice([1, null], [1, null]);
-        householder_matrix.s(householder_slice.sub(w_square), [1, null], [1, null])
-        const a_col_slice = a.slice([col, null], [col, null]);
-        const lower_slice = tensor.matmul_2d(householder_matrix, a_col_slice);
-        a.s(lower_slice, [col, null], [col, null]);
-
-        // Update U
-        const u_update = tensor.matmul_2d(householder_matrix, u.slice([col, null], [col, null]));
-        u.s(u_update, [col, null], [col, null]);
 
         // Zero out the row.
         if (col <= n - 2) {
@@ -597,7 +527,7 @@ function givens_qr(A: tensor): [tensor, tensor] {
  * @param i - The row to rotate to.
  * @param j - The row to rotate from, and the column.
  */
-function givens_rotation_up(A: tensor, i: number, j: number): [tensor, tensor] {
+export function givens_rotation_up(A: tensor, i: number, j: number): [tensor, tensor] {
     const bottom_val = A.g(j, i);
     const top_val = A.g(i, i);
     const r = Math.sqrt(Math.pow(bottom_val, 2) + Math.pow(top_val, 2));
@@ -611,6 +541,26 @@ function givens_rotation_up(A: tensor, i: number, j: number): [tensor, tensor] {
     G.s(-s, j, i);
 
     const R = tensor.matmul_2d(G, A);
+    return [G, R];
+}
+
+/**
+ * Use Givens rotation to zero out a row entry against its diagonal.
+ */
+export function givens_rotation_row(A: tensor, i: number, j: number): [tensor, tensor] {
+    const diagonal = A.g(i, i);
+    const right_val = A.g(i, j);
+    const r = Math.sqrt(Math.pow(right_val, 2) + Math.pow(diagonal, 2));
+    const s = right_val / r;
+    const c = diagonal / r;
+    const [m, n] = A.shape;
+    let G = tensor.eye(m);
+    G.s(c, i, i);
+    G.s(c, j, j);
+    G.s(-s, i, j);
+    G.s(s, j, i);
+
+    const R = tensor.matmul_2d(A, G);
     return [G, R];
 }
 
