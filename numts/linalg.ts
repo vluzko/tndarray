@@ -147,30 +147,48 @@ export function svd(a: tensor): [tensor, tensor, tensor] {
     // Express A as U_1 x B x V_1
     let [u, s, v] = householder_bidiagonal(a);
 
-    // Use Givens rotations to diagonalize s.
-    let givens: tensor;
-    for (let i = 0; i < m-1; i++) {
-        console.log(`Row: ${i}`);
-        // if (i == 2) debugger;
-        // Skip this row if it's already zeroed
-        if (s.g(i, i+1) == 0) {
-            continue
-        } else {
-            // Eliminate right of diagonal
-            [givens, s] = givens_rotation_row(s, i, i+1);
-            v = tensor.matmul_2d(givens, v);
+    const epsilon = 0.00001
+    let done = false;
+    while (!done) {
+        // Zero out small superdiagonal entries
 
-            // Eliminate new entry under diagonal
-            [givens, s] = givens_rotation_up(s, i, i+1);
-            // console.log(s.g(i+1, i))
-
-            u = tensor.matmul_2d(u, givens);
-        }
+        // Sweep
     }
+    // Use Givens rotations to diagonalize s.
+    // let givens: tensor;
+    // for (let i = 0; i < m-1; i++) {
+    //     console.log(`Row: ${i}`);
+    //     // if (i == 2) debugger;
+    //     // Skip this row if it's already zeroed
+    //     if (s.g(i, i+1) == 0) {
+    //         continue
+    //     } else {
+    //         // Eliminate right of diagonal
+    //         [givens, s] = givens_rotation_row(s, i, i+1);
+    //         v = tensor.matmul_2d(givens, v);
+
+    //         // Eliminate new entry under diagonal
+    //         [givens, s] = givens_rotation_up(s, i, i+1);
+    //         // console.log(s.g(i+1, i))
+
+    //         u = tensor.matmul_2d(u, givens);
+    //     }
+    // }
 
     // U_1 U_k and V_k V_1 are U and V respectively
     return [u, s, v]
 }
+
+/**
+ * Sweep the superdiagonal of a matrix with Givens rotations.
+ */
+export function svd_sweep(b: tensor): [tensor, tensor, tensor] {
+    // Givens rotation of first superdiagonal
+    // Givens rotation of first subdiagonal
+    // Iterate
+    throw new Error('Not implemented')
+}
+
 
 /**
  * LU decomposition of a square matrix.
