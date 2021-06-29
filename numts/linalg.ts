@@ -153,6 +153,7 @@ export function svd(a: tensor): [tensor, tensor, tensor] {
         // Zero out small superdiagonal entries
 
         // Sweep
+        break;
     }
     // Use Givens rotations to diagonalize s.
     // let givens: tensor;
