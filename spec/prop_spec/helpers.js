@@ -1,6 +1,6 @@
 const fc = require('fast-check');
-const tensor = require('../numts/tensor').tensor;
-const indexing = require('../numts/indexing').indexing;
+const tensor = require('../../numts/tensor').tensor;
+const indexing = require('../../numts/indexing').indexing;
 
 const BROADCAST_ONE_DIM_PROB = 0.1;
 

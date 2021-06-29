@@ -199,23 +199,23 @@ describe('Decompositions.', () =>  {
     });
 
     describe('Singular value decomposition.', function() {
-        test('Basic test.', () => {
+        fit('Basic test.', () => {
             const a = numts.from_nested_array([
-                [1, 6,  11, 16],
-                [2, 7, 12, 17],
-                [3, 8, 13, 0.5],
-                [4, 9, 14, 0.1],
-                [5, 10, 15, 100]
+                [1, 2, 3, 4],
+                [3.5, 2.7, -1, 2],
+                [0.2, 6.7, 10, 15],
+                [-3.6, 2.6, 1, -1]
             ]);
-
+            console.log(a.to_nested_array())
             const [u, s, v] = linalg.svd(a);
+            console.log(s.to_nested_array());
         });
     });
 });
 
 describe('Helper functions.', () => {
     describe('Givens rotations.', () => {
-        fit('Column test.', () => {
+        test('Column test.', () => {
             const a = numts.from_nested_array([
                 [1, 0, 0],
                 [2, 1, 0],
@@ -225,7 +225,7 @@ describe('Helper functions.', () => {
             expect(r.g(1, 0)).toBe(0);
         })
 
-        fit('Row test.', () => {
+        test('Row test.', () => {
             const a = numts.from_nested_array([
                 [1, 2, 0],
                 [0, 1, 0],
@@ -234,5 +234,17 @@ describe('Helper functions.', () => {
             const [g, r] = linalg.givens_rotation_row(a, 0, 1);
             expect(r.g(0, 1)).toBe(0);
         })
-    })
+
+        describe('Givens values.', () => {
+            test('Basic tests.', () => {
+                let [c, s] = linalg.givens_values(2, 2);
+                expect(Math.abs(c - 0.707106)).toBeLessThan(0.0001)
+                expect(Math.abs(s - -0.707106)).toBeLessThan(0.0001)
+
+                [c, s] = linalg.givens_values(2, 2);
+                expect(Math.abs(c - 0.707106)).toBeLessThan(0.0001)
+                expect(Math.abs(s - -0.707106)).toBeLessThan(0.0001)
+            })
+        })
+    });
 })

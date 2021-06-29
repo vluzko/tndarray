@@ -100,19 +100,19 @@ def hbd_simple(A):
             apply_house_right(A[col:, col+1:], v, beta_v, Vt, n)
     return U, A, Vt
 
-a = np.array([
-    [1, 6,  11, 16],
-    [2, 7, 12, 17],
-    [3, 8, 13, 0.5],
-    [4, 9, 14, 0.1],
-    [5, 10, 15, 100]
-], dtype=np.float64)
+# a = np.array([
+#     [1, 6,  11, 16],
+#     [2, 7, 12, 17],
+#     [3, 8, 13, 0.5],
+#     [4, 9, 14, 0.1],
+#     [5, 10, 15, 100]
+# ], dtype=np.float64)
 
-u, b, v = house_bidiag_explicit_UV(a)
-print(u)
-# print(v)
-import pdb
-pdb.set_trace()
+# u, b, v = house_bidiag_explicit_UV(a)
+# print(u)
+# # print(v)
+# import pdb
+# pdb.set_trace()
 
 # u1, b1, _ = hbd_simple(a)
 # print(b1)
@@ -127,3 +127,9 @@ pdb.set_trace()
 
 # vec, beta = make_house_vec(a[0:, 0])
 # print(vec)
+
+
+a = np.arange(16).reshape(4, 4)
+u, s, v = np.linalg.svd(a)
+print(s)
+print(u)

@@ -12,7 +12,7 @@
   },
   "include": [
     "numts/*.ts",
-    "prop_spec/*.ts",
+    "spec/prop_spec/*.ts",
     "spec/*.ts"
   ],
   "exclude": [

@@ -1,6 +1,6 @@
 const call_python = require('./call_python');
-const tensor = require('../numts/tensor').tensor;
-const numts = require('../numts/numts');
+const tensor = require('../../numts/tensor').tensor;
+const numts = require('../../numts/numts');
 const helpers = require('./helpers');
 
 // test('temp.', () => {
